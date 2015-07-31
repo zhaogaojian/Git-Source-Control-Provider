@@ -3,9 +3,8 @@ Git Source Control Provider
 
 Introduction
 ------------
-This Visual Studio Extensions integrates Git with Visual Studio solution explorer. It supports all editions of Visual studio 2010 except the Express Edition.
-
-[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=KBCLF3PZD6C98&lc=US&item_name=Git%20Source%20Control%20Provider&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
+This Visual Studio Extensions integrates Git with Visual Studio solution explorer. 
+ <p>This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c"> git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&f[0].Value=yysun">Yiyi Sun </a> </p>
 
 ![solution explorer](http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874)
 
@@ -36,6 +35,6 @@ How to use
 
 Documentation
 -----------------
-[Documentation](http://gitscc.codeplex.com/documentation)
-[Change Logs](http://gitscc.codeplex.com/releases/view/46589)
-[Project Roadmap](http://gitscc.codeplex.com/wikipage?title=Project%20Roadmap)
+[Source + Documentation](https://github.com/jzoss/Git-Source-Control-Provider)
+
+
