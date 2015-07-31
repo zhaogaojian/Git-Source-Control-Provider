@@ -9,7 +9,7 @@
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
@@ -51,28 +51,120 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="BasicSccProvider.cs" />
+    <Compile Include="CommandId.cs" />
+    <Compile Include="Diff\BackgroundParser.cs" />
+    <Compile Include="Diff\DiffAdditionEditorFormatDefinition.cs" />
+    <Compile Include="Diff\DiffFormatNames.cs" />
+    <Compile Include="Diff\DiffMargin.cs" />
+    <Compile Include="Diff\DiffMarginEnabled.cs" />
+    <Compile Include="Diff\DiffMarginFactory.cs" />
+    <Compile Include="Diff\DiffModificationEditorFormatDefinition.cs" />
+    <Compile Include="Diff\DiffParseResultEventArgs.cs" />
+    <Compile Include="Diff\DiffRemovedEditorFormatDefinition.cs" />
+    <Compile Include="Diff\DiffUpdateBackgroundParser.cs" />
+    <Compile Include="Diff\GitCommands.cs" />
+    <Compile Include="Diff\GitTextViewOptions.cs" />
+    <Compile Include="Diff\HunkRange.cs" />
+    <Compile Include="Diff\HunkRangeInfo.cs" />
+    <Compile Include="Diff\IGitCommands.cs" />
+    <Compile Include="Diff\ParseResultEventArgs.cs" />
+    <Compile Include="Diff\ViewModel\DiffMarginViewModel.cs" />
+    <Compile Include="Diff\ViewModel\DiffViewModel.cs" />
+    <Compile Include="Diff\View\DiffMarginControl.xaml.cs">
+      <DependentUpon>DiffMarginControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Diff\WeakReference.cs" />
+    <Compile Include="ExceptionExtensions.cs" />
+    <Compile Include="GitSccOptions.cs" />
+    <Compile Include="GitToolCommands.cs" />
+    <Compile Include="GlobalCommandHook.cs" />
+    <Compile Include="Guids.cs" />
+    <Compile Include="PendingChangesToolWindow.cs" />
+    <Compile Include="PendingChangesView.xaml.cs">
+      <DependentUpon>PendingChangesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PlatformUI\HeaderColors.cs" />
+    <Compile Include="PlatformUI\PlatformColorHelper.cs" />
+    <Compile Include="PlatformUI\TreeViewColors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ProvideSourceControlProvider.cs" />
+    <Compile Include="ProvideToolsOptionsPageVisibility.cs" />
+    <Compile Include="SccGlyphsHelper.cs" />
+    <Compile Include="SccOnIdleEvent.cs" />
+    <Compile Include="SccProviderOptions.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="SccProviderOptionsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SccProviderService.cs" />
+    <Compile Include="Schedulers\QueuedTaskScheduler.cs" />
+    <Compile Include="TaskExtensions.cs" />
+    <Compile Include="ToolWindowWithEditor.cs" />
+    <Compile Include="UI\BranchPicker.xaml.cs">
+      <DependentUpon>BranchPicker.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\GitConsole.xaml.cs">
+      <DependentUpon>GitConsole.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\GitIntellisenseHelper.cs" />
+    <Compile Include="UI\Settings.xaml.cs">
+      <DependentUpon>Settings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="ViewModel\ViewModelLocator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+    <None Include="Dragon.pkg" />
     <None Include="Key.snk" />
     <None Include="packages.config" />
-    <None Include="source.extension.vsixmanifest">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Diff\Resources\CopyOldText.png" />
+    <Content Include="Diff\Resources\NextArrow.png" />
+    <Content Include="Diff\Resources\PreviousArrow.png" />
+    <Content Include="Diff\Resources\Rollback.png" />
     <Content Include="index.html" />
     <Content Include="License.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Resources\Compare.png" />
+    <Content Include="Resources\History.png" />
+    <Content Include="Resources\Images_24bit.bmp" />
+    <Content Include="Resources\Images_32bit.bmp" />
+    <Content Include="Resources\Images_32bit.png" />
+    <Resource Include="Resources\Loading.png" />
+    <Content Include="Resources\PendingCheckins.png" />
+    <None Include="Resources\Product.ico" />
+    <Content Include="Resources\Refresh.png" />
+    <Content Include="Resources\SccGlyphs.bmp" />
+    <Content Include="Resources\SccGlyphs2012.png" />
+    <Content Include="Resources\Switch.png" />
     <Content Include="Resources\ToolWindowWithEditorCommand.png" />
     <Content Include="Resources\ToolWindowWithEditorPackage.ico" />
+    <Content Include="Resources\UndoCheckout.png" />
     <Content Include="solution explorer.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
     <Content Include="stylesheet.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <VSCTCompile Include="PkgCmd.vsct">
+      <ResourceName>1000</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -87,11 +179,30 @@
     <Reference Include="EnvDTE90, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
+    <Reference Include="GalaSoft.MvvmLight, Version=5.1.1.35049, Culture=neutral, PublicKeyToken=e7570ab207bcb616, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvvmLightLibs.5.1.1.0\lib\net45\GalaSoft.MvvmLight.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.Extras, Version=5.1.1.35049, Culture=neutral, PublicKeyToken=669f0b5e8f868abf, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvvmLightLibs.5.1.1.0\lib\net45\GalaSoft.MvvmLight.Extras.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.Platform, Version=5.1.1.35053, Culture=neutral, PublicKeyToken=5f873c45e98af8a1, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvvmLightLibs.5.1.1.0\lib\net45\GalaSoft.MvvmLight.Platform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommonServiceLocator.1.3\lib\portable-net4+sl5+netcore45+wpa81+wp8\Microsoft.Practices.ServiceLocation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.CommandBars, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Editor, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.Imaging.14.0.23107\lib\net45\Microsoft.VisualStudio.Imaging.dll</HintPath>
       <Private>True</Private>
@@ -147,6 +258,10 @@
       <HintPath>..\packages\Microsoft.VisualStudio.Shell.Interop.9.0.9.0.30729\lib\Microsoft.VisualStudio.Shell.Interop.9.0.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\Microsoft.VisualStudio.TextManager.Interop.7.10.6070\lib\Microsoft.VisualStudio.TextManager.Interop.dll</HintPath>
       <Private>True</Private>
@@ -169,17 +284,105 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="PresentationFramework.Aero" />
+    <Reference Include="PresentationFramework.Aero2" />
+    <Reference Include="PresentationFramework.AeroLite" />
+    <Reference Include="PresentationFramework.Classic" />
+    <Reference Include="PresentationFramework.Luna" />
+    <Reference Include="PresentationFramework.Royale" />
     <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvvmLightLibs.5.1.1.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DiffClassifier\DiffClassifier.csproj">
+      <Project>{57d5e6bb-dc11-49cf-9f49-7c3f3ec11f09}</Project>
+      <Name>DiffClassifier</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GitApi\GitApi.csproj">
+      <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
+      <Name>GitApi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GitUI\GitUI.csproj">
+      <Project>{c756204f-28e1-473a-8160-e697e3303f1b}</Project>
+      <Name>GitUI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GitUI\ICSharpCode.AvalonEdit\ICSharpCode.AvalonEdit.csproj">
+      <Project>{6c55b776-26d4-4db3-a6ab-87e783b2f3d1}</Project>
+      <Name>ICSharpCode.AvalonEdit</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GitUI\Microsoft.Windows.Shell\Microsoft.Windows.Shell.csproj">
+      <Project>{55d5297c-f1df-4b76-a3c1-d82cc294eebb}</Project>
+      <Name>Microsoft.Windows.Shell</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GitUI\ZoomAndPan\ZoomAndPan.csproj">
+      <Project>{468adede-6f5e-40c0-99c9-c6dac4fac934}</Project>
+      <Name>ZoomAndPan</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ngit\NGit\NGit.csproj">
+      <Project>{e3bff8b4-189c-496a-a817-7e8b31e22b91}</Project>
+      <Name>NGit</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ngit\NSch\NSch.csproj">
+      <Project>{a19e6f3f-a25b-4b01-8922-cf0cc35c781d}</Project>
+      <Name>NSch</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ngit\Sharpen\Sharpen.csproj">
+      <Project>{72944a6c-45ff-4ef8-b349-8c9cabf519d4}</Project>
+      <Name>Sharpen</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Diff\View\DiffMarginControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="PendingChangesView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ResourceDictionary.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\BranchPicker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\GitConsole.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Settings.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="PendingChangesToolWindow.resx">
+      <DependentUpon>PendingChangesToolWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <MergeWithCTO>true</MergeWithCTO>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SccProviderOptionsControl.resx">
+      <DependentUpon>SccProviderOptionsControl.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
