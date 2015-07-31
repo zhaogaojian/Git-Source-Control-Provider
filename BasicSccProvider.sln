@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22823.1
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicSccProvider", "BasicSccProvider.csproj", "{ADECE07A-5D80-4950-9DA5-A681CE2F5106}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -36,6 +36,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoomAndPan", "GitUI\ZoomAndPan\ZoomAndPan.csproj", "{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Windows.Shell", "GitUI\Microsoft.Windows.Shell\Microsoft.Windows.Shell.csproj", "{55D5297C-F1DF-4B76-A3C1-D82CC294EEBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitSccProvider", "GitSccProvider\GitSccProvider.csproj", "{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,6 +115,14 @@ Global
 		{55D5297C-F1DF-4B76-A3C1-D82CC294EEBB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{55D5297C-F1DF-4B76-A3C1-D82CC294EEBB}.Release|x86.ActiveCfg = Release|x86
 		{55D5297C-F1DF-4B76-A3C1-D82CC294EEBB}.Release|x86.Build.0 = Release|x86
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Debug|x86.Build.0 = Debug|Any CPU
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Release|x86.ActiveCfg = Release|Any CPU
+		{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
