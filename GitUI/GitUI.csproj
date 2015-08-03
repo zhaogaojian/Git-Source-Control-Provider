@@ -244,7 +244,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy GitUI.exe "$(SolutionDir)Dragon.pkg"</PostBuildEvent>
+    <PostBuildEvent>copy GitUI.exe "$(SolutionDir)\GitSccProvider\Dragon.pkg"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>copy "$(SolutionDir)GitApi\bin\$(ConfigurationName)\*.dll" ..\..\Resources</PreBuildEvent>
