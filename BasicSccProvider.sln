@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicSccProvider", "BasicSccProvider.csproj", "{ADECE07A-5D80-4950-9DA5-A681CE2F5106}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C756204F-28E1-473A-8160-E697E3303F1B} = {C756204F-28E1-473A-8160-E697E3303F1B}
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9B2F3727-28C1-4D1B-951E-BA1AB452DA67}"
 	ProjectSection(SolutionItems) = preProject
 		BasicSccProvider.vsmdi = BasicSccProvider.vsmdi
@@ -47,12 +42,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{ADECE07A-5D80-4950-9DA5-A681CE2F5106}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADECE07A-5D80-4950-9DA5-A681CE2F5106}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADECE07A-5D80-4950-9DA5-A681CE2F5106}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{ADECE07A-5D80-4950-9DA5-A681CE2F5106}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADECE07A-5D80-4950-9DA5-A681CE2F5106}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADECE07A-5D80-4950-9DA5-A681CE2F5106}.Release|x86.ActiveCfg = Release|Any CPU
 		{E3BFF8B4-189C-496A-A817-7E8B31E22B91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E3BFF8B4-189C-496A-A817-7E8B31E22B91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3BFF8B4-189C-496A-A817-7E8B31E22B91}.Debug|x86.ActiveCfg = Debug|Any CPU
