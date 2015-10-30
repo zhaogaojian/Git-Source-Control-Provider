@@ -397,7 +397,7 @@ namespace GitScc
 
         private string GetTargetPath(GitToolCommand command)
         {
-            var workingDirectory = sccService.CurrentGitWorkingDirectory;
+            var workingDirectory = sccService.CurrentWorkingDirectory;
             if (command.Scope == CommandScope.Project) return workingDirectory;
             var fileName = sccService.GetSelectFileName();
             if (fileName == sccService.GetSolutionFileName()) return workingDirectory;
@@ -468,7 +468,7 @@ namespace GitScc
 
             if (File.Exists(tmpPath) && sccService.CurrentTracker != null)
             {
-                Process.Start(tmpPath, "\"" + sccService.CurrentTracker.GitWorkingDirectory + "\"");
+                Process.Start(tmpPath, "\"" + sccService.CurrentTracker.WorkingDirectory + "\"");
             }
         }
 
@@ -488,12 +488,12 @@ namespace GitScc
 
         private void OnSwitchBranchCommand(object sender, EventArgs e)
         {
-            if (sccService.CurrentTracker == null || sccService.CurrentTracker.Repository == null) return;
-
-            var branchPicker = new BranchPicker(
-                sccService.CurrentTracker.Repository,
-                sccService.CurrentTracker.RepositoryGraph.Refs);
-            branchPicker.Show();
+            if (sccService.CurrentTracker == null || sccService.CurrentTracker.IsGit) return;
+            //TODO
+            //var branchPicker = new BranchPicker(
+            //    sccService.CurrentTracker.Repository,
+            //    sccService.CurrentTracker.RepositoryGraph.Refs);
+            //branchPicker.Show();
         }
 
         private void OnCommitCommand(object sender, EventArgs e)
@@ -542,7 +542,7 @@ namespace GitScc
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
-                WorkingDirectory = sccService.CurrentGitWorkingDirectory ??
+                WorkingDirectory = sccService.CurrentWorkingDirectory ??
                     Path.GetDirectoryName(sccService.GetSolutionFileName())
             };
 
@@ -573,7 +573,7 @@ namespace GitScc
                 process.StartInfo.CreateNoWindow = false;
                 process.StartInfo.FileName = cmd;
                 process.StartInfo.Arguments = arguments;
-                process.StartInfo.WorkingDirectory = sccService.CurrentGitWorkingDirectory ??
+                process.StartInfo.WorkingDirectory = sccService.CurrentWorkingDirectory ??
                     Path.GetDirectoryName(sccService.GetSolutionFileName());
                 process.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
                 process.StartInfo.LoadUserProfile = true;

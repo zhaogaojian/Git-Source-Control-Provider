@@ -82,7 +82,7 @@ namespace GitUI
 			workingDirectory = directory;
 
 			tracker = new GitFileStatusTracker(directory);
-			if (tracker.HasGitRepository) directory = tracker.GitWorkingDirectory;
+			if (tracker.IsGit) directory = tracker.WorkingDirectory;
 
 			if (Directory.Exists(directory))
 			{
@@ -143,7 +143,7 @@ namespace GitUI
 		internal void Refresh(bool reload)
 		{
 			tracker.Refresh();
-			if (tracker.HasGitRepository)
+			if (tracker.IsGit)
 				tracker.RepositoryGraph.IsSimplified = showSimplifiedView;
 			GraphChanged(this, reload ? new EventArgs() : null); // use non-null to force reload
 		}
@@ -182,11 +182,11 @@ namespace GitUI
 			//}
 			//else
 			//{
-			//    var result = GitBash.Run(cmd, this.Tracker.GitWorkingDirectory);
+			//    var result = GitBash.Run(cmd, this.tracker.WorkingDirectory);
 			//    return result.Output;
 			//}
 
-			return GitBash.Run(cmd, this.Tracker.GitWorkingDirectory);
+			return GitBash.Run(cmd, this.tracker.WorkingDirectory);
 
 			//if (result.HasError && !string.IsNullOrWhiteSpace(result.Error)) 
 			//    throw new Exception(result.Error); // TODO: add GitExecutionException class
@@ -204,10 +204,10 @@ namespace GitUI
 			//}
 			//else
 			//{
-			//    GitBash.RunCmd(cmd, this.Tracker.GitWorkingDirectory);
+			//    GitBash.RunCmd(cmd, this.tracker.WorkingDirectory);
 			//}
 
-			GitBash.RunCmd(cmd, this.Tracker.GitWorkingDirectory);
+			GitBash.RunCmd(cmd, this.tracker.WorkingDirectory);
 		}
 
 		internal GitBashResult AddTag(string name, string id)

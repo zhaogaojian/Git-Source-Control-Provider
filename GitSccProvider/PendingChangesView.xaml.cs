@@ -13,6 +13,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Gitscc;
 using GitScc.UI;
 using CancellationToken = System.Threading.CancellationToken;
 using IVsTextView = Microsoft.VisualStudio.TextManager.Interop.IVsTextView;
@@ -226,7 +227,7 @@ namespace GitScc
             try
             {
                 var files = this.listView1.SelectedItems.Cast<GitFile>()
-                    .Select(item => System.IO.Path.Combine(this.tracker.GitWorkingDirectory, item.FileName))
+                    .Select(item => System.IO.Path.Combine(this.tracker.WorkingDirectory, item.FileName))
                     .ToList();
 
                 foreach (var fileName in files)
@@ -414,16 +415,9 @@ namespace GitScc
                     try
                     {
                         ShowStatusMessage("Committing ...");
-                        var result = tracker.Commit(Comments, false, chkSignOff.IsChecked == true);
-                        if (result.IsSha1)
-                        {
-                            ShowStatusMessage("Commit successfully. Commit Hash: " + result.Message);
-                            ClearUI();
-                        }
-                        else
-                        {
-                            errorMessage = result.Message;
-                        }
+                     
+                            tracker.Commit(Comments, false, chkSignOff.IsChecked == true);
+                       
                     }
                     catch (Exception ex)
                     {
@@ -491,7 +485,7 @@ Are you sure you want to continue?";
             int i = 0;
             foreach (var item in unstaged)
             {
-                tracker.StageFile(System.IO.Path.Combine(this.tracker.GitWorkingDirectory, item.FileName));
+                tracker.StageFile(System.IO.Path.Combine(this.tracker.WorkingDirectory, item.FileName));
                 ShowStatusMessage(string.Format("Staged ({0}/{1}): {2}", i++, count, item.FileName));
             }
 

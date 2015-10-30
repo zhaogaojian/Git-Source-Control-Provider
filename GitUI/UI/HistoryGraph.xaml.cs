@@ -16,6 +16,7 @@ using System.Windows.Xps.Packaging;
 using GitScc.DataServices;
 using GitUI;
 using System.Windows.Media.Animation;
+using Gitscc;
 
 namespace GitScc.UI
 {
@@ -114,7 +115,7 @@ namespace GitScc.UI
                     IList<GraphNode> commits = null;
                     string hash = null;
 
-                    if (tracker != null && tracker.HasGitRepository)
+                    if (tracker != null && tracker.IsGit)
                     {
                         commits = tracker.RepositoryGraph.Nodes;
                         hash = GetHashCode(commits);

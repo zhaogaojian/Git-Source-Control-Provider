@@ -732,14 +732,15 @@ namespace GitScc
 
         internal void CompareFile(string fileName)
         {
-            GitFileStatus status = GetFileStatus(fileName);
-            if (status == GitFileStatus.Modified || status == GitFileStatus.Staged)
-            {
-                string tempFile = Path.GetFileName(fileName);
-                tempFile = Path.Combine(Path.GetTempPath(), tempFile);
-                CurrentTracker.SaveFileFromRepository(fileName, tempFile);
-                _sccProvider.RunDiffCommand(tempFile, fileName);
-            }
+            //TODO Fix
+            //GitFileStatus status = GetFileStatus(fileName);
+            //if (status == GitFileStatus.Modified || status == GitFileStatus.Staged)
+            //{
+            //    string tempFile = Path.GetFileName(fileName);
+            //    tempFile = Path.Combine(Path.GetTempPath(), tempFile);
+            //    CurrentTracker.SaveFileFromRepository(fileName, tempFile);
+            //    _sccProvider.RunDiffCommand(tempFile, fileName);
+            //}
         }
 
         internal void UndoSelectedFile()
@@ -779,10 +780,10 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         internal void EditIgnore()
         {
-            if (this.CurrentTracker != null && this.CurrentTracker.HasGitRepository)
+            if (this.CurrentTracker != null && this.CurrentTracker.IsGit)
             {
                 var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
-                var fn = Path.Combine(this.CurrentTracker.GitWorkingDirectory, ".gitignore");
+                var fn = Path.Combine(this.CurrentTracker.WorkingDirectory, ".gitignore");
                 if (!File.Exists(fn)) File.WriteAllText(fn, "# git ignore file");
                 dte.ItemOperations.OpenFile(fn);
             }
@@ -860,14 +861,15 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
             //Debug.WriteLine("==== Adding project: " + projectDirecotry);
 
-            string gitfolder = GitFileStatusTracker.GetRepositoryDirectory(projectDirecotry);
+            var tracker = new GitFileStatusTracker(projectDirecotry);
+            string gitfolder = tracker.WorkingDirectory;
 
             if (string.IsNullOrEmpty(gitfolder) ||
-                trackers.Any(t => t.HasGitRepository && 
-                             string.Compare(t.GitWorkingDirectory, gitfolder, true)==0)) return;
+                trackers.Any(t => t.IsGit && 
+                             string.Compare(t.WorkingDirectory, gitfolder, true)==0)) return;
             
             if (gitfolder.Length < monitorFolder.Length) monitorFolder = gitfolder;
-            trackers.Add(new GitFileStatusTracker(gitfolder));
+            trackers.Add(tracker);
             
             //Debug.WriteLine("==== Added git tracker: " + gitfolder);
            
@@ -882,12 +884,12 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             }
         }
 
-        internal string CurrentGitWorkingDirectory
+        internal string CurrentWorkingDirectory
         {
             get
             {
                 GitFileStatusTracker tracker = CurrentTracker;
-                return tracker != null ? tracker.GitWorkingDirectory : null;
+                return tracker != null ? tracker.WorkingDirectory : null;
             }
         }
 
@@ -911,9 +913,9 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             if (string.IsNullOrEmpty(fileName)) return null;
             
-            return trackers.Where(t => t.HasGitRepository && 
-                                  IsParentFolder(t.GitWorkingDirectory, fileName))           
-                           .OrderByDescending(t => t.GitWorkingDirectory.Length)
+            return trackers.Where(t => t.IsGit && 
+                                  IsParentFolder(t.WorkingDirectory, fileName))           
+                           .OrderByDescending(t => t.WorkingDirectory.Length)
                            .FirstOrDefault();
         }
 
@@ -1045,7 +1047,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
                     OpenTracker();
                     foreach (GitFileStatusTracker tracker in trackers.ToArray())
-                        tracker.GetChangedFiles(true);
+                        tracker.Refresh();
 
                     timer.Stop();
                 };

@@ -30,7 +30,7 @@ namespace GitScc.UI
             set
             {
                 this._tracker = value;
-                this.WorkingDirectory = this._tracker == null ? "" : this.tracker.GitWorkingDirectory;
+                this.WorkingDirectory = this._tracker == null ? "" : this.tracker.WorkingDirectory;
             } 
         }
 

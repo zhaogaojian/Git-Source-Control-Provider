@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using Gitscc;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
@@ -92,8 +93,8 @@ namespace GitScc
         {
             try
             {
-                var repository = (tracker == null || !tracker.HasGitRepository) ? "" :
-                    string.Format(" ({0})", tracker.CurrentBranch, tracker.GitWorkingDirectory);
+                var repository = (tracker == null || !tracker.IsGit) ? "" :
+                    string.Format(" ({0})", tracker.CurrentBranch, tracker.WorkingDirectory);
 
                 this.Caption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption") + repository;
 

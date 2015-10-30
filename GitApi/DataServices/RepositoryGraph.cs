@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Gitscc;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,9 +34,10 @@ namespace GitScc.DataServices
                         CommitsToLoad, LogFormat),
                         this.workingDirectory);
 
-                    if (result.HasError || string.IsNullOrEmpty(result.Output) || result.Output.Contains("fatal:"))
+                    if (result.HasError || string.IsNullOrEmpty(result.Output) || result.Output.StartsWith("fatal:"))
                     {
-                        return new List<Commit>();
+                        commits = new List<Commit>();
+                        return commits;
                     }
 
                     var logs = result.Output.Split('\0');
@@ -73,16 +75,26 @@ namespace GitScc.DataServices
             {
                 if (refs == null)
                 {
-                    var result = GitBash.Run("show-ref --head --dereference", this.workingDirectory);
-                    if (!result.HasError)
+                    var branch = "";
+
+                    var result = GitBash.Run("rev-parse --abbrev-ref HEAD", this.workingDirectory);
+                    if (!result.HasError && !result.Output.Contains("fatal:"))
+                    {
+                        branch = "refs/heads/" + result.Output.Trim();
+                    }
+
+                    result = GitBash.Run("show-ref --head --dereference", this.workingDirectory);
+                    if (!result.HasError && !result.Output.Contains("fatal:"))
+                    {
                         refs = (from t in result.Output.Split('\n')
                                 where !string.IsNullOrWhiteSpace(t)
                                 select new Ref
                                 {
                                     Id = t.Substring(0, 40),
-                                    RefName = t.Substring(41)
+                                    RefName = t.Substring(41),
+                                    IsHead = t.Substring(41).Equals(branch) ? "*" : ""
                                 }).ToList();
-
+                    }
                 }
                 return refs;
             }

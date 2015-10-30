@@ -168,7 +168,7 @@ namespace GitUI.UI
             try
             {
                 var files = this.dataGrid1.SelectedItems.Cast<GitFile>()
-                    .Select(item=>System.IO.Path.Combine(this.tracker.GitWorkingDirectory, item.FileName))
+                    .Select(item=>System.IO.Path.Combine(this.tracker.WorkingDirectory, item.FileName))
                     .ToList();
 
                 foreach (var fileName in files)
@@ -321,7 +321,7 @@ namespace GitUI.UI
             int i = 0;
             foreach (var item in unstaged)
             {
-                tracker.StageFile(System.IO.Path.Combine(this.tracker.GitWorkingDirectory, item.FileName));
+                tracker.StageFile(System.IO.Path.Combine(this.tracker.WorkingDirectory, item.FileName));
                 ShowStatusMessage(string.Format("Staged ({0}/{1}): {2}", i++, count, item.FileName));
                 service.lastTimeRefresh = DateTime.Now;
             }

@@ -31,9 +31,9 @@
             if (TextDocumentFactoryService.TryGetTextDocument(TextBuffer, out textDocument))
             {
                 GitFileStatusTracker tracker = new GitFileStatusTracker(Path.GetDirectoryName(textDocument.FilePath));
-                if (tracker.HasGitRepository && tracker.Repository.Resolve(Constants.HEAD) != null)
+                if (tracker.IsGit)
                 {
-                    _watcher = new FileSystemWatcher(tracker.Repository.Directory.GetAbsolutePath());
+                    _watcher = new FileSystemWatcher(tracker.WorkingDirectory);
                     _watcher.IncludeSubdirectories = true;
                     _watcher.Changed += HandleFileSystemChanged;
                     _watcher.Created += HandleFileSystemChanged;

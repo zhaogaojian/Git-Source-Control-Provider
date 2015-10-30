@@ -1,4 +1,6 @@
-﻿namespace GitScc.Diff
+﻿using System.Windows.Markup;
+
+namespace GitScc.Diff
 {
     using System.Collections.Generic;
     using Buffer = System.Buffer;
@@ -21,7 +23,7 @@
         {
             string fileName = textDocument.FilePath;
             GitFileStatusTracker tracker = new GitFileStatusTracker(Path.GetDirectoryName(fileName));
-            if (!tracker.HasGitRepository || tracker.Repository.Resolve(Constants.HEAD) == null)
+            if (!tracker.IsGit)
                 yield break;
 
             GitFileStatus status = tracker.GetFileStatus(fileName);
@@ -42,7 +44,7 @@
                 content = completeContent;
             }
 
-            byte[] previousContent = GetPreviousRevision(tracker, fileName);
+            byte[] previousContent = null; //GetPreviousRevision(tracker, fileName);
             RawText b = new RawText(content);
             RawText a = new RawText(previousContent ?? new byte[0]);
             EditList edits = diff.Diff(RawTextComparator.DEFAULT, a, b);
@@ -50,37 +52,37 @@
                 yield return new HunkRangeInfo(snapshot, edit, a, b);
         }
 
-        private static byte[] GetPreviousRevision(GitFileStatusTracker tracker, string fileName)
-        {
-            byte[] cachedBytes = tracker.GetFileContent(fileName);
-            if (cachedBytes == null)
-                return cachedBytes;
+        //private static byte[] GetPreviousRevision(GitFileStatusTracker tracker, string fileName)
+        //{
+        //    byte[] cachedBytes = tracker.GetFileContent(fileName);
+        //    if (cachedBytes == null)
+        //        return cachedBytes;
 
-            if (Environment.NewLine != "\r\n")
-                return cachedBytes;
+        //    if (Environment.NewLine != "\r\n")
+        //        return cachedBytes;
 
-            WorkingTreeOptions options = tracker.Repository.GetConfig().Get(WorkingTreeOptions.KEY);
-            if (options.GetAutoCRLF() != CoreConfig.AutoCRLF.TRUE)
-                return cachedBytes;
+        //    WorkingTreeOptions options = tracker.Repository.GetConfig().Get(WorkingTreeOptions.KEY);
+        //    if (options.GetAutoCRLF() != CoreConfig.AutoCRLF.TRUE)
+        //        return cachedBytes;
 
-            int lines = 0;
-            for (int i = 0; i < cachedBytes.Length; i++)
-            {
-                if (cachedBytes[i] == '\n' && (i == 0 || cachedBytes[i - 1] != '\r'))
-                    lines++;
-            }
+        //    int lines = 0;
+        //    for (int i = 0; i < cachedBytes.Length; i++)
+        //    {
+        //        if (cachedBytes[i] == '\n' && (i == 0 || cachedBytes[i - 1] != '\r'))
+        //            lines++;
+        //    }
 
-            byte[] result = new byte[cachedBytes.Length + lines];
-            for (int i = 0, j = 0; i < cachedBytes.Length; i++)
-            {
-                byte current = cachedBytes[i];
-                if (current == '\n' && (i == 0 || cachedBytes[i - 1] != '\r'))
-                    result[j++] = (byte)'\r';
+        //    byte[] result = new byte[cachedBytes.Length + lines];
+        //    for (int i = 0, j = 0; i < cachedBytes.Length; i++)
+        //    {
+        //        byte current = cachedBytes[i];
+        //        if (current == '\n' && (i == 0 || cachedBytes[i - 1] != '\r'))
+        //            result[j++] = (byte)'\r';
 
-                result[j++] = current;
-            }
+        //        result[j++] = current;
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
     }
 }

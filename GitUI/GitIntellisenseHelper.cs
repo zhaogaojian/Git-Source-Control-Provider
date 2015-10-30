@@ -50,7 +50,7 @@ namespace GitUI
 
         internal static string GetPrompt()
         {
-            if(!GitViewModel.Current.Tracker.HasGitRepository) return "No Git Repository";
+            if(!GitViewModel.Current.Tracker.IsGit) return "No Git Repository";
             var changed = GitViewModel.Current.Tracker.ChangedFiles;
             return string.Format("{0} +{1} ~{2} -{3} !{4}", GitViewModel.Current.Tracker.CurrentBranch,
                 changed.Where(f=> f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added).Count(),

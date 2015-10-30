@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using Gitscc;
 using GitScc;
 using Microsoft.Windows.Shell;
 using Mono.Options;
@@ -50,8 +51,8 @@ namespace GitUI
 			this.gitViewModel = GitViewModel.Current;
 			//this.bottomToolBar.GitViewModel = GitViewModel.Current;
 
-			if (gitViewModel.Tracker.HasGitRepository)
-				this.Title = gitViewModel.Tracker.GitWorkingDirectory;
+			if (gitViewModel.Tracker.IsGit)
+				this.Title = gitViewModel.Tracker.WorkingDirectory;
 
 			this.gitViewModel.GraphChanged += (o, reload) =>
 			{
@@ -62,9 +63,9 @@ namespace GitUI
 				loading.Visibility = Visibility.Visible;
 				Action act = () =>
 				{
-					if (gitViewModel.Tracker.HasGitRepository)
+					if (gitViewModel.Tracker.IsGit)
 					{
-						this.txtRepo.Text = gitViewModel.Tracker.GitWorkingDirectory;
+						this.txtRepo.Text = gitViewModel.Tracker.WorkingDirectory;
 						this.txtPrompt.Text = GitIntellisenseHelper.GetPrompt();
 					}
 					this.graph.Show(gitViewModel.Tracker, reload != null);
@@ -192,8 +193,8 @@ namespace GitUI
 			this.loading.Visibility = Visibility.Collapsed;
 			this.topToolBar.GitViewModel = gitViewModel;
 
-			this.Title = gitViewModel.Tracker.HasGitRepository ?
-				string.Format("{0} ({1})", gitViewModel.Tracker.GitWorkingDirectory, gitViewModel.Tracker.CurrentBranch) :
+			this.Title = gitViewModel.Tracker.IsGit ?
+				string.Format("{0} ({1})", gitViewModel.Tracker.WorkingDirectory, gitViewModel.Tracker.CurrentBranch) :
 				string.Format("{0} (No Repository)", gitViewModel.WorkingDirectory);
 
 			gitViewModel.EnableAutoRefresh();
@@ -310,7 +311,8 @@ namespace GitUI
 				var dropped = ((string[])e.Data.GetData(DataFormats.FileDrop, true))[0];
 
 				if (!Directory.Exists(dropped)) dropped = Path.GetDirectoryName(dropped);
-				var gitWorkingFolder = GitFileStatusTracker.GetRepositoryDirectory(dropped);
+                var tracker = new GitFileStatusTracker(dropped);
+                var gitWorkingFolder = tracker.WorkingDirectory;
 				if (Directory.Exists(dropped) && gitWorkingFolder != null &&
 					MessageBox.Show("Do you want to open Git repository from " + gitWorkingFolder,
 					"Git repository found", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.ComponentModel;
 using System.IO;
+using Gitscc;
 
 namespace GitScc.DataServices
 {
