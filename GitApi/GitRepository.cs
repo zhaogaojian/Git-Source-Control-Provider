@@ -7,25 +7,34 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Threading;
+using LibGit2Sharp;
 
 namespace GitScc
 {
-	public class GitRepository
+	public class GitRepository : IDisposable
 	{
 		private string workingDirectory;
         private bool isGit;
         private string branch;
         private IEnumerable<GitFile> changedFiles;
+        private List<GitFile> _files;
         private IEnumerable<string> remotes;
         private IDictionary<string, string> configs;
 
+	    private Repository _repository;
 
-		public string WorkingDirectory { get { return workingDirectory; } }
-        public bool IsGit { get { return isGit; } }
+
+        public string WorkingDirectory { get { return workingDirectory; } }
+        public bool IsGit { get { return Repository.IsValid(workingDirectory); } }
 
         public GitRepository(string directory)
 		{
-            this.workingDirectory = directory;
+            this.workingDirectory = Repository.Discover(directory);
+            _repository =  new Repository(workingDirectory);
+            this.workingDirectory = _repository.Info.WorkingDirectory;
+
+            //Repository
+            //_repository.
             Refresh();
 		}
         public void Refresh()
@@ -37,13 +46,13 @@ namespace GitScc
             this.remotes = null;
             this.configs = null;
 
-            var result = GitBash.Run("rev-parse --show-toplevel", WorkingDirectory); 
-            if (!result.HasError && !result.Output.StartsWith("fatal:"))
-            {
-                this.workingDirectory = result.Output.Trim();
-                result = GitBash.Run("rev-parse --is-inside-work-tree", WorkingDirectory);
-                isGit = string.Compare("true", result.Output.Trim(), true) == 0;
-            }
+            //var result = GitBash.Run("rev-parse --show-toplevel", WorkingDirectory); 
+            //if (!result.HasError && !result.Output.StartsWith("fatal:"))
+            //{
+            //    this.workingDirectory = result.Output.Trim();
+            //    result = GitBash.Run("rev-parse --is-inside-work-tree", WorkingDirectory);
+            //    isGit = string.Compare("true", result.Output.Trim(), true) == 0;
+            //}
         }
 
 		#region Git commands
@@ -191,8 +200,13 @@ namespace GitScc
                 {
                     try
                     {
-                        var result = GitBash.Run("status --porcelain -z --untracked-files", WorkingDirectory);
-                        changedFiles = ParseGitStatus(result.Output);
+                        _files = new List<GitFile>();
+                        
+                        foreach (var item in _repository.RetrieveStatus())
+                        {
+                            _files.Add(new GitFile(_repository,item));
+                        }
+                        changedFiles = _files.Where(x => x.Changed == true).ToList();
                     }
                     catch
                     {
@@ -204,99 +218,7 @@ namespace GitScc
         }
 
         #region copied and modified from git extensions
-        public IList<GitFile> ParseGitStatus(string statusString)
-        {
-            //Debug.WriteLine(statusString);
-
-            var list = new List<GitFile>();
-            if (string.IsNullOrEmpty(statusString)) return list;
-
-            // trim warning messages
-            var nl = new char[] { '\n', '\r' };
-            string trimmedStatus = statusString.Trim(nl);
-            int lastNewLinePos = trimmedStatus.LastIndexOfAny(nl);
-            if (lastNewLinePos > 0)
-            {
-                int ind = trimmedStatus.LastIndexOf('\0');
-                if (ind < lastNewLinePos) //Warning at end
-                {
-                    lastNewLinePos = trimmedStatus.IndexOfAny(nl, ind >= 0 ? ind : 0);
-                    trimmedStatus = trimmedStatus.Substring(0, lastNewLinePos).Trim(nl);
-                }
-                else                                              //Warning at beginning
-                    trimmedStatus = trimmedStatus.Substring(lastNewLinePos).Trim(nl);
-            }
-
-
-            //Split all files on '\0' (WE NEED ALL COMMANDS TO BE RUN WITH -z! THIS IS ALSO IMPORTANT FOR ENCODING ISSUES!)
-            var files = trimmedStatus.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
-            for (int n = 0; n < files.Length; n++)
-            {
-                if (string.IsNullOrEmpty(files[n]))
-                    continue;
-
-                int splitIndex = files[n].IndexOfAny(new char[] { '\0', '\t', ' ' }, 1);
-
-                string status = string.Empty;
-                string fileName = string.Empty;
-
-                if (splitIndex < 0)
-                {
-                    //status = files[n];
-                    //fileName = files[n + 1];
-                    //n++;
-                    continue;
-                }
-                else
-                {
-                    status = files[n].Substring(0, splitIndex);
-                    fileName = files[n].Substring(splitIndex);
-                }
-
-                //X shows the status of the index, and Y shows the status of the work tree
-
-                char x = status[0];
-                char y = status.Length > 1 ? status[1] : ' ';
-
-                var gitFile = new GitFile { FileName = fileName.Trim() };
-
-                switch (x)
-                {
-                    case '?':
-                        gitFile.Status = GitFileStatus.New;
-                        break;
-                    case '!':
-                        gitFile.Status = GitFileStatus.Ignored;
-                        break;
-                    case ' ':
-                        if (y == 'M') gitFile.Status = GitFileStatus.Modified;
-                        else if (y == 'D') gitFile.Status = GitFileStatus.Deleted;
-                        break;
-                    case 'M':
-                        if (y == 'M') gitFile.Status = GitFileStatus.Modified;
-                        else gitFile.Status = GitFileStatus.Staged;
-                        break;
-                    case 'A':
-                        gitFile.Status = GitFileStatus.Added;
-                        break;
-                    case 'D':
-                        gitFile.Status = GitFileStatus.Removed;
-                        break;
-                    case 'R':
-                        gitFile.Status = GitFileStatus.Renamed;
-                        break;
-                    case 'C':
-                        gitFile.Status = GitFileStatus.Copied;
-                        break;
-
-                    case 'U':
-                        gitFile.Status = GitFileStatus.Conflict;
-                        break;
-                }
-                list.Add(gitFile);
-            }
-            return list;
-        }
+      
 
         #endregion
 
@@ -421,7 +343,8 @@ namespace GitScc
 
         public GitFileStatus GetFileStatus(string fileName)
         {
-            var file = ChangedFiles.Where(f => string.Compare(f.FileName, fileName, true) == 0).FirstOrDefault();
+            fileName = Path.GetFullPath(fileName);
+            var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
             if (file != null) return file.Status;
             if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
             // did not check if the file is ignored for performance reason
@@ -642,7 +565,13 @@ namespace GitScc
                 return configs ?? new Dictionary<string, string>();
             }
         }
-    }
+
+	    public void Dispose()
+	    {
+	        _repository.Dispose();
+	        _repository = null;
+	    }
+	}
 
     public class GitFileStatusTracker: GitRepository
     {

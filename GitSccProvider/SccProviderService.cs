@@ -861,6 +861,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
             //Debug.WriteLine("==== Adding project: " + projectDirecotry);
 
+            //TODO.. got to be a better way
             var tracker = new GitFileStatusTracker(projectDirecotry);
             string gitfolder = tracker.WorkingDirectory;
 
@@ -913,10 +914,19 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             if (string.IsNullOrEmpty(fileName)) return null;
             
-            return trackers.Where(t => t.IsGit && 
-                                  IsParentFolder(t.WorkingDirectory, fileName))           
+            return trackers.Where(t => t.IsGit &&
+                                  IsFileBelowDirectory(fileName, t.WorkingDirectory, "\\"))           
                            .OrderByDescending(t => t.WorkingDirectory.Length)
                            .FirstOrDefault();
+        }
+
+        public static bool IsFileBelowDirectory(string fileInfo, string directoryInfo, string separator)
+        {
+            var directoryPath = string.Format("{0}{1}"
+            , directoryInfo
+            , directoryInfo.EndsWith(separator) ? "" : separator);
+
+            return fileInfo.StartsWith(directoryPath, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool IsParentFolder(string folder, string fileName)
@@ -1098,7 +1108,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         public void RefreshNodesGlyphs()
         {
-            var solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+          var solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
             var projectList = GetLoadedControllableProjects();
 
             // We'll also need to refresh the solution folders glyphs
