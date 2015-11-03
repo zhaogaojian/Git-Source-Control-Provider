@@ -3,8 +3,16 @@ Git Source Control Provider 2015
 
 Introduction
 ------------
-This Visual Studio Extensions integrates Git with Visual Studio solution explorer. 
+This Visual Studio Extensions integrates Git with Visual Studio solution explorer.  
+
+
 This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c) by [Yiyi Sun](https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&f[0].Value=yysun)
+
+
+## Upgrade : 1.4
+
+*   This upgrade might not look like mich on the surface, but under the hood, it was pretty large. Please post https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
+
 
 ## Notice : Initial Visual Studio 2015 Upgrade
 
@@ -45,12 +53,23 @@ How to use
 * Right click within solution explorer and select "Git". If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.
 * Using the option page to disable the commands if you like.
 
-## Change Logs
+
+## Change Logs -- Visual Studio 2015
+
+**V1.4**
+
+*   Switch to using LibGit2Sharp, should see a large performace boost.
+*   Fix Pending changes window.
+*   Fix lot's of bugs
+
+
 
 **V1.3.1**
 
 *   Converted Solution to VS 2015
 *   Created new project for plug-in, update all references to Visual Studio 14.0
+
+## Change Logs -- Visual Studio 2013 and below
 
 **V1.3**
 
