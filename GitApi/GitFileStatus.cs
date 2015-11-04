@@ -87,6 +87,8 @@ namespace GitScc
                         return GitFileStatus.Modified;
                     case FileStatus.Untracked:
                         return GitFileStatus.New;
+                    case FileStatus.Staged | FileStatus.Modified:
+                        return GitFileStatus.Modified;
                     case FileStatus.Modified:
                         return GitFileStatus.Modified; 
                     case FileStatus.Missing:
@@ -109,35 +111,39 @@ namespace GitScc
         {
             get
             {
-                switch (FileStatusEntry.State)
+                switch (Status)
                 {
-                    case FileStatus.Nonexistent:
+                    case GitFileStatus.NotControlled:
                         return false;
-                    case FileStatus.Unaltered:
+                    case GitFileStatus.New:
+                        return true;
+                    case GitFileStatus.Tracked:
+                        return true;
+                    case GitFileStatus.Modified:
+                        return true;
+                    case GitFileStatus.Staged:
+                        return true;
+                    case GitFileStatus.Removed:
+                        return true;
+                    case GitFileStatus.Added:
+                        return true;
+                    case GitFileStatus.Deleted:
+                        return true;
+                    case GitFileStatus.Conflict:
+                        return true;
+                    case GitFileStatus.Merged:
+                        return true;
+                    case GitFileStatus.Ignored:
                         return false;
-                    case FileStatus.Added:
+                    case GitFileStatus.Renamed:
                         return true;
-                    case FileStatus.Staged:
+                    case GitFileStatus.Copied:
                         return true;
-                    case FileStatus.Removed:
-                        return true;
-                    case FileStatus.RenamedInIndex:
-                        return true;
-                    case FileStatus.StagedTypeChange:
-                        return true;
-                    case FileStatus.Untracked:
-                        return true;
-                    case FileStatus.Modified:
-                        return true;
-                    case FileStatus.Missing:
-                        return true;
-                    case FileStatus.TypeChanged:
-                        return true;
-                    case FileStatus.RenamedInWorkDir:
-                        return true;
-                    case FileStatus.Unreadable:
+                    case GitFileStatus.Nonexistent:
                         return false;
-                    case FileStatus.Ignored:
+                    case GitFileStatus.Unaltered:
+                        return false;
+                    case GitFileStatus.Unreadable:
                         return false;
                     default:
                         return false;

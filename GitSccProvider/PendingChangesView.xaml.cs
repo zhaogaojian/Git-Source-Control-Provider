@@ -118,7 +118,7 @@ namespace GitScc
                         {
                             if (new FileInfo(tmpFileName).Length > 2 * 1024 * 1024)
                             {
-                                Action action = () => this.DiffEditor.Content = "File is too big to display: " + fileName;
+                                Action action = () => this.DiffEditor.Text = "File is too big to display: " + fileName;
                                 Dispatcher.Invoke(action);
                             }
                             else
@@ -175,7 +175,7 @@ namespace GitScc
         private void ClearEditor()
         {
             this.toolWindow.ClearEditor();
-            this.DiffEditor.Content = null;
+            this.DiffEditor.Text = null;
         }
 
         private void ShowFile(string fileName)
@@ -185,7 +185,7 @@ namespace GitScc
                 var tuple = this.toolWindow.SetDisplayedFile(fileName);
                 if (tuple != null)
                 {
-                    this.DiffEditor.Content = tuple.Item1;
+                    this.DiffEditor.Text = "Loaded Place Holder";
                     this.textView = tuple.Item2;
                 }
             }
