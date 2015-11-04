@@ -132,7 +132,10 @@ namespace GitScc
                         //File.WriteAllText(tmpFileName, ret);
 
                         var tmpFileName = tracker.Diff(fileName);
-                        SetDiffText(tmpFileName);
+
+                        Action action = () => SetDiffText(tmpFileName);
+                        Dispatcher.Invoke(action);
+                        
 
                         //if (!string.IsNullOrWhiteSpace(tmpFileName) && File.Exists(tmpFileName))
                         //{
