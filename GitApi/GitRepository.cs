@@ -151,14 +151,29 @@ namespace GitScc
             }
         }
 
+
+	    public string Diff(string fileName)
+	    {
+	        var diffTree = _repository.Diff.Compare<Patch>(_repository.Head.Tip.Tree,
+	            DiffTargets.Index | DiffTargets.WorkingDirectory);
+
+	        return diffTree[fileName].Patch;
+
+	    }
+
         public string DiffFile(string fileName)
         {
             var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
 
-            foreach (TreeEntryChanges c in _repository.Diff.Compare<TreeChanges>(_repository.Head.Tip.Tree,
+            //var changes = _repository.Diff.Compare<Patch>(_repository.Head.Tip.Tree,
+            //    DiffTargets.Index | DiffTargets.WorkingDirectory);
+            //changes["File"].Patch
+
+            foreach (var c in _repository.Diff.Compare<Patch>(_repository.Head.Tip.Tree,
                                                   DiffTargets.Index | DiffTargets.WorkingDirectory))
             {
-                Console.WriteLine(c);
+                
+                Console.WriteLine(c.Patch);
             }
 
             try

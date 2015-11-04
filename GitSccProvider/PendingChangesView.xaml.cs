@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,8 +14,11 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml;
 using Gitscc;
 using GitScc.UI;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using CancellationToken = System.Threading.CancellationToken;
 using IVsTextView = Microsoft.VisualStudio.TextManager.Interop.IVsTextView;
 
@@ -91,6 +95,20 @@ namespace GitScc
             }
         }
 
+        private void SetDiffText(string text, string extension = ".diff")
+        {
+            //var assembly = Assembly.GetExecutingAssembly();
+            //using (Stream s = assembly.GetManifestResourceStream("GitUI.Resources.Patch-Mode.xshd"))
+            //{
+            //    using (XmlTextReader reader = new XmlTextReader(s))
+            //    {
+            //        DiffEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+            //    }
+            //}
+            this.DiffEditor.ShowLineNumbers = true;
+            this.DiffEditor.Text = text;
+        }
+
         private void listView1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var fileName = GetSelectedFileName();
@@ -113,21 +131,23 @@ namespace GitScc
                         //var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
                         //File.WriteAllText(tmpFileName, ret);
 
-                        var tmpFileName = tracker.DiffFile(fileName);
-                        if (!string.IsNullOrWhiteSpace(tmpFileName) && File.Exists(tmpFileName))
-                        {
-                            if (new FileInfo(tmpFileName).Length > 2 * 1024 * 1024)
-                            {
-                                Action action = () => this.DiffEditor.Text = "File is too big to display: " + fileName;
-                                Dispatcher.Invoke(action);
-                            }
-                            else
-                            {
-                                diffLines = File.ReadAllLines(tmpFileName);
-                                Action action = () => this.ShowFile(tmpFileName);
-                                Dispatcher.Invoke(action);
-                            }
-                        }
+                        var tmpFileName = tracker.Diff(fileName);
+                        SetDiffText(tmpFileName);
+
+                        //if (!string.IsNullOrWhiteSpace(tmpFileName) && File.Exists(tmpFileName))
+                        //{
+                        //    if (new FileInfo(tmpFileName).Length > 2 * 1024 * 1024)
+                        //    {
+                        //        Action action = () => this.DiffEditor.Text = "File is too big to display: " + fileName;
+                        //        Dispatcher.Invoke(action);
+                        //    }
+                        //    else
+                        //    {
+                        //        diffLines = File.ReadAllLines(tmpFileName);
+                        //        Action action = () => this.ShowFile(tmpFileName);
+                        //        Dispatcher.Invoke(action);
+                        //    }
+                        //}
                     }
                     catch (Exception ex)
                     {

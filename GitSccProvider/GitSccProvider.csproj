@@ -145,6 +145,7 @@
     <Content Include="Resources\Images_32bit.png" />
     <Resource Include="Resources\Loading.png" />
     <Content Include="Resources\PendingCheckins.png" />
+    <EmbeddedResource Include="Resources\Patch-Mode.xshd" />
     <None Include="Resources\Product.ico" />
     <Content Include="Resources\Refresh.png" />
     <Content Include="Resources\SccGlyphs.bmp" />
