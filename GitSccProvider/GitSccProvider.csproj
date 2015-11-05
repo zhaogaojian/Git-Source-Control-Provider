@@ -323,10 +323,6 @@
       <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
       <Name>GitApi</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GitUI\Microsoft.Windows.Shell\Microsoft.Windows.Shell.csproj">
-      <Project>{55d5297c-f1df-4b76-a3c1-d82cc294eebb}</Project>
-      <Name>Microsoft.Windows.Shell</Name>
-    </ProjectReference>
     <ProjectReference Include="..\GitUI\ZoomAndPan\ZoomAndPan.csproj">
       <Project>{468adede-6f5e-40c0-99c9-c6dac4fac934}</Project>
       <Name>ZoomAndPan</Name>
