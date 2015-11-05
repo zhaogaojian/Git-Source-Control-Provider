@@ -208,11 +208,6 @@
       <Name>Sharpen</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="ICSharpCode.AvalonEdit\ICSharpCode.AvalonEdit.csproj">
-      <Project>{6C55B776-26D4-4DB3-A6AB-87E783B2F3D1}</Project>
-      <Name>ICSharpCode.AvalonEdit</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="Microsoft.Windows.Shell\Microsoft.Windows.Shell.csproj">
       <Project>{55D5297C-F1DF-4B76-A3C1-D82CC294EEBB}</Project>
       <Name>Microsoft.Windows.Shell</Name>
