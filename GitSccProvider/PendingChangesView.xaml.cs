@@ -34,6 +34,7 @@ namespace GitScc
         private ToolWindowWithEditor<PendingChangesView> toolWindow;
         private IVsTextView textView;
         private string[] diffLines;
+        private bool _diffHightlighted = false;
 
         private GridViewColumnHeader _currentSortedColumn;
         private ListSortDirection _lastSortDirection;
@@ -43,6 +44,24 @@ namespace GitScc
             InitializeComponent();
             this.toolWindow = toolWindow;
             this.service = BasicSccProvider.GetServiceEx<SccProviderService>();
+            SetDiffCodeHightlighter();
+        }
+
+        private void SetDiffCodeHightlighter()
+        {
+            if (!_diffHightlighted)
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var filename = "GitSccProvider.Resources.Patch-Mode.xshd";
+                using (Stream s = assembly.GetManifestResourceStream(filename))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(s))
+                    {
+                        DiffEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                    }
+                }
+                _diffHightlighted = true;
+            }
         }
 
         #region Events
@@ -95,16 +114,19 @@ namespace GitScc
             }
         }
 
-        private void SetDiffText(string text, string extension = ".diff")
+        private void SetEditorText(string text, string otherExtension = "")
         {
-            //var assembly = Assembly.GetExecutingAssembly();
-            //using (Stream s = assembly.GetManifestResourceStream("GitUI.Resources.Patch-Mode.xshd"))
-            //{
-            //    using (XmlTextReader reader = new XmlTextReader(s))
-            //    {
-            //        DiffEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
-            //    }
-            //}
+            if (string.IsNullOrWhiteSpace(otherExtension))
+            {
+                SetDiffCodeHightlighter();
+            }
+            else
+            {
+                this.DiffEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinitionByExtension(
+                    otherExtension);
+                _diffHightlighted = false;
+            }
+
             this.DiffEditor.ShowLineNumbers = true;
             this.DiffEditor.Text = text;
         }
@@ -125,32 +147,12 @@ namespace GitScc
                 {
                     try
                     {
-                        //var ret = tracker.DiffFile(fileName);
-                        //ret = ret.Replace("\r", "").Replace("\n", "\r\n");
-
-                        //var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
-                        //File.WriteAllText(tmpFileName, ret);
 
                         var tmpFileName = tracker.Diff(fileName);
 
-                        Action action = () => SetDiffText(tmpFileName);
+                        Action action = () => SetEditorText(tmpFileName);
                         Dispatcher.Invoke(action);
-                        
-
-                        //if (!string.IsNullOrWhiteSpace(tmpFileName) && File.Exists(tmpFileName))
-                        //{
-                        //    if (new FileInfo(tmpFileName).Length > 2 * 1024 * 1024)
-                        //    {
-                        //        Action action = () => this.DiffEditor.Text = "File is too big to display: " + fileName;
-                        //        Dispatcher.Invoke(action);
-                        //    }
-                        //    else
-                        //    {
-                        //        diffLines = File.ReadAllLines(tmpFileName);
-                        //        Action action = () => this.ShowFile(tmpFileName);
-                        //        Dispatcher.Invoke(action);
-                        //    }
-                        //}
+                     
                     }
                     catch (Exception ex)
                     {
@@ -201,22 +203,6 @@ namespace GitScc
             this.DiffEditor.Text = null;
         }
 
-        private void ShowFile(string fileName)
-        {
-            try
-            {
-                var tuple = this.toolWindow.SetDisplayedFile(fileName);
-                if (tuple != null)
-                {
-                    this.DiffEditor.Text = "Loaded Place Holder";
-                    this.textView = tuple.Item2;
-                }
-            }
-            finally
-            {
-                File.Delete(fileName);
-            }
-        }
 
         #endregion
 
