@@ -323,10 +323,6 @@
       <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
       <Name>GitApi</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GitUI\ZoomAndPan\ZoomAndPan.csproj">
-      <Project>{468adede-6f5e-40c0-99c9-c6dac4fac934}</Project>
-      <Name>ZoomAndPan</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ngit\NGit\NGit.csproj">
       <Project>{e3bff8b4-189c-496a-a817-7e8b31e22b91}</Project>
       <Name>NGit</Name>

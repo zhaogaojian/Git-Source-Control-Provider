@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.Remoting.Messaging;
 using LibGit2Sharp;
 
 namespace GitScc
@@ -24,7 +25,6 @@ namespace GitScc
         Copied,
         Nonexistent,
         Unaltered,
-
         Unreadable
     }
 
@@ -33,6 +33,7 @@ namespace GitScc
         private string _fileName;
         private string _path;
         private const string PATH_STRING = @"{0}{1}";
+        private GitFileStatus _gitFileStatus;
 
         public GitFile(Repository repository, StatusEntry fileStatusEntry)
         {
@@ -69,40 +70,51 @@ namespace GitScc
         {
             get
             {
+                var state = FileStatusEntry.State;
+ 
+                if (state == FileStatus.ModifiedInIndex  || state.HasFlag(FileStatus.ModifiedInIndex))
+                {
+                    return GitFileStatus.Staged;
+                }
+                if (state == FileStatus.ModifiedInWorkdir || state.HasFlag(FileStatus.ModifiedInWorkdir))
+                {
+                    return GitFileStatus.Modified;
+                }
+                if (state == FileStatus.TypeChangeInWorkdir || state.HasFlag(FileStatus.TypeChangeInWorkdir))
+                {
+                    return GitFileStatus.Modified;
+                }
+                if (state == FileStatus.TypeChangeInIndex || state.HasFlag(FileStatus.TypeChangeInIndex))
+                {
+                    return GitFileStatus.Modified;
+                }
+
                 switch (FileStatusEntry.State)
                 {
                     case FileStatus.Nonexistent:
                         return GitFileStatus.Nonexistent;
                     case FileStatus.Unaltered:
                         return GitFileStatus.Unaltered;
-                    case FileStatus.Added:
+                    case FileStatus.NewInIndex:
                         return GitFileStatus.Added;
-                    case FileStatus.Staged:
+                    case FileStatus.ModifiedInIndex:
                         return GitFileStatus.Staged;
-                    case FileStatus.Removed:
+                    case FileStatus.DeletedFromIndex:
                         return GitFileStatus.Removed;
                     case FileStatus.RenamedInIndex:
                         return GitFileStatus.Renamed;
-                    case FileStatus.StagedTypeChange:
-                        return GitFileStatus.Modified;
-                    case FileStatus.Untracked:
+                    case FileStatus.NewInWorkdir:
                         return GitFileStatus.New;
-                    case FileStatus.Staged | FileStatus.Modified:
-                        return GitFileStatus.Modified;
-                    case FileStatus.Modified:
-                        return GitFileStatus.Modified; 
-                    case FileStatus.Missing:
+                    case FileStatus.DeletedFromWorkdir:
                         return GitFileStatus.Deleted;
-                    case FileStatus.TypeChanged:
-                        return GitFileStatus.Modified;
-                    case FileStatus.RenamedInWorkDir:
+                    case FileStatus.RenamedInWorkdir:
                         return GitFileStatus.Renamed;
                     case FileStatus.Unreadable:
                         return GitFileStatus.Unreadable; 
                     case FileStatus.Ignored:
                         return GitFileStatus.Ignored;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        return GitFileStatus.Ignored;
                 }
             }
         }
