@@ -489,14 +489,16 @@ Are you sure you want to continue?";
         {
             var unstaged = this.listView1.Items.Cast<GitFile>()
                                .Where(item => item.IsSelected && !item.IsStaged)
-                               .ToArray();
-            var count = unstaged.Length;
+                               .ToList();
+            var count = unstaged.Count;
             int i = 0;
             foreach (var item in unstaged)
             {
-                tracker.StageFile(System.IO.Path.Combine(this.tracker.WorkingDirectory, item.FileName));
+                tracker.StageFile(item.FilePath);
                 ShowStatusMessage(string.Format("Staged ({0}/{1}): {2}", i++, count, item.FileName));
             }
+
+            tracker.Refresh();
 
             bool hasStaged = tracker == null ? false :
                              tracker.ChangedFiles.Any(f => f.IsStaged);

@@ -68,101 +68,108 @@ namespace GitScc
 
         public GitFileStatus Status
         {
-            get
-            {
-                var state = FileStatusEntry.State;
- 
-                if (state == FileStatus.ModifiedInIndex  || state.HasFlag(FileStatus.ModifiedInIndex))
-                {
-                    return GitFileStatus.Staged;
-                }
-                if (state == FileStatus.ModifiedInWorkdir || state.HasFlag(FileStatus.ModifiedInWorkdir))
-                {
-                    return GitFileStatus.Modified;
-                }
-                if (state == FileStatus.TypeChangeInWorkdir || state.HasFlag(FileStatus.TypeChangeInWorkdir))
-                {
-                    return GitFileStatus.Modified;
-                }
-                if (state == FileStatus.TypeChangeInIndex || state.HasFlag(FileStatus.TypeChangeInIndex))
-                {
-                    return GitFileStatus.Modified;
-                }
-
-                switch (FileStatusEntry.State)
-                {
-                    case FileStatus.Nonexistent:
-                        return GitFileStatus.Nonexistent;
-                    case FileStatus.Unaltered:
-                        return GitFileStatus.Unaltered;
-                    case FileStatus.NewInIndex:
-                        return GitFileStatus.Added;
-                    case FileStatus.ModifiedInIndex:
-                        return GitFileStatus.Staged;
-                    case FileStatus.DeletedFromIndex:
-                        return GitFileStatus.Removed;
-                    case FileStatus.RenamedInIndex:
-                        return GitFileStatus.Renamed;
-                    case FileStatus.NewInWorkdir:
-                        return GitFileStatus.New;
-                    case FileStatus.DeletedFromWorkdir:
-                        return GitFileStatus.Deleted;
-                    case FileStatus.RenamedInWorkdir:
-                        return GitFileStatus.Renamed;
-                    case FileStatus.Unreadable:
-                        return GitFileStatus.Unreadable; 
-                    case FileStatus.Ignored:
-                        return GitFileStatus.Ignored;
-                    default:
-                        return GitFileStatus.Ignored;
-                }
-            }
+            get { return GetGitFileStatus(FileStatusEntry.State); }
         }
 
         public bool Changed
         {
-            get
+            get { return IsChangedStatus(Status); }
+        }
+
+        public static bool IsChangedStatus(FileStatus state)
+        {
+            return IsChangedStatus(GetGitFileStatus(state));
+        }
+
+        private static bool IsChangedStatus(GitFileStatus status)
+        {
+            switch (status)
             {
-                switch (Status)
-                {
-                    case GitFileStatus.NotControlled:
-                        return false;
-                    case GitFileStatus.New:
-                        return true;
-                    case GitFileStatus.Tracked:
-                        return true;
-                    case GitFileStatus.Modified:
-                        return true;
-                    case GitFileStatus.Staged:
-                        return true;
-                    case GitFileStatus.Removed:
-                        return true;
-                    case GitFileStatus.Added:
-                        return true;
-                    case GitFileStatus.Deleted:
-                        return true;
-                    case GitFileStatus.Conflict:
-                        return true;
-                    case GitFileStatus.Merged:
-                        return true;
-                    case GitFileStatus.Ignored:
-                        return false;
-                    case GitFileStatus.Renamed:
-                        return true;
-                    case GitFileStatus.Copied:
-                        return true;
-                    case GitFileStatus.Nonexistent:
-                        return false;
-                    case GitFileStatus.Unaltered:
-                        return false;
-                    case GitFileStatus.Unreadable:
-                        return false;
-                    default:
-                        return false;
-                }
+                case GitFileStatus.NotControlled:
+                    return false;
+                case GitFileStatus.New:
+                    return true;
+                case GitFileStatus.Tracked:
+                    return true;
+                case GitFileStatus.Modified:
+                    return true;
+                case GitFileStatus.Staged:
+                    return true;
+                case GitFileStatus.Removed:
+                    return true;
+                case GitFileStatus.Added:
+                    return true;
+                case GitFileStatus.Deleted:
+                    return true;
+                case GitFileStatus.Conflict:
+                    return true;
+                case GitFileStatus.Merged:
+                    return true;
+                case GitFileStatus.Ignored:
+                    return false;
+                case GitFileStatus.Renamed:
+                    return true;
+                case GitFileStatus.Copied:
+                    return true;
+                case GitFileStatus.Nonexistent:
+                    return false;
+                case GitFileStatus.Unaltered:
+                    return false;
+                case GitFileStatus.Unreadable:
+                    return false;
+                default:
+                    return false;
             }
         }
 
+        private static GitFileStatus GetGitFileStatus(FileStatus state)
+        {
+            if (state == FileStatus.ModifiedInIndex || state.HasFlag(FileStatus.ModifiedInIndex))
+            {
+                return GitFileStatus.Staged;
+            }
+            if (state == FileStatus.ModifiedInWorkdir || state.HasFlag(FileStatus.ModifiedInWorkdir))
+            {
+                return GitFileStatus.Modified;
+            }
+            if (state == FileStatus.TypeChangeInWorkdir || state.HasFlag(FileStatus.TypeChangeInWorkdir))
+            {
+                return GitFileStatus.Modified;
+            }
+            if (state == FileStatus.TypeChangeInIndex || state.HasFlag(FileStatus.TypeChangeInIndex))
+            {
+                return GitFileStatus.Modified;
+            }
+
+            switch (state)
+            {
+                case FileStatus.Nonexistent:
+                    return GitFileStatus.Nonexistent;
+                case FileStatus.Unaltered:
+                    return GitFileStatus.Unaltered;
+                case FileStatus.NewInIndex:
+                    return GitFileStatus.Added;
+                case FileStatus.ModifiedInIndex:
+                    return GitFileStatus.Staged;
+                case FileStatus.DeletedFromIndex:
+                    return GitFileStatus.Removed;
+                case FileStatus.RenamedInIndex:
+                    return GitFileStatus.Renamed;
+                case FileStatus.NewInWorkdir:
+                    return GitFileStatus.New;
+                case FileStatus.DeletedFromWorkdir:
+                    return GitFileStatus.Deleted;
+                case FileStatus.RenamedInWorkdir:
+                    return GitFileStatus.Renamed;
+                case FileStatus.Unreadable:
+                    return GitFileStatus.Unreadable;
+                case FileStatus.Ignored:
+                    return GitFileStatus.Ignored;
+                default:
+                    return GitFileStatus.Ignored;
+            }
+        }
+    
         public bool isSelected;
 
         public bool IsSelected

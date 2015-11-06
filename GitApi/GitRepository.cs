@@ -8,16 +8,16 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Threading;
 using LibGit2Sharp;
+using static GitScc.GitFile;
 
 namespace GitScc
 {
 	public class GitRepository : IDisposable
 	{
 		private string workingDirectory;
+        private List<GitFile> _changedFiles;
         private bool isGit;
-        private string branch;
-        private IEnumerable<GitFile> changedFiles;
-        private List<GitFile> _files;
+        private string _branch;
         private IEnumerable<string> remotes;
         private IDictionary<string, string> configs;
 
@@ -40,9 +40,8 @@ namespace GitScc
         public void Refresh()
         {
             this.repositoryGraph = null;
-            this.changedFiles = null;
-            this.isGit = false;
-            this.branch = null;
+            this._changedFiles = null;
+            this._branch = null;
             this.remotes = null;
             this.configs = null;
 
@@ -219,24 +218,27 @@ namespace GitScc
         {
             get
             {
-                if (changedFiles == null)
+                if (_changedFiles == null)
                 {
                     try
                     {
-                        _files = new List<GitFile>();
+                        _changedFiles = new List<GitFile>();
                         
-                        foreach (var item in _repository.RetrieveStatus())
+                        foreach (var item in _repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = false, RecurseIgnoredDirs = false}))
                         {
-                            _files.Add(new GitFile(_repository,item));
+                            if (IsChangedStatus(item.State))
+                            {
+                                _changedFiles.Add(new GitFile(_repository, item));
+                            }
                         }
-                        changedFiles = _files.Where(x => x.Changed == true).ToList();
+                        //_changedFiles = _files.Where(x => x.Changed == true).ToList();
                     }
                     catch
                     {
-                        changedFiles = new GitFile[] { };
+                        _changedFiles = new List<GitFile>();
                     }
                 }
-                return changedFiles;
+                return _changedFiles;
             }
         }
 
@@ -250,22 +252,22 @@ namespace GitScc
         {
             get
             {
-                if (branch == null)
+                if (_branch == null)
                 {
-                    branch = "master";
+                    _branch = "master";
                     var result = GitBash.Run("rev-parse --abbrev-ref HEAD", this.WorkingDirectory);
                     if (!result.HasError && !result.Output.StartsWith("fatal:"))
                     {
-                        branch = result.Output.Trim();
-                        if (IsInTheMiddleOfBisect) branch += " | BISECTING";
-                        if (IsInTheMiddleOfMerge) branch += " | MERGING";
-                        if (IsInTheMiddleOfPatch) branch += " | AM";
-                        if (IsInTheMiddleOfRebase) branch += " | REBASE";
-                        if (IsInTheMiddleOfRebaseI) branch += " | REBASE-i";
-                        if (IsInTheMiddleOfCherryPick) branch += " | CHERRY-PIKCING";
+                        _branch = result.Output.Trim();
+                        if (IsInTheMiddleOfBisect) _branch += " | BISECTING";
+                        if (IsInTheMiddleOfMerge) _branch += " | MERGING";
+                        if (IsInTheMiddleOfPatch) _branch += " | AM";
+                        if (IsInTheMiddleOfRebase) _branch += " | REBASE";
+                        if (IsInTheMiddleOfRebaseI) _branch += " | REBASE-i";
+                        if (IsInTheMiddleOfCherryPick) _branch += " | CHERRY-PIKCING";
                     }
                 }
-                return branch;
+                return _branch;
             }
         }
 
@@ -376,28 +378,12 @@ namespace GitScc
 
         public void StageFile(string fileName)
         {
-            if (FileExistsInRepo(fileName))
-            {
-                GitRun(string.Format("add \"{0}\"", fileName));
-            }
-            else
-            {
-                GitRun(string.Format("rm --cached -- \"{0}\"", fileName));
-            }
+            _repository.Stage(fileName);
         }
 
         public void UnStageFile(string fileName)
         {
-            var head = GetBranchId("HEAD");
-
-            if (head == null)
-            {
-                GitRun(string.Format("rm --cached -- \"{0}\"", fileName));
-            }
-            else
-            {
-                GitRun(string.Format("reset -- \"{0}\"", fileName));
-            }
+            _repository.Unstage(fileName);
         }
 
         public void AddIgnoreItem(string fileName)
@@ -435,20 +421,13 @@ namespace GitScc
             {
                 throw new ArgumentException("Commit message must not be null or empty!", "message");
             }
+            Signature author = _repository.Config.BuildSignature(DateTimeOffset.Now);
+            Signature committer = author;
 
-            var msgFile = Path.Combine(WorkingDirectory, "COMMITMESSAGE");
-            File.WriteAllText(msgFile, message);
-            try
-            {
-                string opt = "";
-                if (amend) opt += "--amend ";
-                if (signoff) opt += "--signoff ";
-                return GitRun(string.Format("commit -F \"{0}\" {1}", msgFile, opt));
-            }
-            finally
-            {
-                File.Delete(msgFile);
-            }
+            CommitOptions opts = new CommitOptions();
+            opts.AmendPreviousCommit = amend;
+            var commit = _repository.Commit(message, author,committer);
+            return commit.Sha;
         }
 
         public bool CurrentCommitHasRefs()
