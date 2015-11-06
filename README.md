@@ -11,7 +11,7 @@ This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery
 
 ## Upgrade : 1.4
 
-*   This upgrade might not look like mich on the surface, but under the hood, it was pretty large. Please post https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
+*   This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post to https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
 
 
 ## Notice : Initial Visual Studio 2015 Upgrade
