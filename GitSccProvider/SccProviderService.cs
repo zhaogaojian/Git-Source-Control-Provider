@@ -27,14 +27,15 @@ using ThreadPriority = System.Threading.ThreadPriority;
 namespace GitScc
 {
     [Guid("C4128D99-1000-41D1-A6C3-704E6C1A3DE2")]
-    public class SccProviderService : IVsSccProvider,
+    public partial class SccProviderService : IVsSccProvider,
         IVsSccManager3,
         IVsSccManagerTooltip,
         IVsSolutionEvents,
         IVsSolutionEvents2,
         IVsSccGlyphs,
         IDisposable,
-        IVsUpdateSolutionEvents2
+        IVsUpdateSolutionEvents2,
+        IVsTrackProjectDocumentsEvents2
     {
         private static readonly QueuedTaskScheduler _queuedTaskScheduler =
             new QueuedTaskScheduler(1, threadName: "Git SCC Tasks", threadPriority: ThreadPriority.BelowNormal);
@@ -46,8 +47,7 @@ namespace GitScc
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
         private List<GitFileStatusTracker> trackers;
-        private uint _vsSolutionEventsCookie;
-        private uint _vsIVsUpdateSolutionEventsCookie;
+
 
         #region SccProvider Service initialization/unitialization
         public SccProviderService(BasicSccProvider sccProvider, List<GitFileStatusTracker> trackers)
@@ -55,32 +55,15 @@ namespace GitScc
             this._sccProvider = sccProvider;
             this.trackers = trackers;
 
-            // Subscribe to solution events
-            IVsSolution sol = (IVsSolution)sccProvider.GetService(typeof(SVsSolution));
-            sol.AdviseSolutionEvents(this, out _vsSolutionEventsCookie);
+            SetupSolutionEvents();
+            SetupDocumentEvents();
 
-            var sbm = sccProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager2;
-            if (sbm != null)
-            {
-                sbm.AdviseUpdateSolutionEvents(this, out _vsIVsUpdateSolutionEventsCookie);
-            }
         }
 
         public void Dispose()
         {
-            // Unregister from receiving solution events
-            if (VSConstants.VSCOOKIE_NIL != _vsSolutionEventsCookie)
-            {
-                IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
-                sol.UnadviseSolutionEvents(_vsSolutionEventsCookie);
-                _vsSolutionEventsCookie = VSConstants.VSCOOKIE_NIL;
-            }
-
-            if (VSConstants.VSCOOKIE_NIL != _vsIVsUpdateSolutionEventsCookie)
-            {
-                var sbm = _sccProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager2;
-                sbm.UnadviseUpdateSolutionEvents(_vsIVsUpdateSolutionEventsCookie);
-            }
+            UnRegisterSolutionEvents();
+            UnRegisterDocumentEvents();
         }
         #endregion
 
@@ -285,79 +268,7 @@ namespace GitScc
         }
         #endregion
 
-        #region IVsSolutionEvents interface functions
-
-        public int OnAfterOpenSolution([InAttribute] Object pUnkReserved, [InAttribute] int fNewSolution)
-        {
-            RefreshDelay = InitialRefreshDelay;
-
-            //automatic switch the scc provider
-            if (!Active && !GitSccOptions.Current.DisableAutoLoad)
-            {
-                OpenTracker();
-                if (trackers.Count > 0)
-                {
-                    IVsRegisterScciProvider rscp = (IVsRegisterScciProvider) _sccProvider.GetService(typeof(IVsRegisterScciProvider));
-                    rscp.RegisterSourceControlProvider(GuidList.guidSccProvider);
-                }
-            }
-
-            MarkDirty(false);
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterCloseSolution([InAttribute] Object pUnkReserved)
-        {
-            CloseTracker();
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterLoadProject([InAttribute] IVsHierarchy pStubHierarchy, [InAttribute] IVsHierarchy pRealHierarchy)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterOpenProject([InAttribute] IVsHierarchy pHierarchy, [InAttribute] int fAdded)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnBeforeCloseProject([InAttribute] IVsHierarchy pHierarchy, [InAttribute] int fRemoved)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnBeforeCloseSolution([InAttribute] Object pUnkReserved)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnBeforeUnloadProject([InAttribute] IVsHierarchy pRealHierarchy, [InAttribute] IVsHierarchy pStubHierarchy)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnQueryCloseProject([InAttribute] IVsHierarchy pHierarchy, [InAttribute] int fRemoving, [InAttribute] ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnQueryCloseSolution([InAttribute] Object pUnkReserved, [InAttribute] ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnQueryUnloadProject([InAttribute] IVsHierarchy pRealHierarchy, [InAttribute] ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterMergeSolution([InAttribute] Object pUnkReserved)
-        {
-            return VSConstants.S_OK;
-        }
-
-        #endregion
+     
 
         #region IVsSccGlyphs Members
 
@@ -791,65 +702,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         #endregion
 
-        #region IVsUpdateSolutionEvents2 Members
-
-        public int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        private IDisposable _updateSolutionDisableRefresh;
-
-        public int UpdateSolution_Begin(ref int pfCancelUpdate)
-        {
-            Debug.WriteLine("Git Source Control Provider: suppress refresh before build...");
-            IDisposable disableRefresh = DisableRefresh();
-            disableRefresh = Interlocked.Exchange(ref _updateSolutionDisableRefresh, disableRefresh);
-            if (disableRefresh != null)
-            {
-                // this is unexpected, but if we did overwrite a handle make sure it gets disposed
-                disableRefresh.Dispose();
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateSolution_Cancel()
-        {
-            Debug.WriteLine("Git Source Control Provider: resume refresh after cancel...");
-            IDisposable handle = Interlocked.Exchange(ref _updateSolutionDisableRefresh, null);
-            if (handle != null)
-                handle.Dispose();
-
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
-        {
-            Debug.WriteLine("Git Source Control Provider: resume refresh after build...");
-            IDisposable handle = Interlocked.Exchange(ref _updateSolutionDisableRefresh, null);
-            if (handle != null)
-                handle.Dispose();
-
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
-
-        #endregion
+      
 
         #region project trackers
         private void AddProject(IVsHierarchy pHierarchy)

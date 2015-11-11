@@ -62,6 +62,8 @@ namespace GitScc
                 }
                 _diffHightlighted = true;
             }
+
+            
         }
 
         #region Events
