@@ -641,17 +641,12 @@ namespace GitScc
             CompareFile(fileName);
         }
 
-        internal void CompareFile(string fileName)
+
+        //TODO mAybe move this to a static git helper
+        internal void CompareFile(string filename)
         {
-            //TODO Fix
-            //GitFileStatus status = GetFileStatus(fileName);
-            //if (status == GitFileStatus.Modified || status == GitFileStatus.Staged)
-            //{
-            //    string tempFile = Path.GetFileName(fileName);
-            //    tempFile = Path.Combine(Path.GetTempPath(), tempFile);
-            //    CurrentTracker.SaveFileFromRepository(fileName, tempFile);
-            //    _sccProvider.RunDiffCommand(tempFile, fileName);
-            //}
+            var repo = GetTracker(filename);
+            _sccProvider.RunDiffCommand(GitCommands.GenerateDiffFileInfo(repo,filename));
         }
 
         internal void UndoSelectedFile()
@@ -763,10 +758,14 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             return GetTracker(GetSolutionFileName());
         }
 
+
+        //TODO :  I don't like this.. 
         internal GitFileStatusTracker GetTracker(string fileName)
         {
             if (string.IsNullOrEmpty(fileName)) return null;
             
+
+
             return trackers.Where(t => t.IsGit &&
                                   IsFileBelowDirectory(fileName, t.WorkingDirectory, "\\"))           
                            .OrderByDescending(t => t.WorkingDirectory.Length)

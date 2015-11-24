@@ -15,6 +15,11 @@ using System.IO;
 using System.Collections.Generic;
 using GitScc.UI;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Windows;
+using EnvDTE;
+using GitSccProvider;
+using Process = System.Diagnostics.Process;
 
 namespace GitScc
 {
@@ -53,6 +58,19 @@ namespace GitScc
 
         private List<GitFileStatusTracker> projects;
         private SccProviderService sccService = null;
+
+        // http://msdn.microsoft.com/en-us/library/17w5ykft.aspx
+        private const string UnquotedParameterPattern = @"[^ \t""]+";
+        private const string QuotedParameterPattern = @"""(?:[^\\""]|\\[\\""]|\\[^\\""])*""";
+
+        // Two alternatives:
+        //   Unquoted (Quoted Unquoted)* Quoted?
+        //   Quoted (Unquoted Quoted)* Unquoted?
+        private const string ParameterPattern =
+            "^(?:" +
+            "(?:" + UnquotedParameterPattern + "(?:" + QuotedParameterPattern + UnquotedParameterPattern + ")*" + "(?:" + QuotedParameterPattern + ")?" + ")" +
+            "|" + "(?:" + QuotedParameterPattern + "(?:" + UnquotedParameterPattern + QuotedParameterPattern + ")*" + "(?:" + UnquotedParameterPattern + ")?" + ")" +
+            ")";
 
         public BasicSccProvider()
         {
@@ -359,29 +377,56 @@ namespace GitScc
             RunDetatched(gitExtensionPath, "");
         }
 
-        internal void RunDiffCommand(string file1, string file2)
+        //TODO Do a command pattern so we can plugin any diff tool 
+        internal void RunDiffCommand(DiffFileInfo fileInfo)
         {
-            if (GitSccOptions.Current.UseVsDiff)
+            if (GitSccOptions.Current.DiffTool == DiffTools.VisualStudio)
             {
                 var diffService = (IVsDifferenceService)GetService(typeof(SVsDifferenceService));
                 if (diffService != null)
                 {
-                    diffService.OpenComparisonWindow(file1, file2);
-                    return;
+
+                    string rightLabel = fileInfo.ModifiedFilePath;
+
+                    string tempPrefix = Path.GetRandomFileName().Substring(0, 5);
+                    string caption = string.Format("{0}_{1} vs. {1}", tempPrefix, fileInfo.ActualFilename);
+                    var leftLabel = string.Format("{0}@{1}", fileInfo.ActualFilename, fileInfo.LastRevision);
+
+                    __VSDIFFSERVICEOPTIONS grfDiffOptions = __VSDIFFSERVICEOPTIONS.VSDIFFOPT_LeftFileIsTemporary;
+                    diffService.OpenComparisonWindow2(fileInfo.UnmodifiedFilePath, fileInfo.ModifiedFilePath, caption, null,
+                        leftLabel, rightLabel, null, null, (uint) grfDiffOptions);
+
+                    // Since the file is marked as temporary, we can delete it now
+                    File.Delete(fileInfo.UnmodifiedFilePath);
                 }
             }
-
-            var difftoolPath = GitSccOptions.Current.DifftoolPath;
-            if (string.IsNullOrWhiteSpace(difftoolPath)) difftoolPath = "diffmerge.exe";
-
-            try
+            else
             {
-                RunCommand(difftoolPath, "\"" + file1 + "\" \"" + file2 + "\"");
+                var diffCmd = sccService.GetTracker(fileInfo.ModifiedFilePath).DefaultDiffCommand;
+                if (string.IsNullOrWhiteSpace(diffCmd))
+                {
+                    MessageBox.Show(
+                        "Please setup default diff tool for git, or use change settings to use Visual Studio diff",
+                        "Configuration Error");
+                }
+                var cmd = diffCmd.Replace("$LOCAL", fileInfo.UnmodifiedFilePath).Replace("$REMOTE", fileInfo.ModifiedFilePath);
+                string fileName = Regex.Match(cmd, ParameterPattern).Value;
+                string arguments = cmd.Substring(fileName.Length);
+                ProcessStartInfo startInfo = new ProcessStartInfo(fileName, arguments);
+                Process.Start(startInfo);
+                //var difftoolPath = GitSccOptions.Current.DifftoolPath;
+                //if (string.IsNullOrWhiteSpace(difftoolPath)) difftoolPath = "diffmerge.exe";
+
+                //try
+                //{
+                //    RunCommand(difftoolPath, "\"" + fileInfo.UnmodifiedFilePath + "\" \"" + fileInfo.ModifiedFilePath + "\"");
+                //}
+                //catch (FileNotFoundException ex)
+                //{
+                //    throw new FileNotFoundException(string.Format("Diff tool '{0}' is not available.", difftoolPath), difftoolPath, ex);
+                //}
             }
-            catch (FileNotFoundException ex)
-            {
-                throw new FileNotFoundException(string.Format("Diff tool '{0}' is not available.", difftoolPath), difftoolPath, ex);
-            }
+          
         }
 
         private void OnInitCommand(object sender, EventArgs e)

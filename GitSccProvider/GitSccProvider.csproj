@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="BasicSccProvider.cs" />
     <Compile Include="CommandId.cs" />
+    <Compile Include="DiffTools.cs" />
     <Compile Include="Diff\BackgroundParser.cs" />
     <Compile Include="Diff\DiffAdditionEditorFormatDefinition.cs" />
     <Compile Include="Diff\DiffFormatNames.cs" />

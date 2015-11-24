@@ -53,8 +53,10 @@
     <Compile Include="DataServices\GraphNode.cs" />
     <Compile Include="DataServices\Ref.cs" />
     <Compile Include="DataServices\RepositoryGraph.cs" />
+    <Compile Include="DiffFileInfo.cs" />
     <Compile Include="GitBash.cs" />
     <Compile Include="GitBashResult.cs" />
+    <Compile Include="GitCommands.cs" />
     <Compile Include="GitFileStatus.cs" />
     <Compile Include="GitIntellisenseHelper.cs" />
     <Compile Include="GitRepository.cs" />

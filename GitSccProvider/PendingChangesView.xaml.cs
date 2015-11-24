@@ -426,9 +426,11 @@ namespace GitScc
                     try
                     {
                         ShowStatusMessage("Committing ...");
-                     
-                            tracker.Commit(Comments, false, chkSignOff.IsChecked == true);
-                       
+                        var id = tracker.Commit(Comments, false, chkSignOff.IsChecked == true);
+                        if (!string.IsNullOrWhiteSpace(id))
+                        {
+                            ClearUI();
+                        } 
                     }
                     catch (Exception ex)
                     {

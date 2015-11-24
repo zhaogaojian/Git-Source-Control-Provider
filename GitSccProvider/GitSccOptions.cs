@@ -2,12 +2,16 @@
 using System.Diagnostics;
 using System.IO;
 using System.Xml.Serialization;
+using GitSccProvider;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace GitScc
 {
-    [Serializable]
+
+
+
+   [Serializable]
     public class GitSccOptions
     {
         private static string configFileName = Path.Combine(
@@ -26,6 +30,7 @@ namespace GitScc
         public bool NotUseUTF8FileNames { get; set; }
         public bool DisableDiffMargin { get; set; }
         public bool UseVsDiff { get; set; }
+        public DiffTools DiffTool { get; set; }
 
         private static GitSccOptions gitSccOptions;
 

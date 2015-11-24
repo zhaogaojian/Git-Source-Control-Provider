@@ -371,6 +371,7 @@ namespace GitScc
             fileName = Path.GetFullPath(fileName);
             var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
             if (file != null) return file.Status;
+
             if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
             // did not check if the file is ignored for performance reason
             return GitFileStatus.NotControlled;
@@ -443,6 +444,78 @@ namespace GitScc
             }
             return false;
         }
+
+
+	    public string GetUnmodifiedFile(string filename)
+	    {
+	        var relativePath = "";
+            Blob oldBlob = null;
+            if (TryGetRelativePath(filename, out relativePath))
+	        {
+                string objectName = Path.GetFileName(filename);
+                
+                var indexEntry = _repository.Index[relativePath];
+                if (indexEntry != null)
+                {
+                    oldBlob = _repository.Lookup<Blob>(indexEntry.Id);
+                    var test = _repository.Config.Get<string>("diff.tool");
+                }
+	        }
+            return oldBlob != null ? oldBlob.GetContentText(new FilteringOptions(relativePath)) : string.Empty;
+	    }
+
+	    public string DefaultDiffCommand
+	    {
+	        get
+	        {
+	            var diffGuiTool = _repository.Config.Get<string>("diff.guitool");
+	            if (diffGuiTool == null)
+	            {
+	                diffGuiTool = _repository.Config.Get<string>("diff.tool");
+	                if (diffGuiTool == null)
+	                    return string.Empty;
+	            }
+
+	            var diffCmd = _repository.Config.Get<string>("difftool." + diffGuiTool.Value + ".cmd");
+	            if (diffCmd == null || diffCmd.Value == null)
+	                return string.Empty;
+
+	            return diffCmd.Value;
+	        }
+	    }
+
+        public string GetRevision(string filename)
+        {
+            var relativePath = "";
+            var revision = "";
+            if (TryGetRelativePath(filename, out relativePath))
+            {
+                string objectName = Path.GetFileName(filename);
+                var indexEntry = _repository.Index[relativePath];
+                if (indexEntry != null)
+                {
+                    // determine if the file has been staged
+                    var status = GetFileStatus(filename);
+                    if (status == GitFileStatus.Added || status == GitFileStatus.Staged)
+                        revision = "index";
+                    else
+                        revision = _repository.Head.Tip.Sha.Substring(0, 7);
+                }
+
+            }
+            return revision;
+        }
+
+        private bool TryGetRelativePath(string fileName, out string relativePath)
+	    {
+	        relativePath = null;
+	        if (fileName.StartsWith(workingDirectory, StringComparison.OrdinalIgnoreCase))
+	        {
+	            relativePath = fileName.Substring(workingDirectory.Length);
+	            return true;
+	        }
+	        return false;
+	    }
 
         public string DiffFile(string fileName, string commitId1, string commitId2)
         {
