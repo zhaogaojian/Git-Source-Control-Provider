@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,7 +14,11 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Xml;
+using Gitscc;
 using GitScc.UI;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using CancellationToken = System.Threading.CancellationToken;
 using IVsTextView = Microsoft.VisualStudio.TextManager.Interop.IVsTextView;
 
@@ -29,6 +34,7 @@ namespace GitScc
         private ToolWindowWithEditor<PendingChangesView> toolWindow;
         private IVsTextView textView;
         private string[] diffLines;
+        private bool _diffHightlighted = false;
 
         private GridViewColumnHeader _currentSortedColumn;
         private ListSortDirection _lastSortDirection;
@@ -38,6 +44,26 @@ namespace GitScc
             InitializeComponent();
             this.toolWindow = toolWindow;
             this.service = BasicSccProvider.GetServiceEx<SccProviderService>();
+            SetDiffCodeHightlighter();
+        }
+
+        private void SetDiffCodeHightlighter()
+        {
+            if (!_diffHightlighted)
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                var filename = "GitSccProvider.Resources.Patch-Mode.xshd";
+                using (Stream s = assembly.GetManifestResourceStream(filename))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(s))
+                    {
+                        DiffEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                    }
+                }
+                _diffHightlighted = true;
+            }
+
+            
         }
 
         #region Events
@@ -90,6 +116,23 @@ namespace GitScc
             }
         }
 
+        private void SetEditorText(string text, string otherExtension = "")
+        {
+            if (string.IsNullOrWhiteSpace(otherExtension))
+            {
+                SetDiffCodeHightlighter();
+            }
+            else
+            {
+                this.DiffEditor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinitionByExtension(
+                    otherExtension);
+                _diffHightlighted = false;
+            }
+
+            this.DiffEditor.ShowLineNumbers = true;
+            this.DiffEditor.Text = text;
+        }
+
         private void listView1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var fileName = GetSelectedFileName();
@@ -106,27 +149,12 @@ namespace GitScc
                 {
                     try
                     {
-                        //var ret = tracker.DiffFile(fileName);
-                        //ret = ret.Replace("\r", "").Replace("\n", "\r\n");
 
-                        //var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
-                        //File.WriteAllText(tmpFileName, ret);
+                        var tmpFileName = tracker.Diff(fileName);
 
-                        var tmpFileName = tracker.DiffFile(fileName);
-                        if (!string.IsNullOrWhiteSpace(tmpFileName) && File.Exists(tmpFileName))
-                        {
-                            if (new FileInfo(tmpFileName).Length > 2 * 1024 * 1024)
-                            {
-                                Action action = () => this.DiffEditor.Content = "File is too big to display: " + fileName;
-                                Dispatcher.Invoke(action);
-                            }
-                            else
-                            {
-                                diffLines = File.ReadAllLines(tmpFileName);
-                                Action action = () => this.ShowFile(tmpFileName);
-                                Dispatcher.Invoke(action);
-                            }
-                        }
+                        Action action = () => SetEditorText(tmpFileName);
+                        Dispatcher.Invoke(action);
+                     
                     }
                     catch (Exception ex)
                     {
@@ -174,25 +202,9 @@ namespace GitScc
         private void ClearEditor()
         {
             this.toolWindow.ClearEditor();
-            this.DiffEditor.Content = null;
+            this.DiffEditor.Text = null;
         }
 
-        private void ShowFile(string fileName)
-        {
-            try
-            {
-                var tuple = this.toolWindow.SetDisplayedFile(fileName);
-                if (tuple != null)
-                {
-                    this.DiffEditor.Content = tuple.Item1;
-                    this.textView = tuple.Item2;
-                }
-            }
-            finally
-            {
-                File.Delete(fileName);
-            }
-        }
 
         #endregion
 
@@ -226,7 +238,7 @@ namespace GitScc
             try
             {
                 var files = this.listView1.SelectedItems.Cast<GitFile>()
-                    .Select(item => System.IO.Path.Combine(this.tracker.GitWorkingDirectory, item.FileName))
+                    .Select(item => System.IO.Path.Combine(this.tracker.WorkingDirectory, item.FileName))
                     .ToList();
 
                 foreach (var fileName in files)
@@ -414,16 +426,11 @@ namespace GitScc
                     try
                     {
                         ShowStatusMessage("Committing ...");
-                        var result = tracker.Commit(Comments, false, chkSignOff.IsChecked == true);
-                        if (result.IsSha1)
+                        var id = tracker.Commit(Comments, false, chkSignOff.IsChecked == true);
+                        if (!string.IsNullOrWhiteSpace(id))
                         {
-                            ShowStatusMessage("Commit successfully. Commit Hash: " + result.Message);
                             ClearUI();
-                        }
-                        else
-                        {
-                            errorMessage = result.Message;
-                        }
+                        } 
                     }
                     catch (Exception ex)
                     {
@@ -486,14 +493,16 @@ Are you sure you want to continue?";
         {
             var unstaged = this.listView1.Items.Cast<GitFile>()
                                .Where(item => item.IsSelected && !item.IsStaged)
-                               .ToArray();
-            var count = unstaged.Length;
+                               .ToList();
+            var count = unstaged.Count;
             int i = 0;
             foreach (var item in unstaged)
             {
-                tracker.StageFile(System.IO.Path.Combine(this.tracker.GitWorkingDirectory, item.FileName));
+                tracker.StageFile(item.FilePath);
                 ShowStatusMessage(string.Format("Staged ({0}/{1}): {2}", i++, count, item.FileName));
             }
+
+            tracker.Refresh();
 
             bool hasStaged = tracker == null ? false :
                              tracker.ChangedFiles.Any(f => f.IsStaged);

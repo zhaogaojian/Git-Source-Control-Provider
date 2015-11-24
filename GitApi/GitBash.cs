@@ -5,6 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Configuration;
 using System.IO;
+using System.Threading;
 
 namespace GitScc
 {
@@ -13,6 +14,7 @@ namespace GitScc
         public static bool UseUTF8FileNames { get; set; }
 
         private static string gitExePath;
+        
         public static string GitExePath
         {
             get { return gitExePath; }
@@ -31,12 +33,21 @@ namespace GitScc
 
         public static GitBashResult Run(string args, string workingDirectory)
         {
+            Debug.WriteLine(string.Format("{2}>{0} {1}", gitExePath, args, workingDirectory));
+
             if (string.IsNullOrWhiteSpace(gitExePath) || !File.Exists(gitExePath))
-                throw new Exception("Git Executable not found");
+                throw new GitException("Git Executable not found");
+
+            if (!Directory.Exists(workingDirectory))
+            {
+                return new GitBashResult
+                    {
+                        HasError = true,
+                        Error = workingDirectory + " is not a valid folder to run git command " + args
+                    };
+            }
 
             GitBashResult result = new GitBashResult();
-
-            //Debug.WriteLine(string.Format("{2}>{0} {1}", gitExePath, args, workingDirectory));
 
             var pinfo = new ProcessStartInfo(gitExePath)
             {
@@ -56,11 +67,13 @@ namespace GitScc
 
             using (var process = Process.Start(pinfo))
             {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
+                string output = null;
+                Thread thread = new Thread(_ => output = ReadStream(process.StandardOutput));
+                thread.Start();
+                var error = ReadStream(process.StandardError);
+                thread.Join();
 
-                //Debug.WriteLine(output);
+                process.WaitForExit();
 
                 result.HasError = process.ExitCode != 0;
                 result.Output = output;
@@ -70,10 +83,25 @@ namespace GitScc
             }
         }
 
+        private static string ReadStream(StreamReader streamReader)
+        {
+            if (!streamReader.BaseStream.CanRead) return null;
+            StringBuilder sb = new StringBuilder();
+
+            var buffer = new byte[1024];
+            int len = 0;
+            while ((len = streamReader.BaseStream.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                var buf = Encoding.UTF8.GetString(buffer, 0, len);
+                sb.Append(buf);
+            }
+            return sb.ToString();
+        }
+
         public static void RunCmd(string args, string workingDirectory)
         {
             if (string.IsNullOrWhiteSpace(gitExePath) || !File.Exists(gitExePath))
-                throw new Exception("Git Executable not found");
+                throw new GitException("Git Executable not found");
 
             Debug.WriteLine(string.Format("{2}>{0} {1}", gitExePath, args, workingDirectory));
 
@@ -95,7 +123,7 @@ namespace GitScc
                 process.WaitForExit();
 
                 if (!string.IsNullOrEmpty(error))
-                    throw new Exception(error);
+                    throw new GitException(error);
             }
         }
 
@@ -125,6 +153,17 @@ namespace GitScc
 
                 process.Start();
             }
+        }
+
+    }
+
+    [Serializable]
+    public class GitException : Exception
+    {
+        public GitException(string message)
+            : base(message)
+        {
+
         }
     }
 }

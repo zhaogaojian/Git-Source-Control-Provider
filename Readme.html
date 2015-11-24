@@ -1,17 +1,22 @@
 ﻿<h1>Git Source Control Provider 2015</h1>
 <h2>Introduction</h2>
-<p>This Visual Studio Extensions integrates Git with Visual Studio solution explorer.
-This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c">git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f%5B0%5D.Type=User&amp;f%5B0%5D.Value=yysun">Yiyi Sun</a></p>
-<h2>Notice : Initial Visual Studio 2015 Upgrade</h2>
+<p>This Visual Studio Extensions integrates Git with Visual Studio solution explorer.  </p>
+<h2>Upgrade : 1.4</h2>
 <ul>
-<li>This Upgrade started as a quick and dirty modification so I could use the git plug-in I wanted in Visual Studio 2015. A few others asked if they could use it, so then I went a little crazy and ended up adding a new extension project in 2015 and moving the files over from the old project. From my testing all works, but please tell me if you find anything, I will try and fix it.&lt;br&gt;</li>
+<li>This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post any issues https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. </li>
+<li>I'm not asking for donataions or anything, but if you want to fuel my nerd happy-ness please rate the plugin and tell me how you like it.  </li>
 </ul>
 <h3>Future Version</h3>
 <ul>
 <li>Fix the hundreds of Warnings.</li>
 <li>Add new test project to replace the test project that had to be removed.</li>
-<li>Replace external submodule git dependencies with updated versions.</li>
-<li>Find all unhanded file missing exceptions.</li>
+<li>Remove all the dead code.</li>
+<li>Finish move to libgit2sharp.</li>
+</ul>
+<h2>Notice : Initial Visual Studio 2015 Upgrade</h2>
+<p>This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c">git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&amp;f[0].Value=yysun">Yiyi Sun</a></p>
+<ul>
+<li>This Upgrade started as a quick and dirty modification so I could use the git plug-in I wanted in Visual Studio 2015. A few others asked if they could use it, so then I went a little crazy and ended up adding a new extension project in 2015 and moving the files over from the old project. From my testing all works, but please tell me if you find anything, I will try and fix it.&lt;br&gt;</li>
 </ul>
 <p><img src="http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874" alt="solution explorer" /></p>
 <h2>Features</h2>
@@ -20,7 +25,7 @@ This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.mi
 <li>Display repository status e.g. in the middle of merging, patching, rebase and bisecting</li>
 <li>Enable/disable plug-in through visual studio's source control plug-in selection</li>
 <li>No source code control information stored in solution or project file</li>
-<li>Initialize new git repository and generate .gitignore</li>
+<li>Initialize new git repository and generate .gitignore </li>
 <li>Integrates with <a href="http://code.google.com/p/msysgit">Git for Windows</a></li>
 <li>Integrates with <a href="http://code.google.com/p/gitextensions">Git Extensions</a></li>
 <li>Integrates with <a href="http://code.google.com/p/tortoisegit">TortoiseGit</a></li>
@@ -31,20 +36,32 @@ This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.mi
 <h2>How to use</h2>
 <ul>
 <li>Install <a href="http://code.google.com/p/msysgit">Git for Windows</a>, or <a href="http://code.google.com/p/gitextensions">Git Extensions</a>, or <a href="http://code.google.com/p/tortoisegit">TortoiseGit</a>.</li>
-<li>Run Visual Studio.</li>
-<li>Go to Tools | Extension Manager, search online gallery for Git Source Control Provider and install.</li>
+<li>Run Visual Studio. </li>
+<li>Go to Tools | Extension Manager, search online gallery for Git Source Control Provider and install. </li>
 <li>Go to Tools | Options, Select Source Control.</li>
 <li>Select Git Source Control Provider from the drop down list, and click OK.</li>
 <li>Open your solution controlled by Git to see the file's status.</li>
 <li>Right click within solution explorer and select &quot;Git&quot;. If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.</li>
 <li>Using the option page to disable the commands if you like.</li>
 </ul>
-<h2>Change Logs</h2>
+<h2>Change Logs -- Visual Studio 2015</h2>
+<p><strong>V1.4</strong></p>
+<ul>
+<li>Switch to using LibGit2Sharp, should see a large performace boost.</li>
+<li>Fix Pending changes window.</li>
+<li>Fixed reported bug 2 + 3</li>
+<li>Refactored external diff tools.. Should be able to extend them in the future</li>
+<li>Cleaned out lots of dead code. </li>
+<li>Fix lot's of bugs</li>
+<li>Removed Git Diff Margin(https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )</li>
+<li>Fixed file missing exceptions.</li>
+</ul>
 <p><strong>V1.3.1</strong></p>
 <ul>
 <li>Converted Solution to VS 2015</li>
 <li>Created new project for plug-in, update all references to Visual Studio 14.0</li>
 </ul>
+<h2>Change Logs -- Visual Studio 2013 and below</h2>
 <p><strong>V1.3</strong></p>
 <ul>
 <li>Added Settings button to the Pending change tool window</li>
@@ -58,27 +75,16 @@ This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.mi
 <p><strong>V1.1</strong></p>
 <ul>
 <li>
-<p>Add the <a href="https://github.com/laurentkempe/GitDiffMargin">Laurent Kempe's GitDiffMargin</a> by <a href="http://tunnelvisionlabs.com/research">Sam Harwell</a></p>
-<p><img src="https://a248.e.akamai.net/camo.github.com/efde11e7acc8e77f3da08bb8e30d14567c29e3c6/687474703a2f2f6661726d392e737461746963666c69636b722e636f6d2f383332392f383131363839353032355f656339353139623562625f6f2e706e67" alt="" /></p>
+<p>Add the <a href="https://github.com/laurentkempe/GitDiffMargin">Laurent Kempe's GitDiffMargin</a> by <a href="http://tunnelvisionlabs.com/research">Sam Harwell</a>  
+</p>
+<p><img src="https://a248.e.akamai.net/camo.github.com/efde11e7acc8e77f3da08bb8e30d14567c29e3c6/687474703a2f2f6661726d392e737461746963666c69636b722e636f6d2f383332392f383131363839353032355f656339353139623562625f6f2e706e67" /></p>
 </li>
-<li>
-<p>Performance Improvement (by Sam Harwell)</p>
-</li>
-<li>
-<p>UI de-clutter and cleanup (by Sam Harwell)</p>
-</li>
-<li>
-<p>Various bugs fixes (by Sam Harwell)</p>
-</li>
-<li>
-<p>Visual Studio 2012 dark theme support (by Sam Harwell)</p>
-</li>
-<li>
-<p>Refresh Git status using the solution refresh button (by Sam Harwell)</p>
-</li>
-<li>
-<p>Use Visual Studio code editor to view the diff in pending changes window (by Sam Harwell)</p>
-</li>
+<li>Performance Improvement (by Sam Harwell)</li>
+<li>UI de-clutter and cleanup (by Sam Harwell)</li>
+<li>Various bugs fixes (by Sam Harwell)</li>
+<li>Visual Studio 2012 dark theme support (by Sam Harwell)</li>
+<li>Refresh Git status using the solution refresh button (by Sam Harwell)</li>
+<li>Use Visual Studio code editor to view the diff in pending changes window (by Sam Harwell)</li>
 </ul>
 <p><strong>V1.0.1-V1.0.2</strong></p>
 <ul>
@@ -153,7 +159,8 @@ This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.mi
 </ul>
 <p><strong>V0.9.1 (1def890)</strong></p>
 <ul>
-<li>Change History Window to be a stand alone program - Dragon
+<li>
+Change History Window to be a stand alone program - Dragon
 <ul>
 <li>add/delete tag</li>
 <li>add/delete/checkout branch</li>
@@ -177,4 +184,3 @@ This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.mi
 </ul>
 <h2>Documentation</h2>
 <p><a href="https://github.com/jzoss/Git-Source-Control-Provider">Source + Documentation</a></p>
-

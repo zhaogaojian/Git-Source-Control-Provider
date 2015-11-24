@@ -27,14 +27,15 @@ using ThreadPriority = System.Threading.ThreadPriority;
 namespace GitScc
 {
     [Guid("C4128D99-1000-41D1-A6C3-704E6C1A3DE2")]
-    public class SccProviderService : IVsSccProvider,
+    public partial class SccProviderService : IVsSccProvider,
         IVsSccManager3,
         IVsSccManagerTooltip,
         IVsSolutionEvents,
         IVsSolutionEvents2,
         IVsSccGlyphs,
         IDisposable,
-        IVsUpdateSolutionEvents2
+        IVsUpdateSolutionEvents2,
+        IVsTrackProjectDocumentsEvents2
     {
         private static readonly QueuedTaskScheduler _queuedTaskScheduler =
             new QueuedTaskScheduler(1, threadName: "Git SCC Tasks", threadPriority: ThreadPriority.BelowNormal);
@@ -46,8 +47,7 @@ namespace GitScc
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
         private List<GitFileStatusTracker> trackers;
-        private uint _vsSolutionEventsCookie;
-        private uint _vsIVsUpdateSolutionEventsCookie;
+
 
         #region SccProvider Service initialization/unitialization
         public SccProviderService(BasicSccProvider sccProvider, List<GitFileStatusTracker> trackers)
@@ -55,32 +55,15 @@ namespace GitScc
             this._sccProvider = sccProvider;
             this.trackers = trackers;
 
-            // Subscribe to solution events
-            IVsSolution sol = (IVsSolution)sccProvider.GetService(typeof(SVsSolution));
-            sol.AdviseSolutionEvents(this, out _vsSolutionEventsCookie);
+            SetupSolutionEvents();
+            SetupDocumentEvents();
 
-            var sbm = sccProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager2;
-            if (sbm != null)
-            {
-                sbm.AdviseUpdateSolutionEvents(this, out _vsIVsUpdateSolutionEventsCookie);
-            }
         }
 
         public void Dispose()
         {
-            // Unregister from receiving solution events
-            if (VSConstants.VSCOOKIE_NIL != _vsSolutionEventsCookie)
-            {
-                IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
-                sol.UnadviseSolutionEvents(_vsSolutionEventsCookie);
-                _vsSolutionEventsCookie = VSConstants.VSCOOKIE_NIL;
-            }
-
-            if (VSConstants.VSCOOKIE_NIL != _vsIVsUpdateSolutionEventsCookie)
-            {
-                var sbm = _sccProvider.GetService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager2;
-                sbm.UnadviseUpdateSolutionEvents(_vsIVsUpdateSolutionEventsCookie);
-            }
+            UnRegisterSolutionEvents();
+            UnRegisterDocumentEvents();
         }
         #endregion
 
@@ -285,79 +268,7 @@ namespace GitScc
         }
         #endregion
 
-        #region IVsSolutionEvents interface functions
-
-        public int OnAfterOpenSolution([InAttribute] Object pUnkReserved, [InAttribute] int fNewSolution)
-        {
-            RefreshDelay = InitialRefreshDelay;
-
-            //automatic switch the scc provider
-            if (!Active && !GitSccOptions.Current.DisableAutoLoad)
-            {
-                OpenTracker();
-                if (trackers.Count > 0)
-                {
-                    IVsRegisterScciProvider rscp = (IVsRegisterScciProvider) _sccProvider.GetService(typeof(IVsRegisterScciProvider));
-                    rscp.RegisterSourceControlProvider(GuidList.guidSccProvider);
-                }
-            }
-
-            MarkDirty(false);
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterCloseSolution([InAttribute] Object pUnkReserved)
-        {
-            CloseTracker();
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterLoadProject([InAttribute] IVsHierarchy pStubHierarchy, [InAttribute] IVsHierarchy pRealHierarchy)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterOpenProject([InAttribute] IVsHierarchy pHierarchy, [InAttribute] int fAdded)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnBeforeCloseProject([InAttribute] IVsHierarchy pHierarchy, [InAttribute] int fRemoved)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnBeforeCloseSolution([InAttribute] Object pUnkReserved)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnBeforeUnloadProject([InAttribute] IVsHierarchy pRealHierarchy, [InAttribute] IVsHierarchy pStubHierarchy)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnQueryCloseProject([InAttribute] IVsHierarchy pHierarchy, [InAttribute] int fRemoving, [InAttribute] ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnQueryCloseSolution([InAttribute] Object pUnkReserved, [InAttribute] ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnQueryUnloadProject([InAttribute] IVsHierarchy pRealHierarchy, [InAttribute] ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int OnAfterMergeSolution([InAttribute] Object pUnkReserved)
-        {
-            return VSConstants.S_OK;
-        }
-
-        #endregion
+     
 
         #region IVsSccGlyphs Members
 
@@ -730,16 +641,12 @@ namespace GitScc
             CompareFile(fileName);
         }
 
-        internal void CompareFile(string fileName)
+
+        //TODO mAybe move this to a static git helper
+        internal void CompareFile(string filename)
         {
-            GitFileStatus status = GetFileStatus(fileName);
-            if (status == GitFileStatus.Modified || status == GitFileStatus.Staged)
-            {
-                string tempFile = Path.GetFileName(fileName);
-                tempFile = Path.Combine(Path.GetTempPath(), tempFile);
-                CurrentTracker.SaveFileFromRepository(fileName, tempFile);
-                _sccProvider.RunDiffCommand(tempFile, fileName);
-            }
+            var repo = GetTracker(filename);
+            _sccProvider.RunDiffCommand(GitCommands.GenerateDiffFileInfo(repo,filename));
         }
 
         internal void UndoSelectedFile()
@@ -779,10 +686,10 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         internal void EditIgnore()
         {
-            if (this.CurrentTracker != null && this.CurrentTracker.HasGitRepository)
+            if (this.CurrentTracker != null && this.CurrentTracker.IsGit)
             {
                 var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
-                var fn = Path.Combine(this.CurrentTracker.GitWorkingDirectory, ".gitignore");
+                var fn = Path.Combine(this.CurrentTracker.WorkingDirectory, ".gitignore");
                 if (!File.Exists(fn)) File.WriteAllText(fn, "# git ignore file");
                 dte.ItemOperations.OpenFile(fn);
             }
@@ -790,65 +697,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         #endregion
 
-        #region IVsUpdateSolutionEvents2 Members
-
-        public int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
-        {
-            return VSConstants.S_OK;
-        }
-
-        private IDisposable _updateSolutionDisableRefresh;
-
-        public int UpdateSolution_Begin(ref int pfCancelUpdate)
-        {
-            Debug.WriteLine("Git Source Control Provider: suppress refresh before build...");
-            IDisposable disableRefresh = DisableRefresh();
-            disableRefresh = Interlocked.Exchange(ref _updateSolutionDisableRefresh, disableRefresh);
-            if (disableRefresh != null)
-            {
-                // this is unexpected, but if we did overwrite a handle make sure it gets disposed
-                disableRefresh.Dispose();
-            }
-
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateSolution_Cancel()
-        {
-            Debug.WriteLine("Git Source Control Provider: resume refresh after cancel...");
-            IDisposable handle = Interlocked.Exchange(ref _updateSolutionDisableRefresh, null);
-            if (handle != null)
-                handle.Dispose();
-
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
-        {
-            Debug.WriteLine("Git Source Control Provider: resume refresh after build...");
-            IDisposable handle = Interlocked.Exchange(ref _updateSolutionDisableRefresh, null);
-            if (handle != null)
-                handle.Dispose();
-
-            return VSConstants.S_OK;
-        }
-
-        public int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
-
-        #endregion
+      
 
         #region project trackers
         private void AddProject(IVsHierarchy pHierarchy)
@@ -860,14 +709,16 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
             //Debug.WriteLine("==== Adding project: " + projectDirecotry);
 
-            string gitfolder = GitFileStatusTracker.GetRepositoryDirectory(projectDirecotry);
+            //TODO.. got to be a better way
+            var tracker = new GitFileStatusTracker(projectDirecotry);
+            string gitfolder = tracker.WorkingDirectory;
 
             if (string.IsNullOrEmpty(gitfolder) ||
-                trackers.Any(t => t.HasGitRepository && 
-                             string.Compare(t.GitWorkingDirectory, gitfolder, true)==0)) return;
+                trackers.Any(t => t.IsGit && 
+                             string.Compare(t.WorkingDirectory, gitfolder, true)==0)) return;
             
             if (gitfolder.Length < monitorFolder.Length) monitorFolder = gitfolder;
-            trackers.Add(new GitFileStatusTracker(gitfolder));
+            trackers.Add(tracker);
             
             //Debug.WriteLine("==== Added git tracker: " + gitfolder);
            
@@ -882,12 +733,12 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             }
         }
 
-        internal string CurrentGitWorkingDirectory
+        internal string CurrentWorkingDirectory
         {
             get
             {
                 GitFileStatusTracker tracker = CurrentTracker;
-                return tracker != null ? tracker.GitWorkingDirectory : null;
+                return tracker != null ? tracker.WorkingDirectory : null;
             }
         }
 
@@ -907,14 +758,27 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             return GetTracker(GetSolutionFileName());
         }
 
+
+        //TODO :  I don't like this.. 
         internal GitFileStatusTracker GetTracker(string fileName)
         {
             if (string.IsNullOrEmpty(fileName)) return null;
             
-            return trackers.Where(t => t.HasGitRepository && 
-                                  IsParentFolder(t.GitWorkingDirectory, fileName))           
-                           .OrderByDescending(t => t.GitWorkingDirectory.Length)
+
+
+            return trackers.Where(t => t.IsGit &&
+                                  IsFileBelowDirectory(fileName, t.WorkingDirectory, "\\"))           
+                           .OrderByDescending(t => t.WorkingDirectory.Length)
                            .FirstOrDefault();
+        }
+
+        public static bool IsFileBelowDirectory(string fileInfo, string directoryInfo, string separator)
+        {
+            var directoryPath = string.Format("{0}{1}"
+            , directoryInfo
+            , directoryInfo.EndsWith(separator) ? "" : separator);
+
+            return fileInfo.StartsWith(directoryPath, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool IsParentFolder(string folder, string fileName)
@@ -1045,7 +909,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
                     OpenTracker();
                     foreach (GitFileStatusTracker tracker in trackers.ToArray())
-                        tracker.GetChangedFiles(true);
+                        tracker.Refresh();
 
                     timer.Stop();
                 };
@@ -1096,7 +960,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         public void RefreshNodesGlyphs()
         {
-            var solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+          var solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
             var projectList = GetLoadedControllableProjects();
 
             // We'll also need to refresh the solution folders glyphs

@@ -102,7 +102,7 @@ namespace GitScc
                     //Get our WPF host from our text view (from our code window).
                     IWpfTextViewHost textViewHost = editorAdapterFactoryService.GetWpfTextViewHost(this.textView);
 
-                    textViewHost.TextView.Options.SetOptionValue(GitTextViewOptions.DiffMarginId, false);
+                    //textViewHost.TextView.Options.SetOptionValue(GitTextViewOptions.DiffMarginId, false);
                     textViewHost.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.ChangeTrackingId, false);
                     textViewHost.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
                     textViewHost.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginId, false);

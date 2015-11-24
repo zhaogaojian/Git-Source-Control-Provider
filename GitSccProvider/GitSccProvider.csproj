@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="BasicSccProvider.cs" />
     <Compile Include="CommandId.cs" />
+    <Compile Include="DiffTools.cs" />
     <Compile Include="Diff\BackgroundParser.cs" />
     <Compile Include="Diff\DiffAdditionEditorFormatDefinition.cs" />
     <Compile Include="Diff\DiffFormatNames.cs" />
@@ -104,6 +105,8 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="SccProviderService.cs" />
+    <Compile Include="SccProviderService.DocumentEvents.cs" />
+    <Compile Include="SccProviderService.SolutionEvents.cs" />
     <Compile Include="Schedulers\QueuedTaskScheduler.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="ToolWindowWithEditor.cs" />
@@ -145,6 +148,7 @@
     <Content Include="Resources\Images_32bit.png" />
     <Resource Include="Resources\Loading.png" />
     <Content Include="Resources\PendingCheckins.png" />
+    <EmbeddedResource Include="Resources\Patch-Mode.xshd" />
     <None Include="Resources\Product.ico" />
     <Content Include="Resources\Refresh.png" />
     <Content Include="Resources\SccGlyphs.bmp" />
@@ -191,6 +195,10 @@
     </Reference>
     <Reference Include="GalaSoft.MvvmLight.Platform, Version=5.1.1.35053, Culture=neutral, PublicKeyToken=5f873c45e98af8a1, processorArchitecture=MSIL">
       <HintPath>..\packages\MvvmLightLibs.5.1.1.0\lib\net45\GalaSoft.MvvmLight.Platform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=5.0.1.0, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <HintPath>..\packages\AvalonEdit.5.0.2\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
@@ -317,22 +325,6 @@
     <ProjectReference Include="..\GitApi\GitApi.csproj">
       <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
       <Name>GitApi</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GitUI\GitUI.csproj">
-      <Project>{c756204f-28e1-473a-8160-e697e3303f1b}</Project>
-      <Name>GitUI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GitUI\ICSharpCode.AvalonEdit\ICSharpCode.AvalonEdit.csproj">
-      <Project>{6c55b776-26d4-4db3-a6ab-87e783b2f3d1}</Project>
-      <Name>ICSharpCode.AvalonEdit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GitUI\Microsoft.Windows.Shell\Microsoft.Windows.Shell.csproj">
-      <Project>{55d5297c-f1df-4b76-a3c1-d82cc294eebb}</Project>
-      <Name>Microsoft.Windows.Shell</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GitUI\ZoomAndPan\ZoomAndPan.csproj">
-      <Project>{468adede-6f5e-40c0-99c9-c6dac4fac934}</Project>
-      <Name>ZoomAndPan</Name>
     </ProjectReference>
     <ProjectReference Include="..\ngit\NGit\NGit.csproj">
       <Project>{e3bff8b4-189c-496a-a817-7e8b31e22b91}</Project>

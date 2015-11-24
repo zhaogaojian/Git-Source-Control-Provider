@@ -19,7 +19,15 @@ using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Reflection;
+using System.Windows.Controls;
+using GitSccProvider;
 using Microsoft.VisualStudio.Shell.Interop;
+using Button = System.Windows.Forms.Button;
+using CheckBox = System.Windows.Forms.CheckBox;
+using ComboBox = System.Windows.Forms.ComboBox;
+using Label = System.Windows.Forms.Label;
+using TextBox = System.Windows.Forms.TextBox;
 
 namespace GitScc
 {
@@ -38,7 +46,6 @@ namespace GitScc
         private TextBox textBox1;
         private Label label2;
         private TextBox textBox2;
-        private Label label3;
         private TextBox textBox3;
         private Button button1;
         private Button button2;
@@ -52,8 +59,10 @@ namespace GitScc
         private CheckBox checkBox4;
         private CheckBox checkBox5;
         private CheckBox checkBox6;
-        private CheckBox useVsDiffChk;
-        private CheckBox chkDisableDiffMargin;
+        private ComboBox cbDiffTool;
+        private Label label3;
+        private Label label5;
+
         // The parent page, use to persist data
         private SccProviderOptions _customPage;
 
@@ -94,7 +103,6 @@ namespace GitScc
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBox2 = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
@@ -108,8 +116,9 @@ namespace GitScc
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
-            this.useVsDiffChk = new System.Windows.Forms.CheckBox();
-            this.chkDisableDiffMargin = new System.Windows.Forms.CheckBox();
+            this.cbDiffTool = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // openFileDialog1
@@ -148,21 +157,13 @@ namespace GitScc
             this.textBox2.Size = new System.Drawing.Size(283, 20);
             this.textBox2.TabIndex = 14;
             // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 191);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(321, 13);
-            this.label3.TabIndex = 15;
-            this.label3.Text = "Path to external diff tool (optional, by default diffmerge.exe is used):";
-            // 
             // textBox3
             // 
             this.textBox3.Location = new System.Drawing.Point(6, 207);
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(283, 20);
             this.textBox3.TabIndex = 16;
+            this.textBox3.Visible = false;
             // 
             // button1
             // 
@@ -192,6 +193,7 @@ namespace GitScc
             this.button3.TabIndex = 19;
             this.button3.Text = "Browse ...";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Visible = false;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // label4
@@ -284,35 +286,43 @@ namespace GitScc
             this.checkBox6.Text = "Disable UTF-8 file names (Git 1.7.10+)";
             this.checkBox6.UseVisualStyleBackColor = true;
             // 
-            // useVsDiffChk
+            // cbDiffTool
             // 
-            this.useVsDiffChk.AutoSize = true;
-            this.useVsDiffChk.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.useVsDiffChk.Location = new System.Drawing.Point(6, 171);
-            this.useVsDiffChk.Name = "useVsDiffChk";
-            this.useVsDiffChk.Size = new System.Drawing.Size(197, 17);
-            this.useVsDiffChk.TabIndex = 29;
-            this.useVsDiffChk.Text = "Use Visual Studio 2012 Diff Window";
-            this.useVsDiffChk.UseVisualStyleBackColor = true;
-            this.useVsDiffChk.CheckedChanged += new System.EventHandler(this.useVsDiffChk_CheckedChanged);
+            this.cbDiffTool.DisplayMember = "Content";
+            this.cbDiffTool.FormattingEnabled = true;
+            this.cbDiffTool.Location = new System.Drawing.Point(98, 167);
+            this.cbDiffTool.Name = "cbDiffTool";
+            this.cbDiffTool.Size = new System.Drawing.Size(272, 21);
+            this.cbDiffTool.TabIndex = 30;
+            this.cbDiffTool.Tag = "Tag";
+            this.cbDiffTool.SelectedIndexChanged += new System.EventHandler(this.cbDiffTool_SelectedIndexChanged);
             // 
-            // chkDisableDiffMargin
+            // label3
             // 
-            this.chkDisableDiffMargin.AutoSize = true;
-            this.chkDisableDiffMargin.Location = new System.Drawing.Point(6, 309);
-            this.chkDisableDiffMargin.Name = "chkDisableDiffMargin";
-            this.chkDisableDiffMargin.Size = new System.Drawing.Size(130, 17);
-            this.chkDisableDiffMargin.TabIndex = 30;
-            this.chkDisableDiffMargin.Text = "Disable the diff margin";
-            this.chkDisableDiffMargin.UseVisualStyleBackColor = true;
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(3, 191);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(321, 13);
+            this.label3.TabIndex = 15;
+            this.label3.Text = "Path to external diff tool (optional, by default diffmerge.exe is used):";
+            this.label3.Visible = false;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(3, 170);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(80, 13);
+            this.label5.TabIndex = 31;
+            this.label5.Text = "Select Diff Tool";
             // 
             // SccProviderOptionsControl
             // 
             this.AllowDrop = true;
             this.AutoScroll = true;
             this.AutoSize = true;
-            this.Controls.Add(this.chkDisableDiffMargin);
-            this.Controls.Add(this.useVsDiffChk);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.cbDiffTool);
             this.Controls.Add(this.checkBox6);
             this.Controls.Add(this.checkBox5);
             this.Controls.Add(this.checkBox4);
@@ -360,8 +370,11 @@ namespace GitScc
             this.checkBox4.Checked = GitSccOptions.Current.DisableAutoRefresh;
             this.checkBox5.Checked = GitSccOptions.Current.DisableAutoLoad;
             this.checkBox6.Checked = GitSccOptions.Current.NotUseUTF8FileNames;
-            this.chkDisableDiffMargin.Checked = GitSccOptions.Current.DisableDiffMargin;
-            this.useVsDiffChk.Checked = GitSccOptions.Current.UseVsDiff;
+            //this.useVsDiffChk.Checked = GitSccOptions.Current.UseVsDiff;
+            cbDiffTool.Items.Clear();
+            PopulateDiffTools();
+
+            
 
             if (GitSccOptions.IsVisualStudio2012)
                 checkBox3.Text += " (requires restart)";
@@ -409,8 +422,9 @@ namespace GitScc
             GitSccOptions.Current.DisableAutoRefresh = this.checkBox4.Checked;
             GitSccOptions.Current.DisableAutoLoad = this.checkBox5.Checked;
             GitSccOptions.Current.NotUseUTF8FileNames = this.checkBox6.Checked;
-            GitSccOptions.Current.DisableDiffMargin = this.chkDisableDiffMargin.Checked;
-            GitSccOptions.Current.UseVsDiff = this.useVsDiffChk.Checked;
+            GitSccOptions.Current.DisableDiffMargin = true;
+            GitSccOptions.Current.UseVsDiff = false;
+            GitSccOptions.Current.DiffTool = GetDiffToolId(); // this.cbDiffTool.SelectedItem.
 
             GitBash.UseUTF8FileNames = !GitSccOptions.Current.NotUseUTF8FileNames;
             GitSccOptions.Current.SaveConfig();
@@ -419,12 +433,58 @@ namespace GitScc
             sccProviderService.MarkDirty(false);
         }
 
-        private void useVsDiffChk_CheckedChanged(object sender, EventArgs e)
+        //private void useVsDiffChk_CheckedChanged(object sender, EventArgs e)
+        //{
+        //    label3.Enabled = textBox3.Enabled = button3.Enabled 
+        //        = !useVsDiffChk.Checked;
+        //}
+
+        private void  PopulateDiffTools()
         {
-            label3.Enabled = textBox3.Enabled = button3.Enabled 
-                = !useVsDiffChk.Checked;
+            foreach (var value in Enum.GetValues(typeof(DiffTools)))
+            {
+                var item = new ComboBoxItem();
+                item.Content = GetDescription((DiffTools)value);
+                item.Tag = value;
+                cbDiffTool.Items.Add(item);
+                if ((DiffTools)value == GitSccOptions.Current.DiffTool)
+                {
+                    cbDiffTool.SelectedItem = item;
+                }
+                
+            }
+            
         }
 
+        private DiffTools GetDiffToolId()
+        {
+            var item = (ComboBoxItem) cbDiffTool.SelectedItem;
+            return (DiffTools) item.Tag;
+        }
+
+        private static string GetDescription(Enum en)
+        {
+            Type type = en.GetType();
+
+            MemberInfo[] memInfo = type.GetMember(en.ToString());
+
+            if (memInfo != null && memInfo.Length > 0)
+            {
+                object[] attrs = memInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+
+                if (attrs != null && attrs.Length > 0)
+                {
+                    return ((DescriptionAttribute)attrs[0]).Description;
+                }
+            }
+
+            return en.ToString();
+        }
+
+        private void cbDiffTool_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 
 }
