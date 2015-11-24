@@ -1,5 +1,15 @@
 ## Change Logs
 
+**V1.4**
+
+*   Switch to using LibGit2Sharp, should see a large performace boost.
+*   Fix Pending changes window.
+*   Fixed reported bug 2 + 3
+*   Refactored external diff tools.. Should be able to extend them in the future
+*   Cleaned out lots of dead code. 
+*   Fix lot's of bugs
+*   Removed Git Diff Margin(https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )
+
 **V1.3.1**
 
 *   Converted Solution to VS 2015

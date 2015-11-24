@@ -1,21 +1,22 @@
 ﻿<h1>Git Source Control Provider 2015</h1>
 <h2>Introduction</h2>
 <p>This Visual Studio Extensions integrates Git with Visual Studio solution explorer.  </p>
-<p>This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c">git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&amp;f[0].Value=yysun">Yiyi Sun</a></p>
 <h2>Upgrade : 1.4</h2>
 <ul>
-<li>This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post to https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. </li>
-</ul>
-<h2>Notice : Initial Visual Studio 2015 Upgrade</h2>
-<ul>
-<li>This Upgrade started as a quick and dirty modification so I could use the git plug-in I wanted in Visual Studio 2015. A few others asked if they could use it, so then I went a little crazy and ended up adding a new extension project in 2015 and moving the files over from the old project. From my testing all works, but please tell me if you find anything, I will try and fix it.&lt;br&gt;</li>
+<li>This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post any issues https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. </li>
+<li>I'm not asking for donataions or anything, but if you want to fuel my nerd happy-ness please rate the plugin and tell me how you like it.  </li>
 </ul>
 <h3>Future Version</h3>
 <ul>
 <li>Fix the hundreds of Warnings.</li>
 <li>Add new test project to replace the test project that had to be removed.</li>
-<li>Replace external submodule git dependencies with updated versions.</li>
-<li>Find all unhanded file missing exceptions.</li>
+<li>Remove all the dead code.</li>
+<li>Finish move to libgit2sharp.</li>
+</ul>
+<h2>Notice : Initial Visual Studio 2015 Upgrade</h2>
+<p>This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c">git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&amp;f[0].Value=yysun">Yiyi Sun</a></p>
+<ul>
+<li>This Upgrade started as a quick and dirty modification so I could use the git plug-in I wanted in Visual Studio 2015. A few others asked if they could use it, so then I went a little crazy and ended up adding a new extension project in 2015 and moving the files over from the old project. From my testing all works, but please tell me if you find anything, I will try and fix it.&lt;br&gt;</li>
 </ul>
 <p><img src="http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874" alt="solution explorer" /></p>
 <h2>Features</h2>
@@ -48,7 +49,12 @@
 <ul>
 <li>Switch to using LibGit2Sharp, should see a large performace boost.</li>
 <li>Fix Pending changes window.</li>
+<li>Fixed reported bug 2 + 3</li>
+<li>Refactored external diff tools.. Should be able to extend them in the future</li>
+<li>Cleaned out lots of dead code. </li>
 <li>Fix lot's of bugs</li>
+<li>Removed Git Diff Margin(https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )</li>
+<li>Fixed file missing exceptions.</li>
 </ul>
 <p><strong>V1.3.1</strong></p>
 <ul>

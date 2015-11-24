@@ -6,24 +6,27 @@ Introduction
 This Visual Studio Extensions integrates Git with Visual Studio solution explorer.  
 
 
-This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c) by [Yiyi Sun](https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&f[0].Value=yysun)
+
 
 
 ## Upgrade : 1.4
 
-*   This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post to https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
-
-
-## Notice : Initial Visual Studio 2015 Upgrade
-
-*   This Upgrade started as a quick and dirty modification so I could use the git plug-in I wanted in Visual Studio 2015\. A few others asked if they could use it, so then I went a little crazy and ended up adding a new extension project in 2015 and moving the files over from the old project. From my testing all works, but please tell me if you find anything, I will try and fix it.<br\>
+*   This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post any issues https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
+*   I'm not asking for donataions or anything, but if you want to fuel my nerd happy-ness please rate the plugin and tell me how you like it.  
 
 ### Future Version
 
 *   Fix the hundreds of Warnings.
 *   Add new test project to replace the test project that had to be removed.
-*   Replace external submodule git dependencies with updated versions.
-*   Find all unhanded file missing exceptions.
+*   Remove all the dead code.
+*   Finish move to libgit2sharp.
+
+
+
+## Notice : Initial Visual Studio 2015 Upgrade
+This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c) by [Yiyi Sun](https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&f[0].Value=yysun)
+
+*   This Upgrade started as a quick and dirty modification so I could use the git plug-in I wanted in Visual Studio 2015\. A few others asked if they could use it, so then I went a little crazy and ended up adding a new extension project in 2015 and moving the files over from the old project. From my testing all works, but please tell me if you find anything, I will try and fix it.<br\>
 
 
 ![solution explorer](http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874)
@@ -60,8 +63,12 @@ How to use
 
 *   Switch to using LibGit2Sharp, should see a large performace boost.
 *   Fix Pending changes window.
+*   Fixed reported bug 2 + 3
+*   Refactored external diff tools.. Should be able to extend them in the future
+*   Cleaned out lots of dead code. 
 *   Fix lot's of bugs
-
+*   Removed Git Diff Margin(https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )
+*   Fixed file missing exceptions.
 
 
 **V1.3.1**
