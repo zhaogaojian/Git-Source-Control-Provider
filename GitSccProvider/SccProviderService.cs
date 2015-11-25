@@ -655,6 +655,7 @@ namespace GitScc
             UndoFileChanges(fileName);
         }
 
+        //TODO FIX
         internal void UndoFileChanges(string fileName)
         {
             GitFileStatus status = GetFileStatus(fileName);

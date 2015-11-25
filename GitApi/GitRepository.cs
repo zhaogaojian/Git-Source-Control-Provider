@@ -380,11 +380,24 @@ namespace GitScc
         public void StageFile(string fileName)
         {
             _repository.Stage(fileName);
+           
         }
 
         public void UnStageFile(string fileName)
         {
             _repository.Unstage(fileName);
+        }
+
+	    public void UndoFileChanges(string filename)
+	    {
+            var relativePath = "";
+            if (TryGetRelativePath(filename, out relativePath))
+            {
+                var indexEntry = _repository.Index[relativePath];
+                _repository.Index.
+
+            }
+
         }
 
         public void AddIgnoreItem(string fileName)
@@ -458,7 +471,6 @@ namespace GitScc
                 if (indexEntry != null)
                 {
                     oldBlob = _repository.Lookup<Blob>(indexEntry.Id);
-                    var test = _repository.Config.Get<string>("diff.tool");
                 }
 	        }
             return oldBlob != null ? oldBlob.GetContentText(new FilteringOptions(relativePath)) : string.Empty;

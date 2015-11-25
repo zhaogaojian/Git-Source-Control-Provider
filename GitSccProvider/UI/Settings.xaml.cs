@@ -68,8 +68,9 @@ namespace GitScc.UI
             {
                 txtMessage.Content = ex.Message;
             }
+            var version = txtMessage?.Content?.ToString();
 
-            btnOK.IsEnabled = GitBash.Exists && txtMessage.Content.ToString().StartsWith("git version");
+            btnOK.IsEnabled = GitBash.Exists && !string.IsNullOrWhiteSpace(version) && version.StartsWith("git version");
         }
 
         private void btnOK_Click(object sender, RoutedEventArgs e)
