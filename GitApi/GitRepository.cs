@@ -390,15 +390,10 @@ namespace GitScc
 
 	    public void UndoFileChanges(string filename)
 	    {
-            var relativePath = "";
-            if (TryGetRelativePath(filename, out relativePath))
-            {
-                var indexEntry = _repository.Index[relativePath];
-                _repository.Index.
 
-            }
-
-        }
+	        var unchagedfile = GetUnmodifiedFile(filename);
+	        File.WriteAllText(filename, unchagedfile);
+	    }
 
         public void AddIgnoreItem(string fileName)
         {

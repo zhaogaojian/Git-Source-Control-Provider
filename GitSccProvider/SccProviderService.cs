@@ -674,13 +674,15 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                     " and restore a version from the last commit? " + deleteMsg,
                     "Undo Changes", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
+                    CurrentTracker.UndoFileChanges(fileName);
+                    MarkDirty(true);
                     //SaveFileFromRepository(fileName, fileName);
                     //if (status == GitFileStatus.Staged || status == GitFileStatus.Removed)
                     //{
                     //    CurrentTracker.UnStageFile(fileName);
                     //}
 
-                    CurrentTracker.CheckOutFile(fileName);
+                    //CurrentTracker.CheckOutFile(fileName);
                 }
             }
         }
