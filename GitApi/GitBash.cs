@@ -31,14 +31,14 @@ namespace GitScc
         public static bool Exists { get { return !string.IsNullOrWhiteSpace(gitExePath) &&
             File.Exists(gitExePath); } }
 
-        public static GitBashResult Run(string args, string workingDirectory)
+        public static GitBashResult Run(string args, string workingDirectory, bool ignoreWorkingDirectory = false)
         {
             Debug.WriteLine(string.Format("{2}>{0} {1}", gitExePath, args, workingDirectory));
 
             if (string.IsNullOrWhiteSpace(gitExePath) || !File.Exists(gitExePath))
                 throw new GitException("Git Executable not found");
 
-            if (!Directory.Exists(workingDirectory))
+            if (!Directory.Exists(workingDirectory) && !ignoreWorkingDirectory)
             {
                 return new GitBashResult
                     {

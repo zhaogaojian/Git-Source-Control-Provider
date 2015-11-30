@@ -45,19 +45,19 @@ namespace GitScc.UI
             txtGitExePath.Text = GitBash.GitExePath;
             try
             {
-                var result = GitBash.Run("version", "");
-                txtMessage.Content = result.Output;
-                result = GitBash.Run("config --global user.name", "");
-                txtUserName.Text = result.Output;
-                result = GitBash.Run("config --global user.email", "");
-                txtUserEmail.Text = result.Output;
-                result = GitBash.Run("config --global credential.helper", "");
+                var result = GitBash.Run("version", "",true);
+                txtMessage.Content = result.Output.Replace("\r", "").Replace("\n", ""); 
+                result = GitBash.Run("config --global user.name", "", true);
+                txtUserName.Text = result.Output.Replace("\r", "").Replace("\n", ""); 
+                result = GitBash.Run("config --global user.email", "", true);
+                txtUserEmail.Text = result.Output.Replace("\r", "").Replace("\n", "");
+                result = GitBash.Run("config --global credential.helper", "",true);
                 var msg = string.IsNullOrWhiteSpace(result.Output) ? 
                     "Click here to install Windows Credential for Git":
                     "Git credential helper is installed";
                 txtGitCredentialHelper.Inlines.Clear();
                 txtGitCredentialHelper.Inlines.Add(msg);
-                result = GitBash.Run("config --global merge.tool", "");
+                result = GitBash.Run("config --global merge.tool", "",true);
                 msg = string.IsNullOrWhiteSpace(result.Output) ?
                    "Git merge tool is not configured." :
                    "Git merge tool is " +  result.Output;
@@ -89,8 +89,8 @@ namespace GitScc.UI
 
             try
             {
-                GitBash.Run("config --global user.name \"" + txtUserName.Text + "\"", "");
-                GitBash.Run("config --global user.email " + txtUserEmail.Text, "");
+                GitBash.Run("config --global user.name \"" + txtUserName.Text + "\"", "",true);
+                GitBash.Run("config --global user.email " + txtUserEmail.Text, "",true);
 
                 GitSccOptions.Current.GitBashPath = GitBash.GitExePath;
                 GitSccOptions.Current.SaveConfig();

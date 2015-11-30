@@ -59,6 +59,14 @@ How to use
 
 ## Change Logs -- Visual Studio 2015
 
+**V1.4.1**
+
+*   Fixed Settings Error
+*   Fix bugs #5 + #6. -Thanks 
+*   Thanks To  teebee76 (You Rock) for his help, mnadel, PureKrome + NightOwl888, you guys are also super cool. Keep finidng bugs and I will fix them as fast as I can.  
+
+
+
 **V1.4**
 
 *   Switch to using LibGit2Sharp, should see a large performace boost.
