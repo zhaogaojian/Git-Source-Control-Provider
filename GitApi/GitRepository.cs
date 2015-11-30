@@ -390,9 +390,11 @@ namespace GitScc
 
 	    public void UndoFileChanges(string filename)
 	    {
-
-	        var unchagedfile = GetUnmodifiedFile(filename);
-	        File.WriteAllText(filename, unchagedfile);
+            CheckoutOptions options = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
+            _repository.CheckoutPaths("HEAD", new string[] { filename }, options);
+            //_repository.CheckoutPaths();
+         //   var unchagedfile = GetUnmodifiedFile(filename);
+	        //File.WriteAllText(filename, unchagedfile);
 	    }
 
         public void AddIgnoreItem(string fileName)

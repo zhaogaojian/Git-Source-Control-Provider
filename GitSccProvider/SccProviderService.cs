@@ -675,13 +675,13 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                     "Undo Changes", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     CurrentTracker.UndoFileChanges(fileName);
-                    MarkDirty(true);
+                    
                     //SaveFileFromRepository(fileName, fileName);
-                    //if (status == GitFileStatus.Staged || status == GitFileStatus.Removed)
-                    //{
-                    //    CurrentTracker.UnStageFile(fileName);
-                    //}
-
+                    if (status == GitFileStatus.Staged || status == GitFileStatus.Removed)
+                    {
+                        CurrentTracker.UnStageFile(fileName);
+                    }
+                    MarkDirty(true);
                     //CurrentTracker.CheckOutFile(fileName);
                 }
             }
