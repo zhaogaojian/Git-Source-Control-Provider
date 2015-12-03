@@ -61,11 +61,13 @@
     <Compile Include="GitBash.cs" />
     <Compile Include="GitBashResult.cs" />
     <Compile Include="GitBranchInfo.cs" />
+    <Compile Include="GitChangeset.cs" />
     <Compile Include="GitCommands.cs" />
     <Compile Include="GitFileStatus.cs" />
     <Compile Include="GitIntellisenseHelper.cs" />
     <Compile Include="GitRepository.cs" />
     <Compile Include="GitSccOptions.cs" />
+    <Compile Include="GitFileUpdateEventArgs.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RepositoryManager.cs" />

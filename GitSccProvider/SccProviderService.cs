@@ -55,12 +55,15 @@ namespace GitScc
         public SccProviderService(BasicSccProvider sccProvider)
         {
             this._sccProvider = sccProvider;
+            RepositoryManager.FileChanged += RepositoryManager_FileChanged;
             //this.trackers = trackers;
 
             SetupSolutionEvents();
             SetupDocumentEvents();
 
         }
+
+
 
         public void Dispose()
         {
@@ -547,30 +550,51 @@ namespace GitScc
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {
-                monitorFolder = Path.GetDirectoryName(solutionFileName);
+                //monitorFolder = Path.GetDirectoryName(solutionFileName);
 
                 GetLoadedControllableProjects().ForEach(h => AddProject(h as IVsHierarchy));
 
-                if (monitorFolder != lastMonitorFolder)
-                {
-                    RemoveFolderMonitor();
+                //if (monitorFolder != lastMonitorFolder)
+                //{
+                //    RemoveFolderMonitor();
 
-                    if (_watcher != null)
-                        _watcher.Dispose();
+                //    if (_watcher != null)
+                //        _watcher.Dispose();
 
-                    FileSystemWatcher watcher = new FileSystemWatcher(monitorFolder);
-                    watcher.IncludeSubdirectories = true;
-                    watcher.Changed += HandleFileSystemChanged;
-                    watcher.Created += HandleFileSystemChanged;
-                    watcher.Deleted += HandleFileSystemChanged;
-                    watcher.Renamed += HandleFileSystemChanged;
-                    watcher.EnableRaisingEvents = true;
-                    _watcher = watcher;
-                    lastMonitorFolder = monitorFolder;
+                //    FileSystemWatcher watcher = new FileSystemWatcher(monitorFolder);
+                //    watcher.IncludeSubdirectories = true;
+                //    watcher.Changed += HandleFileSystemChanged;
+                //    watcher.Created += HandleFileSystemChanged;
+                //    watcher.Deleted += HandleFileSystemChanged;
+                //    watcher.Renamed += HandleFileSystemChanged;
+                //    watcher.EnableRaisingEvents = true;
+                //    _watcher = watcher;
+                //    lastMonitorFolder = monitorFolder;
 
-                    Debug.WriteLine("==== Monitoring: " + monitorFolder);
-                }
+                //    Debug.WriteLine("==== Monitoring: " + monitorFolder);
+                //}
             }
+        }
+
+        private void RepositoryManager_FileChanged(object sender, GitFileUpdateEventArgs e)
+        {
+            Action action = () => ProcessGitFileSystemChange(e);
+            Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SccProviderService.TaskScheduler)
+                .HandleNonCriticalExceptions();
+        }
+
+        private void ProcessGitFileSystemChange(GitFileUpdateEventArgs e)
+        {
+            if (GitSccOptions.Current.DisableAutoRefresh)
+                return;
+
+            if (string.Equals(Path.GetExtension(e.Name), ".lock", StringComparison.OrdinalIgnoreCase))
+            {
+                if (e.FullPath.Contains(Constants.DOT_GIT + Path.DirectorySeparatorChar))
+                    return;
+            }
+
+            MarkDirty(false);
         }
 
         private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)

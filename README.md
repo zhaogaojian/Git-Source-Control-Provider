@@ -59,6 +59,13 @@ How to use
 
 ## Change Logs -- Visual Studio 2015
 
+**V1.4.2**
+
+*   Fixed Issues #7,#8,#9,#10,#11, #12
+*   Fixed Switch command
+
+
+
 **V1.4.1**
 
 *   Fixed Settings Error

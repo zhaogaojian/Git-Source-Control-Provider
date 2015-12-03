@@ -11,6 +11,8 @@ namespace GitScc
     {
         private static List<GitFileStatusTracker> _repositories = new List<GitFileStatusTracker>();
 
+        private static event GitFileUpdateEventHandler _onFileUpdateEventHandler;
+
         public static List<GitFileStatusTracker> GetRepositories()
         {
              return _repositories; 
@@ -18,6 +20,10 @@ namespace GitScc
 
         public static void Clear()
         {
+            foreach (var repo in _repositories)
+            {
+                repo.FileChanged -= Repo_FileChanged;
+            }
             _repositories = new List<GitFileStatusTracker>();
         }
 
@@ -33,9 +39,37 @@ namespace GitScc
             if (repo == null && createTracker && IsGitRepository(filename))
             {
                  repo = new GitFileStatusTracker(GetGitRepository(filename));
+                repo.EnableRepositoryWatcher();
+                repo.FileChanged += Repo_FileChanged;
                 _repositories.Add(repo);
             }
             return repo;
+        }
+
+        private static void Repo_FileChanged(object sender, GitFileUpdateEventArgs e)
+        {
+            FireFileChangedEvent(sender, e);
+        }
+
+        public static event GitFileUpdateEventHandler FileChanged
+        {
+            add
+            {
+                _onFileUpdateEventHandler += value;
+            }
+            remove
+            {
+                _onFileUpdateEventHandler -= value;
+            }
+        }
+
+        private static void FireFileChangedEvent(object sender, GitFileUpdateEventArgs e)
+        {
+            GitFileUpdateEventHandler changedHandler = _onFileUpdateEventHandler;
+            if (changedHandler != null)
+            {
+                changedHandler(sender, e);
+            }
         }
 
         private static bool IsFileBelowDirectory(string fileInfo, string directoryInfo, string separator)

@@ -12,16 +12,35 @@ using static GitScc.GitFile;
 
 namespace GitScc
 {
-	public class GitRepository : IDisposable
+    public delegate void GitFileUpdateEventHandler(object sender, GitFileUpdateEventArgs e);
+
+
+    public class GitRepository : IDisposable
 	{
 		private string workingDirectory;
         private List<GitFile> _changedFiles;
         private bool isGit;
         private string _branch;
+	    private string _repositoryPath;
         private IEnumerable<string> remotes;
         private IDictionary<string, string> configs;
+        FileSystemWatcher _watcher;
 
-	    private Repository _repository;
+        private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
+
+        public event GitFileUpdateEventHandler FileChanged
+        {
+            add
+            {
+                _onFileUpdateEventHandler += value;
+            }
+            remove
+            {
+                _onFileUpdateEventHandler -= value;
+            }
+        }
+
+        private Repository _repository;
 
 
         public string WorkingDirectory { get { return workingDirectory; } }
@@ -32,11 +51,52 @@ namespace GitScc
             this.workingDirectory = Repository.Discover(directory);
             _repository =  new Repository(workingDirectory);
             this.workingDirectory = _repository.Info.WorkingDirectory;
-
-            //Repository
-            //_repository.
+            _repositoryPath = _repository.Info.Path;
             Refresh();
 		}
+
+
+	    public void EnableRepositoryWatcher()
+	    {
+            _watcher = new FileSystemWatcher(workingDirectory);
+            _watcher.IncludeSubdirectories = true;
+            _watcher.Changed += HandleFileSystemChanged;
+            _watcher.Created += HandleFileSystemChanged;
+            _watcher.Deleted += HandleFileSystemChanged;
+            _watcher.Renamed += HandleFileSystemChanged;
+            _watcher.EnableRaisingEvents = true;
+        }
+
+	    private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
+	    {
+            if(e.FullPath.Contains(_repositoryPath))
+	        {
+	            //GIT EVENT
+	        }
+            else
+            {
+                FireFileChangedEvent(e.Name, e.FullPath);
+            }
+	        //throw new NotImplementedException();
+	    }
+
+        private void FireFileChangedEvent(string filename, string fullpath)
+        {
+            GitFileUpdateEventHandler changedHandler = _onFileUpdateEventHandler;
+
+            if (changedHandler != null)
+            {
+                var eventArgs = new GitFileUpdateEventArgs(fullpath, filename);
+                changedHandler(this, eventArgs);
+            }
+        }
+
+	    public void DisableRepositoryWatcher()
+	    {
+	        _watcher.EnableRaisingEvents = false;
+            _watcher.Dispose();
+        }
+
         public void Refresh()
         {
             this.repositoryGraph = null;
@@ -44,14 +104,6 @@ namespace GitScc
             this._branch = null;
             this.remotes = null;
             this.configs = null;
-
-            //var result = GitBash.Run("rev-parse --show-toplevel", WorkingDirectory); 
-            //if (!result.HasError && !result.Output.StartsWith("fatal:"))
-            //{
-            //    this.workingDirectory = result.Output.Trim();
-            //    result = GitBash.Run("rev-parse --is-inside-work-tree", WorkingDirectory);
-            //    isGit = string.Compare("true", result.Output.Trim(), true) == 0;
-            //}
         }
         #region Checkout Functions
 
@@ -826,6 +878,7 @@ namespace GitScc
 
 	    public void Dispose()
 	    {
+            DisableRepositoryWatcher();
 	        _repository.Dispose();
 	        _repository = null;
 	    }
