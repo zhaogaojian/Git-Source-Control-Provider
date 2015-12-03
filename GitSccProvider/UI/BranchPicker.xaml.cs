@@ -11,8 +11,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using NGit;
-using NGit.Api;
 using GitScc.DataServices;
 
 namespace GitScc.UI
@@ -23,17 +21,20 @@ namespace GitScc.UI
     public partial class BranchPicker : UserControl
     {
         private Window window;
-        private Repository repository;
-        private IList<DataServices.Ref> list;
+        private GitRepository repository;
+        //private IList<DataServices.Ref> list;
 
         public string BranchName { get; set; }
         public bool CreateNew { get; set; }
 
-        public BranchPicker(Repository repository, IList<DataServices.Ref> list)
+        protected List<GitBranchInfo> _branches; 
+
+        public BranchPicker(GitRepository repository)
         {
             InitializeComponent();
             this.repository = repository;
-            this.list = list;
+            _branches = new List<GitBranchInfo>();
+            //this.list = list;
         }
 
         internal bool? Show()
@@ -48,8 +49,11 @@ namespace GitScc.UI
                 Height = 200
             };
 
-            comboBranches.ItemsSource = list.Where(r=>r.Type == RefTypes.Branch).Select(r => r.Name);
-            comboBranches.SelectedValue = repository.GetBranch();
+            var branches = repository.GetBranchInfo().OrderBy(x => !x.IsRemote).ThenBy(x => x.Name);//.Select(r => r.FullName); ;
+            comboBranches.ItemsSource = branches;
+            comboBranches.DisplayMemberPath = "FullName";
+            comboBranches.SelectedValuePath = "CanonicalName";
+            comboBranches.SelectedValue = repository.CurrentBranchInfo.CanonicalName;
             return window.ShowDialog(); 
         }
 
@@ -70,18 +74,51 @@ namespace GitScc.UI
             btnOK.IsEnabled = txtNewBranch.Text.Length > 0;
         }
         
-        private void btnOK_Click(object sender, RoutedEventArgs e)
+        private async void btnOK_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                Git git = new Git(this.repository);
-                
-                git.Checkout().SetName(radioButton1.IsChecked == true ? 
-                        comboBranches.SelectedValue.ToString() : txtNewBranch.Text)
-                    .SetCreateBranch(radioButton2.IsChecked == true)
-                    .Call();
-
-                window.DialogResult = true;
+                if (radioButton1.IsChecked == true)
+                {
+                   var results = await repository.CheckoutAsync((GitBranchInfo) comboBranches.SelectedItem);
+                    if (!results.Succeeded)
+                    {
+                        MessageBox.Show(results.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    }
+                    else
+                    {
+                        window.DialogResult = true;
+                    }
+                    
+                }
+                else if (radioButton2.IsChecked == true && !string.IsNullOrWhiteSpace(txtNewBranch.Text))
+                {
+                    var branchResult = repository.CreateBranch(txtNewBranch.Text);
+                    if (branchResult.Succeeded) 
+                    {
+                        if (cbSwitch.IsChecked == true)
+                        {
+                            var switchResult = await repository.CheckoutAsync(branchResult.Item);
+                            if (!switchResult.Succeeded)
+                            {
+                                MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK,
+                                    MessageBoxImage.Exclamation);
+                            }
+                            else
+                            {
+                                window.DialogResult = true;
+                            } 
+                        }
+                        else
+                        {
+                            window.DialogResult = true;
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show(branchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -89,5 +126,9 @@ namespace GitScc.UI
             }
         }
 
+        private void checkBox_Checked(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

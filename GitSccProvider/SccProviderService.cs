@@ -10,6 +10,7 @@ using System.Threading.Tasks.Schedulers;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using EnvDTE;
+using GitSccProvider;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -36,6 +37,7 @@ namespace GitScc
         IDisposable,
         IVsUpdateSolutionEvents2,
         IVsTrackProjectDocumentsEvents2
+        
     {
         private static readonly QueuedTaskScheduler _queuedTaskScheduler =
             new QueuedTaskScheduler(1, threadName: "Git SCC Tasks", threadPriority: ThreadPriority.BelowNormal);
@@ -46,14 +48,14 @@ namespace GitScc
 
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
-        private List<GitFileStatusTracker> trackers;
+        //private List<GitFileStatusTracker> trackers;
 
 
         #region SccProvider Service initialization/unitialization
-        public SccProviderService(BasicSccProvider sccProvider, List<GitFileStatusTracker> trackers)
+        public SccProviderService(BasicSccProvider sccProvider)
         {
             this._sccProvider = sccProvider;
-            this.trackers = trackers;
+            //this.trackers = trackers;
 
             SetupSolutionEvents();
             SetupDocumentEvents();
@@ -539,7 +541,7 @@ namespace GitScc
         internal void OpenTracker()
         {
             Debug.WriteLine("==== Open Tracker");
-            trackers.Clear();
+            RepositoryManager.Clear();
 
             var solutionFileName = GetSolutionFileName();
 
@@ -592,13 +594,13 @@ namespace GitScc
                     return;
             }
 
-            MarkDirty(true);
+            MarkDirty(false);
         }
 
         private void CloseTracker()
         {
             Debug.WriteLine("==== Close Tracker");
-            trackers.Clear();
+            RepositoryManager.Clear();
             RemoveFolderMonitor();
             MarkDirty(false);
         }
@@ -713,18 +715,19 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             //Debug.WriteLine("==== Adding project: " + projectDirecotry);
 
             //TODO.. got to be a better way
-            var tracker = new GitFileStatusTracker(projectDirecotry);
-            string gitfolder = tracker.WorkingDirectory;
+            RepositoryManager.GetTrackerForPath(projectDirecotry);
+            //var tracker = new GitFileStatusTracker(projectDirecotry);
+            //string gitfolder = tracker.WorkingDirectory;
 
-            if (string.IsNullOrEmpty(gitfolder) ||
-                trackers.Any(t => t.IsGit && 
-                             string.Compare(t.WorkingDirectory, gitfolder, true)==0)) return;
-            
-            if (gitfolder.Length < monitorFolder.Length) monitorFolder = gitfolder;
-            trackers.Add(tracker);
-            
+            //if (string.IsNullOrEmpty(gitfolder) ||
+            //    trackers.Any(t => t.IsGit && 
+            //                 string.Compare(t.WorkingDirectory, gitfolder, true)==0)) return;
+
+            //if (gitfolder.Length < monitorFolder.Length) monitorFolder = gitfolder;
+            //trackers.Add(tracker);
+
             //Debug.WriteLine("==== Added git tracker: " + gitfolder);
-           
+
         }
 
         internal string CurrentBranchName
@@ -749,10 +752,11 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             get
             {
-                if (trackers.Count == 1) 
-                    return trackers[0];
-                else
-                    return GetTracker(GetSelectFileName());
+                return RepositoryManager.GetTrackerForPath(GetSelectFileName());
+                //if (trackers.Count == 1) 
+                //    return trackers[0];
+                //else
+                //    return GetTracker(GetSelectFileName());
             }
         }
 
@@ -765,14 +769,15 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         //TODO :  I don't like this.. 
         internal GitFileStatusTracker GetTracker(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName)) return null;
-            
+            return RepositoryManager.GetTrackerForPath(fileName);
+            //if (string.IsNullOrEmpty(fileName)) return null;
 
 
-            return trackers.Where(t => t.IsGit &&
-                                  IsFileBelowDirectory(fileName, t.WorkingDirectory, "\\"))           
-                           .OrderByDescending(t => t.WorkingDirectory.Length)
-                           .FirstOrDefault();
+
+            //return trackers.Where(t => t.IsGit &&
+            //                      IsFileBelowDirectory(fileName, t.WorkingDirectory, "\\"))           
+            //               .OrderByDescending(t => t.WorkingDirectory.Length)
+            //               .FirstOrDefault();
         }
 
         public static bool IsFileBelowDirectory(string fileInfo, string directoryInfo, string separator)
@@ -911,7 +916,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                     timer.Start();
 
                     OpenTracker();
-                    foreach (GitFileStatusTracker tracker in trackers.ToArray())
+                    foreach (GitFileStatusTracker tracker in RepositoryManager.GetRepositories())
                         tracker.Refresh();
 
                     timer.Stop();
@@ -1083,7 +1088,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         #region git
         public bool IsSolutionGitControlled
         {
-            get { return trackers.Count > 0; }
+            get { return RepositoryManager.GetRepositories().Count > 0; }
         }
 
         internal void InitRepo()

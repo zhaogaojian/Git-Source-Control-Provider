@@ -6,12 +6,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitSccProvider;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace GitScc
 {
-    public partial class SccProviderService
+    public partial class SccProviderService 
     {
         private uint _vsSolutionEventsCookie;
         private uint _vsIVsUpdateSolutionEventsCookie;
@@ -57,7 +58,7 @@ namespace GitScc
             if (!Active && !GitSccOptions.Current.DisableAutoLoad)
             {
                 OpenTracker();
-                if (trackers.Count > 0)
+                if (RepositoryManager.GetRepositories().Count > 0)
                 {
                     IVsRegisterScciProvider rscp =
                         (IVsRegisterScciProvider) _sccProvider.GetService(typeof (IVsRegisterScciProvider));
@@ -68,6 +69,7 @@ namespace GitScc
             MarkDirty(false);
             return VSConstants.S_OK;
         }
+
 
         public int OnAfterCloseSolution([In] Object pUnkReserved)
         {

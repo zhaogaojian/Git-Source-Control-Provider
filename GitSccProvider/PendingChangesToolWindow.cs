@@ -55,7 +55,8 @@ namespace GitScc
             mcs.AddCommand(menu);
 
             //sccProviderService = BasicSccProvider.GetServiceEx<SccProviderService>();
-            //Refresh(sccProviderService.CurrentTracker, true); // refresh when the tool window becomes visible
+            //var test = sccProviderService.CurrentTracker;
+            //Refresh(sccProviderService.CurrentTracker); // refresh when the tool window becomes visible
 
         }
 

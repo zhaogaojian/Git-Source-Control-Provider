@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Windows.Threading;
+using System.Threading.Tasks;
 using LibGit2Sharp;
 using static GitScc.GitFile;
 
@@ -53,8 +53,229 @@ namespace GitScc
             //    isGit = string.Compare("true", result.Output.Trim(), true) == 0;
             //}
         }
+        #region Checkout Functions
 
-		#region Git commands
+        public async Task<GitActionResult<GitBranchInfo>> CheckoutAsync(GitBranchInfo info, bool force = false)
+        {
+            var branch = GetLib2GitBranch(info);
+            return await Task.Run(() => Checkout(branch, force));
+        }
+
+        public async Task<GitActionResult<GitBranchInfo>> CheckoutAsync(string branch = "master", bool force = false)
+	    {
+            return await Task.Run(() => Checkout(branch, force));
+        }
+
+	    public GitActionResult<GitBranchInfo> Checkout(string branch = "master", bool force = false)
+	    {
+	        return Checkout(_repository.Branches[branch], force);
+
+	    }
+
+        private GitActionResult<GitBranchInfo> Checkout(Branch branch, bool force = false)
+        {
+            var result = new GitActionResult<GitBranchInfo>();
+
+            CheckoutOptions options = new CheckoutOptions();
+            
+            if (force)
+            {
+                options.CheckoutModifiers = CheckoutModifiers.Force;
+            }
+            try
+            {
+                var checkoutBranch = _repository.Checkout(branch, options);
+                if (checkoutBranch != null)
+                {
+                    result.Item = new GitBranchInfo
+                    {
+                        CanonicalName = checkoutBranch.CanonicalName,
+                        RemoteName = checkoutBranch.Remote?.Name,
+                        Name = checkoutBranch.FriendlyName,
+                        IsRemote = checkoutBranch.IsRemote
+                    };
+                    result.Succeeded = true;
+                    return result;
+                }
+                result.Succeeded = false;
+            }
+            catch (CheckoutConflictException conflict)
+            {
+                result.Succeeded = false;
+                result.ErrorMessage = conflict.Message;
+            }
+
+            return result;
+        }
+
+        public void UndoFileChanges(string filename)
+        {
+            CheckoutOptions options = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
+            _repository.CheckoutPaths("HEAD", new string[] { filename }, options);
+        }
+
+        public void StageFile(string fileName)
+        {
+            _repository.Stage(fileName);
+
+        }
+
+        public void UnStageFile(string fileName)
+        {
+            _repository.Unstage(fileName);
+        }
+
+
+
+        #endregion
+
+        #region Commit Functions
+
+
+        public string Commit(string message, bool amend = false, bool signoff = false)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentException("Commit message must not be null or empty!", "message");
+            }
+            Signature author = _repository.Config.BuildSignature(DateTimeOffset.Now);
+            Signature committer = author;
+
+            CommitOptions opts = new CommitOptions();
+            opts.AmendPreviousCommit = amend;
+            var commit = _repository.Commit(message, author, committer);
+            return commit.Sha;
+        }
+
+        public bool CurrentCommitHasRefs()
+        {
+            var head = GetBranchId("HEAD");
+            if (head == null) return false;
+            var result = GitBash.Run("show-ref --head --dereference", WorkingDirectory);
+            if (!result.HasError && !result.Output.StartsWith("fatal:"))
+            {
+                var refs = result.Output.Split('\n')
+                          .Where(t => t.IndexOf(head) >= 0);
+                return refs.Count() > 2;
+            }
+            return false;
+        }
+
+        #endregion
+
+        #region Branch Functions
+
+
+	    private Branch GetLib2GitBranch(GitBranchInfo info)
+	    {
+	        return _repository.Branches.FirstOrDefault(x => string.Equals(x.CanonicalName,info.CanonicalName, StringComparison.OrdinalIgnoreCase));
+	    }
+
+
+	    public GitActionResult<GitBranchInfo> CreateBranch(string branchName)
+	    {
+            var result = new GitActionResult<GitBranchInfo>();
+            try
+            {
+                var branch = _repository.CreateBranch(branchName,"HEAD");
+                if (branch != null)
+                {
+                    result.Item = new GitBranchInfo
+                    {
+                        CanonicalName = branch.CanonicalName,
+                        RemoteName = branch.Remote?.Name,
+                        Name = branch.FriendlyName,
+                        IsRemote = branch.IsRemote
+                    };
+                    result.Succeeded = true;
+                }
+                else
+                {
+                    result.Succeeded = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                result.ErrorMessage = ex.Message;
+                result.Succeeded = false;
+            }
+	        return result;
+	    }
+
+	    public GitBranchInfo CurrentBranchInfo
+	    {
+	        get
+	        {
+	            var branch = _repository.Head;
+	            return new GitBranchInfo
+	            {
+	                CanonicalName = branch.CanonicalName,
+	                RemoteName = branch.Remote?.Name,
+	                Name = branch.FriendlyName,
+	                IsRemote = branch.IsRemote
+	            };
+	        }
+	    }
+
+        public List<string> LocalBranchNames
+	    {
+	        get
+	        {
+	            var names = new List<string>();
+
+                foreach (Branch b in _repository.Branches.Where(b => !b.IsRemote))
+                {
+                    names.Add(b.FriendlyName);
+                }
+
+                return names;
+	        }
+	    }
+
+        public List<string> RemoteBranchNames
+        {
+            get
+            {
+                var names = new List<string>();
+
+                foreach (Branch b in _repository.Branches.Where(b => b.IsRemote))
+                {
+                    names.Add(b.FriendlyName);
+                }
+                return names;
+            }
+        }
+
+	    public List<GitBranchInfo> GetBranchInfo(bool includeRemote = true)
+	    {
+	        var branches = new List<GitBranchInfo>();
+
+	        if (includeRemote)
+	        {
+	            foreach (Branch b in _repository.Branches)
+	            {
+                    branches.Add(new GitBranchInfo { CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote });
+                }
+	        }
+	        else
+	        {
+                foreach (Branch b in _repository.Branches.Where(b => !b.IsRemote))
+                {
+                    branches.Add(new GitBranchInfo {CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote} );
+                }
+            }
+
+            //we did not find and branch.. must just have a master and never pushed to the server
+	        if (branches.Count == 0)
+	        {
+                branches.Add(CurrentBranchInfo);
+            }
+	        return branches;
+	    }
+
+        #endregion
+
+        #region Git commands
 
         private string GitRun(string cmd)
         {
@@ -377,25 +598,6 @@ namespace GitScc
             return GitFileStatus.NotControlled;
         }
 
-        public void StageFile(string fileName)
-        {
-            _repository.Stage(fileName);
-           
-        }
-
-        public void UnStageFile(string fileName)
-        {
-            _repository.Unstage(fileName);
-        }
-
-	    public void UndoFileChanges(string filename)
-	    {
-            CheckoutOptions options = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
-            _repository.CheckoutPaths("HEAD", new string[] { filename }, options);
-            //_repository.CheckoutPaths();
-         //   var unchagedfile = GetUnmodifiedFile(filename);
-	        //File.WriteAllText(filename, unchagedfile);
-	    }
 
         public void AddIgnoreItem(string fileName)
         {
@@ -426,34 +628,6 @@ namespace GitScc
             GitRun(string.Format("checkout -- \"{0}\"", fileName));
         }
 
-        public string Commit(string message, bool amend = false, bool signoff = false)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                throw new ArgumentException("Commit message must not be null or empty!", "message");
-            }
-            Signature author = _repository.Config.BuildSignature(DateTimeOffset.Now);
-            Signature committer = author;
-
-            CommitOptions opts = new CommitOptions();
-            opts.AmendPreviousCommit = amend;
-            var commit = _repository.Commit(message, author,committer);
-            return commit.Sha;
-        }
-
-        public bool CurrentCommitHasRefs()
-        {
-            var head = GetBranchId("HEAD");
-            if (head == null) return false;
-            var result = GitBash.Run("show-ref --head --dereference", WorkingDirectory);
-            if (!result.HasError && !result.Output.StartsWith("fatal:"))
-            {
-                var refs = result.Output.Split('\n')
-                          .Where(t => t.IndexOf(head) >= 0);
-                return refs.Count() > 2;
-            }
-            return false;
-        }
 
 
 	    public string GetUnmodifiedFile(string filename)

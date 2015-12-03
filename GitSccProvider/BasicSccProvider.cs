@@ -25,7 +25,7 @@ namespace GitScc
 {
     /////////////////////////////////////////////////////////////////////////////
     // BasicSccProvider
-    [MsVsShell.ProvideLoadKey("Standard", "0.1", "Git Source Control Provider", "Yiyisun@hotmail.com", 15261)]
+    [MsVsShell.ProvideLoadKey("Standard", "0.1", "Git Source Control Provider 2015", "Jon.Zoss@gmail.com", 15261)]
     [MsVsShell.DefaultRegistryRoot("Software\\Microsoft\\VisualStudio\\10.0Exp")]
     // Register the package to have information displayed in Help/About dialog box
     [MsVsShell.InstalledProductRegistration("#100", "#101", "1.0.0.0", IconResourceID = CommandId.iiconProductIcon)]
@@ -89,8 +89,8 @@ namespace GitScc
             Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Entering Initialize() of: {0}", this.ToString()));
             base.Initialize();
 
-            projects = new List<GitFileStatusTracker>();
-            sccService = new SccProviderService(this, projects);
+            //projects = new List<GitFileStatusTracker>();
+            sccService = new SccProviderService(this);
 
             ((IServiceContainer)this).AddService(typeof(SccProviderService), sccService, true);
 
@@ -483,7 +483,9 @@ namespace GitScc
         
         private void ShowPendingChangesWindow(object sender, EventArgs e)
         {
-            ShowToolWindow(typeof(PendingChangesToolWindow));
+            var window = ShowToolWindow<PendingChangesToolWindow>();
+            window.Refresh(sccService.CurrentTracker);
+           //ShowToolWindow(typeof(PendingChangesToolWindow));
         }
 
         private void ShowHistoryWindow(object sender, EventArgs e)
@@ -558,11 +560,30 @@ namespace GitScc
             }
         }
 
+
+        private T ShowToolWindow<T>()
+            where T : ToolWindowPane
+        {
+            ToolWindowPane window = this.FindToolWindow(typeof(T), 0, true);
+            IVsWindowFrame windowFrame = null;
+            if (window != null && window.Frame != null)
+            {
+                windowFrame = (IVsWindowFrame)window.Frame;
+            }
+            if (windowFrame != null)
+            {
+                ErrorHandler.ThrowOnFailure(windowFrame.Show());
+                return window as T;
+            }
+            return null;
+        }
+
+
         private void ShowToolWindow(Type type)
         {
             ToolWindowPane window = this.FindToolWindow(type, 0, true);
             IVsWindowFrame windowFrame = null;
-            if (window != null && window.Frame != null)
+            if (window?.Frame != null)
             {
                 windowFrame = (IVsWindowFrame)window.Frame;
             }
@@ -574,12 +595,10 @@ namespace GitScc
 
         private void OnSwitchBranchCommand(object sender, EventArgs e)
         {
-            if (sccService.CurrentTracker == null || sccService.CurrentTracker.IsGit) return;
+            if (sccService.CurrentTracker == null || !sccService.CurrentTracker.IsGit) return;
             //TODO
-            //var branchPicker = new BranchPicker(
-            //    sccService.CurrentTracker.Repository,
-            //    sccService.CurrentTracker.RepositoryGraph.Refs);
-            //branchPicker.Show();
+            var branchPicker = new BranchPicker(sccService.CurrentTracker);
+            branchPicker.Show();
         }
 
         private void OnCommitCommand(object sender, EventArgs e)

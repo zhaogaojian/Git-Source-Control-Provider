@@ -83,6 +83,7 @@ namespace GitScc
 
         private static bool IsChangedStatus(GitFileStatus status)
         {
+            
             switch (status)
             {
                 case GitFileStatus.NotControlled:
