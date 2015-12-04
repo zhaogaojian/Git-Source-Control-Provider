@@ -63,6 +63,7 @@ How to use
 
 *   Fixed Issues #7,#8,#9,#10,#11, #12
 *   Fixed Switch command
+*   Added dark theme form diff window
 
 
 

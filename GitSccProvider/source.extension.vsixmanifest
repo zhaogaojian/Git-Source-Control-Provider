@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a" Version="1.4.1.2" Language="en-US" Publisher="Jon Zoss" />
+    <Identity Id="GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a" Version="1.4.1.3" Language="en-US" Publisher="Jon Zoss" />
     <DisplayName>Git Source Control Provider 2015</DisplayName>
     <Description xml:space="preserve">Git Source Control Provider is a plug-in that integrates git with Visual Studio.</Description>
     <MoreInfo>https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d</MoreInfo>
