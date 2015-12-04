@@ -5,6 +5,7 @@ namespace GitScc
 {
     public static class GitCommands
     {
+        //TODO mode ot RepoManager
         public static DiffFileInfo GenerateDiffFileInfo(GitRepository repository, string filename)
         {
             var info = new DiffFileInfo();

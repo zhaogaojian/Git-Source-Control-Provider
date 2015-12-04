@@ -59,6 +59,14 @@ namespace GitScc
 	    public void EnableRepositoryWatcher()
 	    {
             _watcher = new FileSystemWatcher(workingDirectory);
+            _watcher.NotifyFilter =
+                            NotifyFilters.FileName
+                            | NotifyFilters.Attributes
+                            | NotifyFilters.LastWrite
+                            | NotifyFilters.Size
+                            | NotifyFilters.CreationTime
+                            | NotifyFilters.DirectoryName;
+
             _watcher.IncludeSubdirectories = true;
             _watcher.Changed += HandleFileSystemChanged;
             _watcher.Created += HandleFileSystemChanged;

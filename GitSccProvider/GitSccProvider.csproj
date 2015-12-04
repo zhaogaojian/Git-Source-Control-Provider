@@ -112,7 +112,7 @@
     <Compile Include="SccProviderService.DocumentEvents.cs" />
     <Compile Include="SccProviderService.SolutionEvents.cs" />
     <Compile Include="Schedulers\QueuedTaskScheduler.cs" />
-    <Compile Include="SolutionExtensions.cs" />
+    <Compile Include="Utilities\SolutionExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="ToolWindowWithEditor.cs" />
     <Compile Include="UI\BranchPicker.xaml.cs">
@@ -125,6 +125,7 @@
     <Compile Include="UI\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utilities\ThemeHelper.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
   </ItemGroup>
@@ -153,7 +154,8 @@
     <Content Include="Resources\Images_32bit.png" />
     <Resource Include="Resources\Loading.png" />
     <Content Include="Resources\PendingCheckins.png" />
-    <EmbeddedResource Include="Resources\Patch-Mode.xshd" />
+    <EmbeddedResource Include="Resources\Patch-Mode-Blue.xshd" />
+    <EmbeddedResource Include="Resources\Patch-Mode-Dark.xshd" />
     <None Include="Resources\Product.ico" />
     <Content Include="Resources\Refresh.png" />
     <Content Include="Resources\SccGlyphs.bmp" />

@@ -17,6 +17,7 @@ using System.Windows.Threading;
 using System.Xml;
 using Gitscc;
 using GitScc.UI;
+using GitSccProvider.Utilities;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using CancellationToken = System.Threading.CancellationToken;
@@ -51,8 +52,26 @@ namespace GitScc
         {
             if (!_diffHightlighted)
             {
+                var theme = ThemeHelper.GetCurrentTheme();
+
+                //XshdSyntaxDefinition xshd;
+                //using (XmlTextReader reader = new XmlTextReader(@"C:\Devel\test.xshd"))
+                //{
+                //    xshd = HighlightingLoader.LoadXshd(reader);
+                //}
+                //using (XmlTextWriter writer = new XmlTextWriter(@"C:\Devel\out.xshd", System.Text.Encoding.UTF8))
+                //{
+                //    writer.Formatting = Formatting.Indented;
+                //    new SaveXshdVisitor(writer).WriteDefinition(xshd);
+                //}
+                var filename = "GitSccProvider.Resources.Patch-Mode-Blue.xshd";
+                if (theme == VsTheme.Dark)
+                {
+                    DiffEditor.Background =new SolidColorBrush((Color)ColorConverter.ConvertFromString("#242424"));
+                    filename = "GitSccProvider.Resources.Patch-Mode-Dark.xshd";
+                }
                 var assembly = Assembly.GetExecutingAssembly();
-                var filename = "GitSccProvider.Resources.Patch-Mode.xshd";
+                
                 using (Stream s = assembly.GetManifestResourceStream(filename))
                 {
                     using (XmlTextReader reader = new XmlTextReader(s))

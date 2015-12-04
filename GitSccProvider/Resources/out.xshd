@@ -1,0 +1,286 @@
+﻿<SyntaxDefinition name="C#" extensions=".cs" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <RuleSet ignoreCase="false">
+    <Keywords foreground="#FF95E454" fontWeight="normal" fontStyle="normal">
+      <Word>?</Word>
+      <Word>,</Word>
+      <Word>.</Word>
+      <Word>;</Word>
+      <Word>(</Word>
+      <Word>)</Word>
+      <Word>[</Word>
+      <Word>]</Word>
+      <Word>{</Word>
+      <Word>}</Word>
+      <Word>+</Word>
+      <Word>-</Word>
+      <Word>/</Word>
+      <Word>%</Word>
+      <Word>*</Word>
+      <Word>&lt;</Word>
+      <Word>&gt;</Word>
+      <Word>^</Word>
+      <Word>=</Word>
+      <Word>~</Word>
+      <Word>!</Word>
+      <Word>|</Word>
+      <Word>&amp;</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>this</Word>
+      <Word>base</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>as</Word>
+      <Word>is</Word>
+      <Word>new</Word>
+      <Word>sizeof</Word>
+      <Word>typeof</Word>
+      <Word>true</Word>
+      <Word>false</Word>
+      <Word>stackalloc</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>else</Word>
+      <Word>if</Word>
+      <Word>switch</Word>
+      <Word>case</Word>
+      <Word>default</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>do</Word>
+      <Word>for</Word>
+      <Word>foreach</Word>
+      <Word>in</Word>
+      <Word>while</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="normal" fontStyle="normal">
+      <Word>break</Word>
+      <Word>continue</Word>
+      <Word>goto</Word>
+      <Word>return</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="normal" fontStyle="normal">
+      <Word>yield</Word>
+      <Word>partial</Word>
+      <Word>global</Word>
+      <Word>where</Word>
+      <Word>select</Word>
+      <Word>group</Word>
+      <Word>by</Word>
+      <Word>into</Word>
+      <Word>from</Word>
+      <Word>ascending</Word>
+      <Word>descending</Word>
+      <Word>orderby</Word>
+      <Word>let</Word>
+      <Word>join</Word>
+      <Word>on</Word>
+      <Word>equals</Word>
+      <Word>var</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>try</Word>
+      <Word>throw</Word>
+      <Word>catch</Word>
+      <Word>finally</Word>
+    </Keywords>
+    <Keywords foreground="#FFA9A9A9" fontWeight="bold" fontStyle="normal">
+      <Word>checked</Word>
+      <Word>unchecked</Word>
+    </Keywords>
+    <Keywords foreground="#FF808000" fontWeight="normal" fontStyle="normal">
+      <Word>fixed</Word>
+      <Word>unsafe</Word>
+    </Keywords>
+    <Keywords foreground="#FFE5786D" fontWeight="bold" fontStyle="normal">
+      <Word>bool</Word>
+      <Word>byte</Word>
+      <Word>char</Word>
+      <Word>decimal</Word>
+      <Word>double</Word>
+      <Word>enum</Word>
+      <Word>float</Word>
+      <Word>int</Word>
+      <Word>long</Word>
+      <Word>sbyte</Word>
+      <Word>short</Word>
+      <Word>struct</Word>
+      <Word>uint</Word>
+      <Word>ushort</Word>
+      <Word>ulong</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="normal" fontStyle="normal">
+      <Word>class</Word>
+      <Word>interface</Word>
+      <Word>delegate</Word>
+      <Word>object</Word>
+      <Word>string</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="normal" fontStyle="normal">
+      <Word>void</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>explicit</Word>
+      <Word>implicit</Word>
+      <Word>operator</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>params</Word>
+      <Word>ref</Word>
+      <Word>out</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="normal" fontStyle="normal">
+      <Word>abstract</Word>
+      <Word>const</Word>
+      <Word>event</Word>
+      <Word>extern</Word>
+      <Word>override</Word>
+      <Word>readonly</Word>
+      <Word>sealed</Word>
+      <Word>static</Word>
+      <Word>virtual</Word>
+      <Word>volatile</Word>
+    </Keywords>
+    <Keywords foreground="#FF8AC6F2" fontWeight="normal" fontStyle="normal">
+      <Word>public</Word>
+      <Word>protected</Word>
+      <Word>private</Word>
+      <Word>internal</Word>
+    </Keywords>
+    <Keywords foreground="#FF8AC6F2" fontWeight="normal" fontStyle="normal">
+      <Word>namespace</Word>
+      <Word>using</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="normal" fontStyle="normal">
+      <Word>lock</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="normal" fontStyle="normal">
+      <Word>get</Word>
+      <Word>set</Word>
+      <Word>add</Word>
+      <Word>remove</Word>
+    </Keywords>
+    <Keywords foreground="#FFCAE682" fontWeight="bold" fontStyle="normal">
+      <Word>null</Word>
+      <Word>value</Word>
+    </Keywords>
+    <Span foreground="#FF95E454" fontWeight="normal" fontStyle="normal" ruleSet="PreprocessorSet">
+      <Begin>\#</Begin>
+    </Span>
+    <Span foreground="#FF99968B" fontWeight="normal" fontStyle="normal" ruleSet="DocCommentSet">
+      <Begin foreground="#FF99968B" fontWeight="normal" fontStyle="normal">///(?!(/))</Begin>
+    </Span>
+    <Span foreground="#FF99968B" fontWeight="normal" fontStyle="normal" ruleSet="CommentMarkerSet">
+      <Begin>//(?!(/))</Begin>
+    </Span>
+    <Span foreground="#FF99968B" fontWeight="normal" fontStyle="normal" ruleSet="CommentMarkerSet">
+      <Begin>////</Begin>
+    </Span>
+    <Span foreground="#FF99968B" fontWeight="normal" fontStyle="normal" ruleSet="CommentMarkerSet" multiline="true">
+      <Begin>/\*</Begin>
+      <End>\*/</End>
+    </Span>
+    <Span foreground="#FFE5786D" fontWeight="normal" fontStyle="normal">
+      <Begin>"</Begin>
+      <End>"</End>
+      <RuleSet>
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+    <Span foreground="#FFE5786D" fontWeight="normal" fontStyle="normal" multiline="true">
+      <Begin>@"</Begin>
+      <End>"</End>
+      <RuleSet>
+        <Span begin="&quot;&quot;" end="" />
+      </RuleSet>
+    </Span>
+    <Span foreground="#FFE5786D" fontWeight="normal" fontStyle="normal">
+      <Begin>'</Begin>
+      <End>'</End>
+      <RuleSet>
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+    <Rule foreground="#FF191970" fontWeight="bold" fontStyle="normal">[\d\w_]+(?=(\s*\r\n\ \ \ \ \ \ \ \ \ \ \ \ \())</Rule>
+    <Rule foreground="#FF8AC6F2" fontWeight="normal" fontStyle="normal">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+  </RuleSet>
+  <RuleSet name="CommentMarkerSet" ignoreCase="false">
+    <Keywords foreground="#FFFF0000" fontWeight="bold" fontStyle="normal">
+      <Word>TODO</Word>
+      <Word>FIXME</Word>
+    </Keywords>
+    <Keywords foreground="#EEE0E000" fontWeight="bold" fontStyle="normal">
+      <Word>HACK</Word>
+      <Word>UNDONE</Word>
+    </Keywords>
+    <Rule foreground="#FF8AC6F2" fontWeight="normal" fontStyle="normal">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+  </RuleSet>
+  <RuleSet name="DocCommentSet" ignoreCase="false">
+    <Keywords foreground="#FFFF0000" fontWeight="bold" fontStyle="normal">
+      <Word>TODO</Word>
+      <Word>FIXME</Word>
+    </Keywords>
+    <Keywords foreground="#EEE0E000" fontWeight="bold" fontStyle="normal">
+      <Word>HACK</Word>
+      <Word>UNDONE</Word>
+    </Keywords>
+    <Span foreground="#FF99968B" fontWeight="normal" fontStyle="normal" ruleSet="XmlDocSet">
+      <Begin>\r\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ &lt;</Begin>
+      <End>\r\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ &gt;</End>
+    </Span>
+    <Rule foreground="#FF8AC6F2" fontWeight="normal" fontStyle="normal">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+  </RuleSet>
+  <RuleSet name="PreprocessorSet" ignoreCase="false">
+    <Keywords foreground="#FF95E454" fontWeight="bold" fontStyle="normal">
+      <Word>if</Word>
+      <Word>else</Word>
+      <Word>elif</Word>
+      <Word>endif</Word>
+      <Word>define</Word>
+      <Word>undef</Word>
+      <Word>warning</Word>
+      <Word>error</Word>
+      <Word>line</Word>
+      <Word>region</Word>
+      <Word>endregion</Word>
+      <Word>pragma</Word>
+    </Keywords>
+    <Rule foreground="#FF8AC6F2" fontWeight="normal" fontStyle="normal">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+  </RuleSet>
+  <RuleSet name="XmlDocSet" ignoreCase="false">
+    <Keywords foreground="#FF808080" fontWeight="bold" fontStyle="normal">
+      <Word>/</Word>
+      <Word>|</Word>
+      <Word>=</Word>
+    </Keywords>
+    <Keywords foreground="#FF808080" fontWeight="bold" fontStyle="normal">
+      <Word>c</Word>
+      <Word>code</Word>
+      <Word>example</Word>
+      <Word>exception</Word>
+      <Word>list</Word>
+      <Word>para</Word>
+      <Word>param</Word>
+      <Word>paramref</Word>
+      <Word>permission</Word>
+      <Word>remarks</Word>
+      <Word>returns</Word>
+      <Word>see</Word>
+      <Word>seealso</Word>
+      <Word>summary</Word>
+      <Word>value</Word>
+      <Word>type</Word>
+      <Word>name</Word>
+      <Word>cref</Word>
+      <Word>item</Word>
+      <Word>term</Word>
+      <Word>description</Word>
+      <Word>listheader</Word>
+    </Keywords>
+    <Span foreground="#FFC0C0C0" fontWeight="bold" fontStyle="normal">
+      <Begin>\r\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "</Begin>
+      <End>\r\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "</End>
+    </Span>
+    <Rule foreground="#FF8AC6F2" fontWeight="normal" fontStyle="normal">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+  </RuleSet>
+</SyntaxDefinition>
