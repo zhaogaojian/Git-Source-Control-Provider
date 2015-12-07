@@ -6,9 +6,6 @@ Introduction
 This Visual Studio Extensions integrates Git with Visual Studio solution explorer.  
 
 
-
-
-
 ## Upgrade : 1.4
 
 *   This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post any issues https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
@@ -16,6 +13,8 @@ This Visual Studio Extensions integrates Git with Visual Studio solution explore
 
 ### Future Version
 
+*   Performance - I want it to be the faster git provider out there. 
+*   Keep fixing bugs people find. 
 *   Fix the hundreds of Warnings.
 *   Add new test project to replace the test project that had to be removed.
 *   Remove all the dead code.
