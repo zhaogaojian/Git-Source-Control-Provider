@@ -306,24 +306,22 @@ namespace GitScc
             }
         }
 
-	    public List<GitBranchInfo> GetBranchInfo(bool includeRemote = true)
+	    public List<GitBranchInfo> GetBranchInfo(bool includeRemote = true, bool includeLocal = true)
 	    {
 	        var branches = new List<GitBranchInfo>();
 
-	        if (includeRemote)
+	        if (includeRemote && includeLocal)
 	        {
-	            foreach (Branch b in _repository.Branches)
-	            {
-                    branches.Add(new GitBranchInfo { CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote });
-                }
+	            branches.AddRange(_repository.Branches.Select(b => new GitBranchInfo {CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote}));
 	        }
+            else if (includeRemote && !includeLocal)
+            {
+                branches.AddRange(_repository.Branches.Where(b => b.IsRemote).Select(b => new GitBranchInfo {CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote}));
+            }
 	        else
 	        {
-                foreach (Branch b in _repository.Branches.Where(b => !b.IsRemote))
-                {
-                    branches.Add(new GitBranchInfo {CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote} );
-                }
-            }
+	            branches.AddRange(_repository.Branches.Where(b => !b.IsRemote).Select(b => new GitBranchInfo {CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote}));
+	        }
 
             //we did not find and branch.. must just have a master and never pushed to the server
 	        if (branches.Count == 0)

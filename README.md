@@ -61,7 +61,7 @@ How to use
 
 **V1.4.2**
 
-*   Fixed Issues #7,#8,#9,#10,#11, #12
+*   Fixed Issues #1,#7,#8,#9,#10,#11, #12
 *   Fixed Switch command
 *   Added dark theme form diff window
 

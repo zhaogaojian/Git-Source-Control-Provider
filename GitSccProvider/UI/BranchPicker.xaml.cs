@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -27,13 +30,14 @@ namespace GitScc.UI
         public string BranchName { get; set; }
         public bool CreateNew { get; set; }
 
-        protected List<GitBranchInfo> _branches; 
+        public ObservableCollection<GitBranchInfo> _branches { get; set; }
 
         public BranchPicker(GitRepository repository)
         {
             InitializeComponent();
             this.repository = repository;
-            _branches = new List<GitBranchInfo>();
+            _branches = new ObservableCollection<GitBranchInfo>();
+            comboBranches.ItemsSource = _branches;
             //this.list = list;
         }
 
@@ -48,9 +52,15 @@ namespace GitScc.UI
                 Width = 350,
                 Height = 200
             };
-
-            var branches = repository.GetBranchInfo().OrderBy(x => !x.IsRemote).ThenBy(x => x.Name);//.Select(r => r.FullName); ;
+            _branches.Clear();
+            var branches = repository.GetBranchInfo();
+            branches = branches.OrderBy(x => x.IsRemote).ThenBy(x => x.FullName).ToList();//.Select(r => r.FullName); ;
+            foreach (var gitBranchInfo in branches)
+            {
+                _branches.Add(gitBranchInfo);
+            }
             comboBranches.ItemsSource = branches;
+            comboBranches.Items.Refresh();
             comboBranches.DisplayMemberPath = "FullName";
             comboBranches.SelectedValuePath = "CanonicalName";
             comboBranches.SelectedValue = repository.CurrentBranchInfo.CanonicalName;
@@ -129,6 +139,27 @@ namespace GitScc.UI
         private void checkBox_Checked(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private class BranchSort : IComparer
+        {
+            public int Compare(object x, object y)
+            {
+                var first = (GitBranchInfo) x;
+                var second = (GitBranchInfo)y;
+                if (first.IsRemote && !second.IsRemote)
+                {
+                    return -1;
+                }
+                else if (second.IsRemote && !first.IsRemote)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return first.Name.CompareTo(second.Name);
+                }
+            }
         }
     }
 }

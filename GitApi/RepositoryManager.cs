@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +12,12 @@ namespace GitScc
     public static class RepositoryManager
     {
         private static List<GitFileStatusTracker> _repositories = new List<GitFileStatusTracker>();
+
+        private static ConcurrentDictionary<string, GitFileStatusTracker> _fileRepoLookup =
+            new ConcurrentDictionary<string, GitFileStatusTracker>();
+
+        private static ConcurrentDictionary<string, GitFileStatusTracker> _basePathRepoLookup =
+    new ConcurrentDictionary<string, GitFileStatusTracker>();
 
         private static event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
@@ -25,6 +33,8 @@ namespace GitScc
                 repo.FileChanged -= Repo_FileChanged;
             }
             _repositories = new List<GitFileStatusTracker>();
+            _fileRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
+            _basePathRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
         }
 
 
@@ -32,17 +42,24 @@ namespace GitScc
         {
             if (string.IsNullOrEmpty(filename)) return null;
 
-            var repo = _repositories.Where(t => t.IsGit &&
-                                  IsFileBelowDirectory(filename, t.WorkingDirectory, "\\"))
-                           .OrderByDescending(t => t.WorkingDirectory.Length)
-                           .FirstOrDefault();
-            if (repo == null && createTracker && IsGitRepository(filename))
+            GitFileStatusTracker repo = null;
+
+            //check out quick list to see if we have he file first. 
+            if (!_fileRepoLookup.TryGetValue(filename, out repo))
             {
-                 repo = new GitFileStatusTracker(GetGitRepository(filename));
-                repo.EnableRepositoryWatcher();
-                repo.FileChanged += Repo_FileChanged;
-                _repositories.Add(repo);
+                var basePath = GetGitRepository(filename);
+                if (!_basePathRepoLookup.TryGetValue(basePath, out repo))
+                {
+                    repo = new GitFileStatusTracker(basePath);
+                    repo.EnableRepositoryWatcher();
+                    repo.FileChanged += Repo_FileChanged;
+                    //add our refrences so we can do a quick lookup later
+                    _repositories.Add(repo);
+                    _basePathRepoLookup.TryAdd(basePath, repo);
+                    _fileRepoLookup.TryAdd(filename, repo);
+                }
             }
+
             return repo;
         }
 
@@ -63,6 +80,18 @@ namespace GitScc
             }
         }
 
+        public static  bool IsGitRepository(string path)
+        {
+            return Repository.IsValid(GetGitRepository(path));
+        }
+
+        /// <inheritdoc/>
+        public static string GetGitRepository(string path)
+        {
+            return Repository.Discover(Path.GetFullPath(path));
+        }
+
+
         private static void FireFileChangedEvent(object sender, GitFileUpdateEventArgs e)
         {
             GitFileUpdateEventHandler changedHandler = _onFileUpdateEventHandler;
@@ -79,18 +108,6 @@ namespace GitScc
             , directoryInfo.EndsWith(separator) ? "" : separator);
 
             return fileInfo.StartsWith(directoryPath, StringComparison.OrdinalIgnoreCase);
-        }
-
-
-        public static  bool IsGitRepository(string path)
-        {
-            return Repository.IsValid(GetGitRepository(path));
-        }
-
-        /// <inheritdoc/>
-        public static string GetGitRepository(string path)
-        {
-            return Repository.Discover(Path.GetFullPath(path));
         }
 
     }

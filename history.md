@@ -1,4 +1,20 @@
-## Change Logs
+## Change Logs -- Visual Studio 2015
+
+**V1.4.2**
+
+*   Fixed Issues #1,#7,#8,#9,#10,#11, #12
+*   Fixed Switch command
+*   Added dark theme form diff window
+
+
+
+**V1.4.1**
+
+*   Fixed Settings Error
+*   Fix bugs #5 + #6. -Thanks 
+*   Thanks To  teebee76 (You Rock) for his help, mnadel, PureKrome + NightOwl888, you guys are also super cool. Keep finidng bugs and I will fix them as fast as I can.  
+
+
 
 **V1.4**
 
@@ -9,11 +25,15 @@
 *   Cleaned out lots of dead code. 
 *   Fix lot's of bugs
 *   Removed Git Diff Margin(https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )
+*   Fixed file missing exceptions.
+
 
 **V1.3.1**
 
 *   Converted Solution to VS 2015
 *   Created new project for plug-in, update all references to Visual Studio 14.0
+
+## Change Logs -- Visual Studio 2013 and below
 
 **V1.3**
 
