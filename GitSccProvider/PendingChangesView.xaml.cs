@@ -22,13 +22,14 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using CancellationToken = System.Threading.CancellationToken;
 using IVsTextView = Microsoft.VisualStudio.TextManager.Interop.IVsTextView;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace GitScc
 {
     /// <summary>
     /// Interaction logic for PendingChangesView.xaml
     /// </summary>
-    public partial class PendingChangesView : UserControl
+    public partial class PendingChangesView : UserControl, IDisposable  
     {
         private SccProviderService service;
         private GitFileStatusTracker tracker;
@@ -46,30 +47,29 @@ namespace GitScc
             this.toolWindow = toolWindow;
             this.service = BasicSccProvider.GetServiceEx<SccProviderService>();
             SetDiffCodeHightlighter();
+            VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
         }
 
-        private void SetDiffCodeHightlighter()
+        private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
         {
-            if (!_diffHightlighted)
-            {
-                var theme = ThemeHelper.GetCurrentTheme();
+           SetDiffCodeHightlighter(true);
+        }
 
-                //XshdSyntaxDefinition xshd;
-                //using (XmlTextReader reader = new XmlTextReader(@"C:\Devel\test.xshd"))
-                //{
-                //    xshd = HighlightingLoader.LoadXshd(reader);
-                //}
-                //using (XmlTextWriter writer = new XmlTextWriter(@"C:\Devel\out.xshd", System.Text.Encoding.UTF8))
-                //{
-                //    writer.Formatting = Formatting.Indented;
-                //    new SaveXshdVisitor(writer).WriteDefinition(xshd);
-                //}
+        private void SetDiffCodeHightlighter(bool force = false)
+        {
+            if (!_diffHightlighted || force)
+            {
+                var defaultBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+                var defaultForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
+
+                var theme = ThemeHelper.GetCurrentTheme();
                 var filename = "GitSccProvider.Resources.Patch-Mode-Blue.xshd";
+
+                DiffEditor.Background = defaultBackground.ToBrush();
+                DiffEditor.Foreground = defaultForeground.ToBrush();
+
                 if (theme == VsTheme.Dark)
                 {
-
-                    DiffEditor.Background = System.Windows.Media.Brushes.Black; //new SolidColorBrush((Color)ColorConverter.ConvertFromString("#242424"));
-                    DiffEditor.Foreground = System.Windows.Media.Brushes.White;
                     filename = "GitSccProvider.Resources.Patch-Mode-Dark.xshd";
                 }
                 var assembly = Assembly.GetExecutingAssembly();
@@ -823,6 +823,11 @@ Note: if the file is included project, you need to delete the file from project 
         internal void OnSettings()
         {
             Settings.Show();
+        }
+
+        public void Dispose()
+        {
+            VSColorTheme.ThemeChanged -= VSColorTheme_ThemeChanged;
         }
     }
 

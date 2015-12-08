@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using Microsoft.Win32;
+using Color = System.Drawing.Color;
 
 namespace GitSccProvider.Utilities
 {
@@ -20,12 +22,12 @@ namespace GitSccProvider.Utilities
 
     public static class ThemeHelper
     {
+        public static System.Windows.Media.Brush ToBrush(this System.Drawing.Color color)
+        {
+            return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+        }
 
         private static VsTheme _currentTheme = VsTheme.Unknown;
-
-
-
-
 
         private static readonly IDictionary<string, VsTheme> Themes = new Dictionary<string, VsTheme>()
              {
@@ -40,7 +42,7 @@ namespace GitSccProvider.Utilities
             {
 
                 string themeId = GetThemeId();
-                if (string.IsNullOrWhiteSpace(themeId) == false)
+                if (String.IsNullOrWhiteSpace(themeId) == false)
                 {
                     VsTheme theme;
                     if (Themes.TryGetValue(themeId, out theme))
@@ -64,7 +66,7 @@ namespace GitSccProvider.Utilities
             if (version == "14.0")
             {
                 string keyName =
-                    string.Format(
+                    String.Format(
                         @"Software\Microsoft\VisualStudio\{0}\ApplicationPrivateSettings\Microsoft\VisualStudio",
                         version);
 
@@ -72,9 +74,9 @@ namespace GitSccProvider.Utilities
                 {
                     if (key != null)
                     {
-                        var keyText = (string)key.GetValue("ColorTheme", string.Empty);
+                        var keyText = (string)key.GetValue("ColorTheme", String.Empty);
 
-                        if (!string.IsNullOrEmpty(keyText))
+                        if (!String.IsNullOrEmpty(keyText))
                         {
                             var keyTextValues = keyText.Split('*');
                             if (keyTextValues.Length > 2)
@@ -89,13 +91,13 @@ namespace GitSccProvider.Utilities
             }
             else
             {
-                string keyName = string.Format(@"Software\Microsoft\VisualStudio\{0}\{1}", version, CategoryName);
+                string keyName = String.Format(@"Software\Microsoft\VisualStudio\{0}\{1}", version, CategoryName);
 
                 using (RegistryKey key = Registry.CurrentUser.OpenSubKey(keyName))
                 {
                     if (key != null)
                     {
-                        return (string)key.GetValue(ThemePropertyName, string.Empty);
+                        return (string)key.GetValue(ThemePropertyName, String.Empty);
                     }
                 }
 

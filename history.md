@@ -1,5 +1,10 @@
 ## Change Logs -- Visual Studio 2015
 
+**V1.4.3**
+
+*   Fixed Issues #14 -- Theme for Diff window now switches properly 
+
+
 **V1.4.2**
 
 *   Fixed Issues #1,#7,#8,#9,#10,#11, #12

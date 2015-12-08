@@ -60,6 +60,16 @@ namespace GitScc
 
         }
 
+        #region Overrides of WindowPane
+
+        protected override void Dispose(bool disposing)
+        {
+            control?.Dispose();
+            base.Dispose(disposing);
+        }
+
+        #endregion
+
         public override void OnToolWindowCreated()
         {
             sccProviderService = BasicSccProvider.GetServiceEx<SccProviderService>();
