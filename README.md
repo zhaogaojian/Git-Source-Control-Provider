@@ -82,10 +82,10 @@ How to use
 *   Refactored external diff tools.. Should be able to extend them in the future
 *   Cleaned out lots of dead code. 
 *   Fix lot's of bugs
-*   Removed Git Diff Margin(https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )
+*   Removed Git Diff Margin(use https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )
 *   Fixed file missing exceptions.
 
-
+[Full Changelog](history.md)
 
 Documentation
 -----------------

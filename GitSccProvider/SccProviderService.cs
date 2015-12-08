@@ -578,6 +578,7 @@ namespace GitScc
 
         private void RepositoryManager_FileChanged(object sender, GitFileUpdateEventArgs e)
         {
+            //TODO update files change here
             Action action = () => ProcessGitFileSystemChange(e);
             Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SccProviderService.TaskScheduler)
                 .HandleNonCriticalExceptions();
@@ -961,6 +962,8 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                             using (disableRefresh)
                             {
                                 timer.Start();
+
+                                //TODO right here... Split this 
                                 RefreshNodesGlyphs();
                                 RefreshToolWindows();
                                 // make sure to defer next refresh
