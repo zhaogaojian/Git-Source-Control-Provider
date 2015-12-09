@@ -1,0 +1,8 @@
+version: 1.4.2.{build}
+os: Previous Visual Studio 2015 RC
+build:
+  project: BasicSccProvider.sln
+  verbosity: minimal
+artifacts:
+- path: GitSccProvider\bin\Release\GitSccProvider.vsix
+  name: GitSccProvider
