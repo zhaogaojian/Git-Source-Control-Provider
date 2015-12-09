@@ -6,6 +6,10 @@ install:
 
 - ps: git submodule -q update --init
 
+before_build:
+
+- ps: nuget restore
+
 build:
 
   project: BasicSccProvider.sln
