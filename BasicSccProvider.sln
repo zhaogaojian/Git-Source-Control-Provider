@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9B2F3727-28C1-4D1B-951E-BA1AB452DA67}"
 	ProjectSection(SolutionItems) = preProject
@@ -26,6 +26,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitApi", "GitApi\GitApi.csproj", "{161E81E2-25E5-4134-8D2D-595419B1265B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitSccProvider", "GitSccProvider\GitSccProvider.csproj", "{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C756204F-28E1-473A-8160-E697E3303F1B} = {C756204F-28E1-473A-8160-E697E3303F1B}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitUI", "GitUI\GitUI.csproj", "{C756204F-28E1-473A-8160-E697E3303F1B}"
 EndProject
