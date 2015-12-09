@@ -9,24 +9,62 @@ using LibGit2Sharp;
 
 namespace GitScc
 {
-    public static class RepositoryManager
+    public delegate void GitRepositoryEventHandler(object sender, GitRepositoryEvent e);
+
+    public sealed class RepositoryManager 
     {
-        private static List<GitFileStatusTracker> _repositories = new List<GitFileStatusTracker>();
+        #region Properties 
 
-        private static ConcurrentDictionary<string, GitFileStatusTracker> _fileRepoLookup =
-            new ConcurrentDictionary<string, GitFileStatusTracker>();
+        static readonly RepositoryManager _instance = new RepositoryManager();
 
-        private static ConcurrentDictionary<string, GitFileStatusTracker> _basePathRepoLookup =
-    new ConcurrentDictionary<string, GitFileStatusTracker>();
+        //Private 
+        private List<GitFileStatusTracker> _repositories; //= new List<GitFileStatusTracker>();
 
-        private static event GitFileUpdateEventHandler _onFileUpdateEventHandler;
+        private ConcurrentDictionary<string, GitFileStatusTracker> _fileRepoLookup; //= new ConcurrentDictionary<string, GitFileStatusTracker>();
 
-        public static List<GitFileStatusTracker> GetRepositories()
+        private ConcurrentDictionary<string, GitFileStatusTracker> _basePathRepoLookup; //= new ConcurrentDictionary<string, GitFileStatusTracker>();
+
+        private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
+
+        private event GitRepositoryEventHandler _onActiveTrackerUpdateEventHandler;
+
+        private GitFileStatusTracker _activeTracker;
+
+
+        //Public
+
+        public GitFileStatusTracker ActiveTracker
+        {
+            get { return _activeTracker; }
+            set
+            {
+                _activeTracker = value;
+                FireActiveTrackerChangedEvent(value);
+            }
+        }
+
+        public static RepositoryManager Instance
+        {
+            get { return _instance; }
+        }
+
+        #endregion
+
+        private RepositoryManager()
+        {
+            _repositories = new List<GitFileStatusTracker>();
+            _fileRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
+            _basePathRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
+        }
+
+
+
+        public List<GitFileStatusTracker> GetRepositories()
         {
              return _repositories; 
         }
 
-        public static void Clear()
+        public void Clear()
         {
             foreach (var repo in _repositories)
             {
@@ -38,7 +76,7 @@ namespace GitScc
         }
 
 
-        public static GitFileStatusTracker GetTrackerForPath(string filename, bool createTracker = true)
+        public GitFileStatusTracker GetTrackerForPath(string filename, bool createTracker = true)
         {
             if (string.IsNullOrEmpty(filename)) return null;
 
@@ -63,12 +101,10 @@ namespace GitScc
             return repo;
         }
 
-        private static void Repo_FileChanged(object sender, GitFileUpdateEventArgs e)
-        {
-            FireFileChangedEvent(sender, e);
-        }
 
-        public static event GitFileUpdateEventHandler FileChanged
+        #region Public Events
+
+        public event GitFileUpdateEventHandler FileChanged
         {
             add
             {
@@ -80,6 +116,46 @@ namespace GitScc
             }
         }
 
+        public event GitRepositoryEventHandler ActiveTrackerChanged
+        {
+            add
+            {
+                _onActiveTrackerUpdateEventHandler += value;
+            }
+            remove
+            {
+                _onActiveTrackerUpdateEventHandler -= value;
+            }
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        private void Repo_FileChanged(object sender, GitFileUpdateEventArgs e)
+        {
+            FireFileChangedEvent(sender, e);
+        }
+
+        #endregion
+
+        #region Event Triggers
+
+        private void FireFileChangedEvent(object sender, GitFileUpdateEventArgs e)
+        {
+            _onFileUpdateEventHandler?.Invoke(sender, e);
+        }
+
+        private void FireActiveTrackerChangedEvent(GitFileStatusTracker repository)
+        {
+            var eventArgs = new GitRepositoryEvent(repository);
+            _onActiveTrackerUpdateEventHandler?.Invoke(this, eventArgs);
+        }
+
+        #endregion
+
+        #region Public Static Helper Methods
+
         public static  bool IsGitRepository(string path)
         {
             return Repository.IsValid(GetGitRepository(path));
@@ -90,25 +166,8 @@ namespace GitScc
         {
             return Repository.Discover(Path.GetFullPath(path));
         }
+        #endregion
 
-
-        private static void FireFileChangedEvent(object sender, GitFileUpdateEventArgs e)
-        {
-            GitFileUpdateEventHandler changedHandler = _onFileUpdateEventHandler;
-            if (changedHandler != null)
-            {
-                changedHandler(sender, e);
-            }
-        }
-
-        private static bool IsFileBelowDirectory(string fileInfo, string directoryInfo, string separator)
-        {
-            var directoryPath = string.Format("{0}{1}"
-            , directoryInfo
-            , directoryInfo.EndsWith(separator) ? "" : separator);
-
-            return fileInfo.StartsWith(directoryPath, StringComparison.OrdinalIgnoreCase);
-        }
 
     }
 }

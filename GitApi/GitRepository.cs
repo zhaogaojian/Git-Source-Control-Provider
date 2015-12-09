@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using GitScc.Extensions;
 using LibGit2Sharp;
 using static GitScc.GitFile;
 
@@ -77,9 +78,10 @@ namespace GitScc
 
 	    private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
 	    {
-            if(e.FullPath.Contains(_repositoryPath))
+            if(e.FullPath.IsSubPathOf(_repositoryPath))
 	        {
 	            //GIT EVENT
+	            int i = 3;
 	        }
             else
             {

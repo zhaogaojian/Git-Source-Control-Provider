@@ -17,4 +17,14 @@ namespace GitScc
             Name = name;
         }
     }
+
+    public class GitRepositoryEvent : EventArgs
+    {
+        public GitRepository Repository { get; private set; }
+
+        public GitRepositoryEvent(GitRepository repository)
+        {
+            Repository = repository;
+        }
+    }
 }

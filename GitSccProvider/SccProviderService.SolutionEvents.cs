@@ -58,7 +58,7 @@ namespace GitScc
             if (!Active && !GitSccOptions.Current.DisableAutoLoad)
             {
                 OpenTracker();
-                if (RepositoryManager.GetRepositories().Count > 0)
+                if (RepositoryManager.Instance.GetRepositories().Count > 0)
                 {
                     IVsRegisterScciProvider rscp =
                         (IVsRegisterScciProvider) _sccProvider.GetService(typeof (IVsRegisterScciProvider));

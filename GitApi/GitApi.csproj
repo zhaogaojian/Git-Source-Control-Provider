@@ -57,6 +57,7 @@
     <Compile Include="DataServices\Ref.cs" />
     <Compile Include="DataServices\RepositoryGraph.cs" />
     <Compile Include="DiffFileInfo.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="GitActionResult.cs" />
     <Compile Include="GitBash.cs" />
     <Compile Include="GitBashResult.cs" />

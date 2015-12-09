@@ -55,7 +55,7 @@ namespace GitScc
         public SccProviderService(BasicSccProvider sccProvider)
         {
             this._sccProvider = sccProvider;
-            RepositoryManager.FileChanged += RepositoryManager_FileChanged;
+            RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
             //this.trackers = trackers;
 
             SetupSolutionEvents();
@@ -544,7 +544,7 @@ namespace GitScc
         internal void OpenTracker()
         {
             Debug.WriteLine("==== Open Tracker");
-            RepositoryManager.Clear();
+            RepositoryManager.Instance.Clear();
 
             var solutionFileName = GetSolutionFileName();
 
@@ -625,7 +625,7 @@ namespace GitScc
         private void CloseTracker()
         {
             Debug.WriteLine("==== Close Tracker");
-            RepositoryManager.Clear();
+            RepositoryManager.Instance.Clear();
             RemoveFolderMonitor();
             MarkDirty(false);
         }
@@ -740,7 +740,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             //Debug.WriteLine("==== Adding project: " + projectDirecotry);
 
             //TODO.. got to be a better way
-            RepositoryManager.GetTrackerForPath(projectDirecotry);
+            RepositoryManager.Instance.GetTrackerForPath(projectDirecotry);
             //var tracker = new GitFileStatusTracker(projectDirecotry);
             //string gitfolder = tracker.WorkingDirectory;
 
@@ -777,7 +777,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             get
             {
-                return RepositoryManager.GetTrackerForPath(GetSelectFileName());
+                return RepositoryManager.Instance.GetTrackerForPath(GetSelectFileName());
                 //if (trackers.Count == 1) 
                 //    return trackers[0];
                 //else
@@ -794,7 +794,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         //TODO :  I don't like this.. 
         internal GitFileStatusTracker GetTracker(string fileName)
         {
-            return RepositoryManager.GetTrackerForPath(fileName);
+            return RepositoryManager.Instance.GetTrackerForPath(fileName);
             //if (string.IsNullOrEmpty(fileName)) return null;
 
 
@@ -941,7 +941,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                     timer.Start();
 
                     OpenTracker();
-                    foreach (GitFileStatusTracker tracker in RepositoryManager.GetRepositories())
+                    foreach (GitFileStatusTracker tracker in RepositoryManager.Instance.GetRepositories())
                         tracker.Refresh();
 
                     timer.Stop();
@@ -1115,7 +1115,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         #region git
         public bool IsSolutionGitControlled
         {
-            get { return RepositoryManager.GetRepositories().Count > 0; }
+            get { return RepositoryManager.Instance.GetRepositories().Count > 0; }
         }
 
         internal void InitRepo()
