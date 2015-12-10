@@ -8,6 +8,7 @@ before_build:
 build:
   project: BasicSccProvider.sln
   verbosity: minimal
+test: off
 artifacts:
 - path: GitSccProvider\bin\Release\GitSccProvider.vsix
   name: GitSccProvider
