@@ -4,7 +4,12 @@ configuration: Release
 install:
 - ps: git submodule -q update --init
 before_build:
-- ps: nuget restore
+- ps: >-
+    nuget restore
+
+    $vsixPath = "source.extension.vsixmanifest"
+
+    Vsix-SetVersion -VsixPath $vsixPath -Version "{version}"
 build:
   project: BasicSccProvider.sln
   verbosity: minimal

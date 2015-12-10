@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitSccProvider;
+using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -58,10 +59,11 @@ namespace GitScc
             if (!Active && !GitSccOptions.Current.DisableAutoLoad)
             {
                 OpenTracker();
+
                 if (RepositoryManager.Instance.GetRepositories().Count > 0)
                 {
                     IVsRegisterScciProvider rscp =
-                        (IVsRegisterScciProvider) _sccProvider.GetService(typeof (IVsRegisterScciProvider));
+                        (IVsRegisterScciProvider)_sccProvider.GetService(typeof(IVsRegisterScciProvider));
                     rscp.RegisterSourceControlProvider(GuidList.guidSccProvider);
                 }
             }
@@ -74,6 +76,7 @@ namespace GitScc
         public int OnAfterCloseSolution([In] Object pUnkReserved)
         {
             CloseTracker();
+            _fileCahce = new SccProviderSolutionCache(_sccProvider);
             return VSConstants.S_OK;
         }
 
@@ -84,6 +87,28 @@ namespace GitScc
 
         public int OnAfterOpenProject([In] IVsHierarchy pHierarchy, [In] int fAdded)
         {
+            _fileCahce.AddProject((IVsSccProject2)pHierarchy);
+            // If a solution folder is added to the solution after the solution is added to scc, we need to controll that folder
+            if (pHierarchy.IsSolutionFolderProject() && (fAdded == 1))
+            {
+                IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+                //if (IsProjectControlled(solHier))
+                //{
+                    // Register this solution folder using the same location as the solution
+                    IVsSccProject2 pSccProject = (IVsSccProject2)pHierarchy;
+                    //RegisterSccProject(pSccProject, _solutionLocation, "", "", _sccProvider.ProviderName);
+
+                    // We'll also need to refresh the solution folders glyphs to reflect the controlled state
+                    IList<VSITEMSELECTION> nodes = new List<VSITEMSELECTION>();
+
+                    VSITEMSELECTION vsItem;
+                    vsItem.itemid = VSConstants.VSITEMID_ROOT;
+                    vsItem.pHier = pHierarchy;
+                    nodes.Add(vsItem);
+                    RefreshNodesGlyphs(nodes);
+                //}
+            }
+
             return VSConstants.S_OK;
         }
 

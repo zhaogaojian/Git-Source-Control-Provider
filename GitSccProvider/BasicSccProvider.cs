@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -19,6 +20,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using EnvDTE;
 using GitSccProvider;
+using GitSccProvider.Utilities;
 using Process = System.Diagnostics.Process;
 
 namespace GitScc
@@ -635,6 +637,26 @@ namespace GitScc
         {
             if(_SccProvider == null) return default(T);
             return (T)_SccProvider.GetService(typeof(T));
+        }
+
+        public Hashtable GetSolutionFoldersEnum()
+        {
+            Hashtable mapHierarchies = new Hashtable();
+
+            IVsSolution sol = (IVsSolution)GetService(typeof(SVsSolution));
+            Guid rguidEnumOnlyThisType = SolutionExtensions.GuidSolutionFolderProject;
+            IEnumHierarchies ppenum = null;
+            ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
+
+            IVsHierarchy[] rgelt = new IVsHierarchy[1];
+            uint pceltFetched = 0;
+            while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
+                   pceltFetched == 1)
+            {
+                mapHierarchies[rgelt[0]] = true;
+            }
+
+            return mapHierarchies;
         }
 
         #region Run Command

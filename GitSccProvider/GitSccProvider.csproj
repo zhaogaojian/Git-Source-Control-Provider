@@ -111,6 +111,7 @@
     <Compile Include="SccProviderService.cs" />
     <Compile Include="SccProviderService.DocumentEvents.cs" />
     <Compile Include="SccProviderService.SolutionEvents.cs" />
+    <Compile Include="SccProviderSolutionCache.cs" />
     <Compile Include="Schedulers\QueuedTaskScheduler.cs" />
     <Compile Include="Utilities\SolutionExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />

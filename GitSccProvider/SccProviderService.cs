@@ -48,6 +48,7 @@ namespace GitScc
 
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
+        private SccProviderSolutionCache _fileCahce;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -55,6 +56,8 @@ namespace GitScc
         public SccProviderService(BasicSccProvider sccProvider)
         {
             this._sccProvider = sccProvider;
+            _fileCahce = new SccProviderSolutionCache(_sccProvider);
+
             RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
             //this.trackers = trackers;
 
@@ -550,36 +553,14 @@ namespace GitScc
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {
-                //monitorFolder = Path.GetDirectoryName(solutionFileName);
-
                 GetLoadedControllableProjects().ForEach(h => AddProject(h as IVsHierarchy));
-
-                //if (monitorFolder != lastMonitorFolder)
-                //{
-                //    RemoveFolderMonitor();
-
-                //    if (_watcher != null)
-                //        _watcher.Dispose();
-
-                //    FileSystemWatcher watcher = new FileSystemWatcher(monitorFolder);
-                //    watcher.IncludeSubdirectories = true;
-                //    watcher.Changed += HandleFileSystemChanged;
-                //    watcher.Created += HandleFileSystemChanged;
-                //    watcher.Deleted += HandleFileSystemChanged;
-                //    watcher.Renamed += HandleFileSystemChanged;
-                //    watcher.EnableRaisingEvents = true;
-                //    _watcher = watcher;
-                //    lastMonitorFolder = monitorFolder;
-
-                //    Debug.WriteLine("==== Monitoring: " + monitorFolder);
-                //}
             }
         }
 
         private void RepositoryManager_FileChanged(object sender, GitFileUpdateEventArgs e)
         {
             //TODO update files change here
-            Action action = () => ProcessGitFileSystemChange(e);
+            Action action = () => ProcessSingleFileSystemChange((GitRepository)sender, e);
             Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SccProviderService.TaskScheduler)
                 .HandleNonCriticalExceptions();
         }
@@ -598,12 +579,55 @@ namespace GitScc
             MarkDirty(false);
         }
 
-        private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
+        private IList<VSITEMSELECTION> GetControlledProjectsContainingFile(string file)
         {
-            Action action = () => ProcessFileSystemChange(e);
-            Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SccProviderService.TaskScheduler)
-                .HandleNonCriticalExceptions();
+            IList<VSITEMSELECTION> nodes = new List<VSITEMSELECTION>();
+            var projects = _fileCahce.GetProjectsForFile(file);
+
+            foreach (IVsHierarchy pHier in projects)
+            {
+                IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+                if (solHier == pHier)
+                {
+                    // This is the solution
+                    if (file.ToLower().CompareTo(GetSolutionFileName().ToLower()) == 0)
+                    {
+                        VSITEMSELECTION vsItem;
+                        vsItem.itemid = VSConstants.VSITEMID_ROOT;
+                        vsItem.pHier = null;
+                        nodes.Add(vsItem);
+                    }
+                }
+                else
+                {
+                    IVsProject2 pProject = pHier as IVsProject2;
+                    // See if the file is member of this project
+                    // Caveat: the IsDocumentInProject function is expensive for certain project types, 
+                    // you may want to limit its usage by creating your own maps of file2project or folder2project
+                    int fFound;
+                    uint itemid;
+                    VSDOCUMENTPRIORITY[] prio = new VSDOCUMENTPRIORITY[1];
+                    if (pProject != null && pProject.IsDocumentInProject(file, out fFound, prio, out itemid) == VSConstants.S_OK && fFound != 0)
+                    {
+                        VSITEMSELECTION vsItem;
+                        vsItem.itemid = itemid;
+                        vsItem.pHier = pHier;
+                        nodes.Add(vsItem);
+                    }
+                }
+            }
+
+            return nodes;
+
         }
+
+        private void ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
+        {
+            repo.Refresh();
+            IList<VSITEMSELECTION> nodes = GetControlledProjectsContainingFile(e.FullPath);
+            RefreshNodesGlyphs(nodes);
+        }
+
 
         private void ProcessFileSystemChange(FileSystemEventArgs e)
         {
@@ -739,7 +763,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
             //Debug.WriteLine("==== Adding project: " + projectDirecotry);
 
-            //TODO.. got to be a better way
+           
             RepositoryManager.Instance.GetTrackerForPath(projectDirecotry);
             //var tracker = new GitFileStatusTracker(projectDirecotry);
             //string gitfolder = tracker.WorkingDirectory;
@@ -778,10 +802,6 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             get
             {
                 return RepositoryManager.Instance.GetTrackerForPath(GetSelectFileName());
-                //if (trackers.Count == 1) 
-                //    return trackers[0];
-                //else
-                //    return GetTracker(GetSelectFileName());
             }
         }
 
@@ -993,9 +1013,11 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             }
         }
 
+
+        //TODO MOVE 
         public void RefreshNodesGlyphs()
         {
-          var solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+          //var solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
             var projectList = GetLoadedControllableProjects();
 
             // We'll also need to refresh the solution folders glyphs
@@ -1051,6 +1073,8 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             return list;
         }
 
+
+        //TODO Move TO Provider
         /// <summary>
         /// Refreshes the glyphs of the specified hierarchy nodes
         /// </summary>
