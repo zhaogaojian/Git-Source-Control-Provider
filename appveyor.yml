@@ -12,7 +12,7 @@ before_build:
 
 - ps: >-
 
-    Include '.\VsixTools.ps1'
+    Import-Module VsixTools
 
 
 
