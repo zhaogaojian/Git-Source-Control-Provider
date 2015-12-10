@@ -5,8 +5,11 @@ install:
 - ps: git submodule -q update --init
 before_build:
 - ps: >-
-    nuget restore
 
+ Include '.\VsixTools.ps1'
+
+    nuget restore
+	
     $vsixPath = "source.extension.vsixmanifest"
 
     Vsix-SetVersion -VsixPath $vsixPath -Version "{version}"
