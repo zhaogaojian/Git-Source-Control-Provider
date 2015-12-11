@@ -16,7 +16,7 @@ before_build:
 
 
 
-    $vsixPath = "$(APPVEYOR_BUILD_FOLDER)\source.extension.vsixmanifest"
+    $vsixPath = "$env:appveyor_build_folder\source.extension.vsixmanifest"
 
 
 
