@@ -1,41 +1,26 @@
 version: 1.4.2.{build}
-
 os: Previous Visual Studio 2015 RC
-
 configuration: Release
-
 install:
-
 - ps: git submodule -q update --init
-
 before_build:
-
 - ps: >-
-
-    .\VsixTools.ps1
-
-
-
     nuget restore
-
-
 
     $vsixPath = "source.extension.vsixmanifest"
 
 
+    $manifestXml = New-Object XML
 
-    Vsix-SetVersion -VsixPath $vsixPath -Version "{version}"
+    $manifestXml.Load($manifestPath)
 
+    $manifestXml.PackageManifest.Metadata.Identity.Version = {version}
+
+    $manifestXml.save($manifestPath)
 build:
-
   project: BasicSccProvider.sln
-
   verbosity: minimal
-
 test: off
-
 artifacts:
-
 - path: GitSccProvider\bin\Release\GitSccProvider.vsix
-
   name: GitSccProvider
