@@ -19,6 +19,7 @@ namespace GitSccProvider.Utilities
 
         #region File Lists
 
+
         /// <summary>
         /// Gets the list of source controllable files in the specified project
         /// </summary>

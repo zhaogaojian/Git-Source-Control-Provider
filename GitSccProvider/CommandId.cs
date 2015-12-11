@@ -49,6 +49,7 @@ namespace GitScc
 
         public const int icmdGitExtCommand1 = 0x811;
         public const int icmdGitTorCommand1 = 0x911;
+        public const int icmdGitIgnoreCommand1 = 0x2001;
 
     }
 }

@@ -36,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{18163F1B-3192-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoomAndPan", "GitUI\ZoomAndPan\ZoomAndPan.csproj", "{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitTools", "GitTools\GitTools.csproj", "{3A4524D2-7D17-4176-8701-8EB8AC7598ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +106,14 @@ Global
 		{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}.Release|Any CPU.Build.0 = Release|Any CPU
 		{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}.Release|x86.ActiveCfg = Release|Any CPU
 		{468ADEDE-6F5E-40C0-99C9-C6DAC4FAC934}.Release|x86.Build.0 = Release|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Debug|x86.Build.0 = Debug|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Release|x86.ActiveCfg = Release|Any CPU
+		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

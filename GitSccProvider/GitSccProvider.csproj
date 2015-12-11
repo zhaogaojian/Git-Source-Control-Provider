@@ -165,6 +165,10 @@
     <Content Include="Resources\ToolWindowWithEditorCommand.png" />
     <Content Include="Resources\ToolWindowWithEditorPackage.ico" />
     <Content Include="Resources\UndoCheckout.png" />
+    <Content Include="Resources\VisualStudio.gitignore">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="solution explorer.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

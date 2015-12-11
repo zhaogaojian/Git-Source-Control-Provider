@@ -17,48 +17,94 @@ namespace GitSccProvider
     {
         private BasicSccProvider _sccProvider;
         private List<IVsSccProject2> _projects;
-        private ConcurrentDictionary<string, List<IVsSccProject2>> _fileProjectLookup;
+        private ConcurrentDictionary<string, List<VSITEMSELECTION>> _fileProjectLookup;
+        private ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION> _projectSelectionLookup;
 
         public SccProviderSolutionCache(BasicSccProvider provider)
         {
             _sccProvider = provider;
             _projects = new List<IVsSccProject2>();
-            _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
+            _fileProjectLookup = new ConcurrentDictionary<string, List<VSITEMSELECTION>>();
+            _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
         }
 
         private void AddFileToList(string filename, IVsSccProject2 project)
         {
-            List<IVsSccProject2> projects;
+            List<VSITEMSELECTION> projects;
 
             if (!_fileProjectLookup.TryGetValue(filename, out projects))
             {
-                _fileProjectLookup.TryAdd(filename, new List<IVsSccProject2> {project});
+                VSITEMSELECTION vsItem;
+                if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
+                {
+                    vsItem = CreateItem(filename, project);
+                }
+                _fileProjectLookup.TryAdd(filename, new List<VSITEMSELECTION> { vsItem });
             }
 
-            else if(!projects.Contains(project))
+            else
             {
-                projects.Add(project);
+                VSITEMSELECTION vsItem;
+                if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
+                {
+                    projects.Add(CreateItem(filename, project));
+                }
             }
         }
 
-        public List<IVsSccProject2> GetProjectsForFile(string filename)
+        private VSITEMSELECTION CreateItem(string filename,IVsSccProject2 project)
         {
-            return GetProjectsForFile(filename,true);
+            VSITEMSELECTION vsItem = new VSITEMSELECTION();
+
+
+            IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+            IVsHierarchy pHier = project as IVsHierarchy;
+
+            if (solHier == pHier)
+            {
+                // This is the solution
+                if (filename.ToLower().CompareTo(GetSolutionFileName().ToLower()) == 0)
+                {
+                    vsItem.itemid = VSConstants.VSITEMID_ROOT;
+                    vsItem.pHier = null;
+                }
+            }
+            else
+            {
+                IVsProject2 pProject = pHier as IVsProject2;
+                // See if the file is member of this project
+                // Caveat: the IsDocumentInProject function is expensive for certain project types, 
+                // you may want to limit its usage by creating your own maps of file2project or folder2project
+                int fFound;
+                uint itemid;
+                VSDOCUMENTPRIORITY[] prio = new VSDOCUMENTPRIORITY[1];
+                if (pProject != null && pProject.IsDocumentInProject(filename, out fFound, prio, out itemid) == VSConstants.S_OK && fFound != 0)
+                {
+                    vsItem.itemid = itemid;
+                    vsItem.pHier = pHier;
+                }
+            }
+            return  vsItem;
         }
 
-        private List<IVsSccProject2> GetProjectsForFile(string filename, bool search)
+        public List<VSITEMSELECTION> GetProjectsSelectionForFile(string filename)
         {
-            List<IVsSccProject2> projects;
+            return GetProjectsSelectionForFile(filename,true);
+        }
+
+        private List<VSITEMSELECTION> GetProjectsSelectionForFile(string filename, bool search)
+        {
+            List<VSITEMSELECTION> projects;
             if (!_fileProjectLookup.TryGetValue(filename, out projects))
             {
                 if (!search)
                 {
-                    projects = new List<IVsSccProject2>();
+                    projects = new List<VSITEMSELECTION>();
                 }
                 else
                 {
                     ScanSolution();
-                    projects = GetProjectsForFile(filename, false);
+                    projects = GetProjectsSelectionForFile(filename, false);
                 }
             }
             return projects;
@@ -112,6 +158,20 @@ namespace GitSccProvider
             }
 
             return list;
+        }
+
+        public string GetSolutionFileName()
+        {
+            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
+            string solutionDirectory, solutionFile, solutionUserOptions;
+            if (sol.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionUserOptions) == VSConstants.S_OK)
+            {
+                return solutionFile;
+            }
+            else
+            {
+                return null;
+            }
         }
 
 

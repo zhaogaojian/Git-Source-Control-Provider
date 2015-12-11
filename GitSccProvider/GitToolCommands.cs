@@ -26,6 +26,11 @@ namespace GitScc
 
     static class GitToolCommands
     {
+        internal static List<string> IgnoreCommands = new List<String> {
+            "Open",
+            "Update"
+        };
+
         internal static List<GitToolCommand> GitTorCommands = new List<GitToolCommand> { 
             new GitToolCommand("TortoiseGit", "/command:log"), // workaround to missing of the first command in menu
             new GitToolCommand("Blame", "/command:blame", CommandScope.File), 

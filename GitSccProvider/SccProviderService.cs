@@ -579,52 +579,10 @@ namespace GitScc
             MarkDirty(false);
         }
 
-        private IList<VSITEMSELECTION> GetControlledProjectsContainingFile(string file)
-        {
-            IList<VSITEMSELECTION> nodes = new List<VSITEMSELECTION>();
-            var projects = _fileCahce.GetProjectsForFile(file);
-
-            foreach (IVsHierarchy pHier in projects)
-            {
-                IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
-                if (solHier == pHier)
-                {
-                    // This is the solution
-                    if (file.ToLower().CompareTo(GetSolutionFileName().ToLower()) == 0)
-                    {
-                        VSITEMSELECTION vsItem;
-                        vsItem.itemid = VSConstants.VSITEMID_ROOT;
-                        vsItem.pHier = null;
-                        nodes.Add(vsItem);
-                    }
-                }
-                else
-                {
-                    IVsProject2 pProject = pHier as IVsProject2;
-                    // See if the file is member of this project
-                    // Caveat: the IsDocumentInProject function is expensive for certain project types, 
-                    // you may want to limit its usage by creating your own maps of file2project or folder2project
-                    int fFound;
-                    uint itemid;
-                    VSDOCUMENTPRIORITY[] prio = new VSDOCUMENTPRIORITY[1];
-                    if (pProject != null && pProject.IsDocumentInProject(file, out fFound, prio, out itemid) == VSConstants.S_OK && fFound != 0)
-                    {
-                        VSITEMSELECTION vsItem;
-                        vsItem.itemid = itemid;
-                        vsItem.pHier = pHier;
-                        nodes.Add(vsItem);
-                    }
-                }
-            }
-
-            return nodes;
-
-        }
-
         private void ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
         {
             repo.Refresh();
-            IList<VSITEMSELECTION> nodes = GetControlledProjectsContainingFile(e.FullPath);
+            IList<VSITEMSELECTION> nodes = _fileCahce.GetProjectsSelectionForFile(e.FullPath);
             RefreshNodesGlyphs(nodes);
         }
 
@@ -815,14 +773,6 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         internal GitFileStatusTracker GetTracker(string fileName)
         {
             return RepositoryManager.Instance.GetTrackerForPath(fileName);
-            //if (string.IsNullOrEmpty(fileName)) return null;
-
-
-
-            //return trackers.Where(t => t.IsGit &&
-            //                      IsFileBelowDirectory(fileName, t.WorkingDirectory, "\\"))           
-            //               .OrderByDescending(t => t.WorkingDirectory.Length)
-            //               .FirstOrDefault();
         }
 
         public static bool IsFileBelowDirectory(string fileInfo, string directoryInfo, string separator)
@@ -862,16 +812,6 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             return GetFileStatus(fileName);
         }
 
-        //private void SaveFileFromRepository(string fileName, string tempFile)
-        //{
-        //    var tracker = CurrentTracker;
-        //    if (tracker == null) return;
-        //    var data = tracker.GetFileContent(fileName);
-        //    using (var binWriter = new BinaryWriter(File.Open(tempFile, FileMode.Create)))
-        //    {
-        //        binWriter.Write(data ?? new byte[] { });
-        //    }
-        //}
         #endregion
 
         #region new Refresh methods
@@ -1186,10 +1126,6 @@ $tf*/"
             var window = this._sccProvider.FindToolWindow(typeof(PendingChangesToolWindow), 0, false) 
                 as PendingChangesToolWindow;
             if (window != null) window.Refresh(this.CurrentTracker);
-
-            //var window2 = this._sccProvider.FindToolWindow(typeof(HistoryToolWindow), 0, false)
-            //    as HistoryToolWindow;
-            //if (window2 != null) window2.Refresh(this.CurrentTracker);
         }
     }
 }

@@ -146,6 +146,13 @@ namespace GitScc
                     mcs.AddCommand(mc);
                 }
 
+                for (int i = 0; i < GitToolCommands.IgnoreCommands.Count; i++)
+                {
+                    cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitIgnoreCommand1 + i);
+                    var mc = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
+                    mcs.AddCommand(mc);
+                }
+
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandPendingChanges);
                 menu = new MenuCommand(new EventHandler(ShowPendingChangesWindow), cmd);
                 mcs.AddCommand(menu);
@@ -273,6 +280,14 @@ namespace GitScc
                 case CommandId.icmdSccCommandEditIgnore:
                     if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
                     break;
+                case CommandId.icmdGitIgnoreCommand1:
+                    SetOleCmdText(pCmdText, GitToolCommands.IgnoreCommands[0]);
+                    if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    break;
+                case CommandId.icmdGitIgnoreCommand1 + 1:
+                    SetOleCmdText(pCmdText, GitToolCommands.IgnoreCommands[1]);
+                    if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    break;
 
                 case CommandId.icmdSccCommandHistory:
                 case CommandId.icmdSccCommandPendingChanges:
@@ -370,7 +385,17 @@ namespace GitScc
 
         private void OnEditIgnore(object sender, EventArgs e)
         {
-            sccService.EditIgnore();
+            var menuCommand = sender as MenuCommand;
+            if (null != menuCommand)
+            {
+                int idx = menuCommand.CommandID.ID - CommandId.icmdGitTorCommand1;
+                if (idx == 0)
+                {
+                    sccService.EditIgnore();
+                }
+              
+            }
+            
         }
 
         private void OnGitExtensionCommand(object sender, EventArgs e)

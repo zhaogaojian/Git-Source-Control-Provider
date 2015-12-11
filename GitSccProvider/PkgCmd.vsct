@@ -146,9 +146,11 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>IconAndText</CommandFlag>
         <Strings>
-          <ButtonText>Open .gitignore</ButtonText>
+          <CommandName>icmdGitIgnoreCommand1</CommandName>
+          <ButtonText>.gitignore</ButtonText>
         </Strings>
       </Button>
+
 
       <Button guid="guidSccProviderCmdSet" id="icmdSccCommandRefresh" priority="0x0104" type="Button">
         <Parent guid="guidSccProviderCmdSet" id="igrpSourceControlCommands"/>
@@ -320,9 +322,13 @@
       <Parent guid="guidSccProviderCmdSet" id="igrpDocTabWnd"/>
     </CommandPlacement>
     
+    <!--<CommandPlacement guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0007">
+      <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
+    </CommandPlacement>-->
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0007">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
     </CommandPlacement>
+    
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdSccCommandGitBash" priority="0x0008">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
     </CommandPlacement>
@@ -346,6 +352,9 @@
     </CommandPlacement>
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitTorCommand1" priority="0x0000">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitTor"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitExtCommand1" priority="0x0000">
+      <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitExt"/>
     </CommandPlacement>
     
   </CommandPlacements>
@@ -391,12 +400,16 @@
       
       <IDSymbol name="icmdGitExtCommand1" value="0x811"/>
       <IDSymbol name="icmdGitTorCommand1" value="0x911"/>
+      <IDSymbol name="icmdGitIgnoreCommand1" value="0x2001"/>
 
       <IDSymbol name="imnuPendingChangesToolWindowGitExt" value="0x951"/>
       <IDSymbol name="igrpPendingChangesToolWindowGitExt" value="0x952"/>
 
       <IDSymbol name="imnuPendingChangesToolWindowGitTor" value="0x961"/>
       <IDSymbol name="igrpPendingChangesToolWindowGitTor" value="0x962"/>
+
+      <IDSymbol name="imnuPendingChangesToolWindowGitIgnore" value="0x971"/>
+      <IDSymbol name="igrpPendingChangesToolWindowGitIgnore" value="0x972"/>
 
     </GuidSymbol>
     <GuidSymbol name="guidSccProviderImages" value="{495089FD-A8CA-4260-8EB1-794E2956B625}" >

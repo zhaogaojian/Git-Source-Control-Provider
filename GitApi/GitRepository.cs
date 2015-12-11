@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
 using GitScc.Extensions;
@@ -26,6 +27,7 @@ namespace GitScc
         private IEnumerable<string> remotes;
         private IDictionary<string, string> configs;
         FileSystemWatcher _watcher;
+        private MemoryCache _fileCache;
 
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
