@@ -280,14 +280,7 @@ namespace GitScc
                 case CommandId.icmdSccCommandEditIgnore:
                     if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
                     break;
-                case CommandId.icmdGitIgnoreCommand1:
-                    SetOleCmdText(pCmdText, GitToolCommands.IgnoreCommands[0]);
-                    if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
-                    break;
-                case CommandId.icmdGitIgnoreCommand1 + 1:
-                    SetOleCmdText(pCmdText, GitToolCommands.IgnoreCommands[1]);
-                    if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
-                    break;
+
 
                 case CommandId.icmdSccCommandHistory:
                 case CommandId.icmdSccCommandPendingChanges:
@@ -331,6 +324,15 @@ namespace GitScc
                     {
                         int idx = (int)prgCmds[0].cmdID - CommandId.icmdGitTorCommand1;
                         SetOleCmdText(pCmdText, GitToolCommands.GitTorCommands[idx].Name);
+                        cmdf |= OLECMDF.OLECMDF_ENABLED;
+                        break;
+                    }
+
+                    else if (prgCmds[0].cmdID >= CommandId.icmdGitIgnoreCommand1 &&
+                    prgCmds[0].cmdID < CommandId.icmdGitIgnoreCommand1 + GitToolCommands.IgnoreCommands.Count)
+                    {
+                        int idx = (int)prgCmds[0].cmdID - CommandId.icmdGitTorCommand1;
+                        SetOleCmdText(pCmdText, GitToolCommands.IgnoreCommands[idx]);
                         cmdf |= OLECMDF.OLECMDF_ENABLED;
                         break;
                     }

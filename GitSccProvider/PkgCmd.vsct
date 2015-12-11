@@ -42,7 +42,20 @@
           <ButtonText>Git Extensions</ButtonText>
           <CommandName>GitExt Menu Controller</CommandName>
         </Strings>
-      </Menu>     
+      </Menu>
+      
+      <Menu guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore" priority="0x0012" type="MenuController">
+        <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
+        <CommandFlag>IconAndText</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <CommandFlag>TextIsAnchorCommand</CommandFlag>
+        <Strings>
+          <ButtonText>Git Extensions</ButtonText>
+          <CommandName>Git Ignore Controller</CommandName>
+        </Strings>
+      </Menu>
+      
+    
       
     </Menus>
     
@@ -73,6 +86,9 @@
       </Group>
       <Group guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitTor" priority="0x0000">
         <Parent guid="guidSccProviderCmdSet" id="imnuPendingChangesToolWindowGitTor"/>
+      </Group>
+      <Group guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore" priority="0x0000">
+        <Parent guid="guidSccProviderCmdSet" id="imnuPendingChangesToolWindowGitIgnore"/>
       </Group>
 
       <!-- Document TabWnd context menu -->
@@ -145,6 +161,17 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>IconAndText</CommandFlag>
+        <Strings>
+          <ButtonText>.gitignore</ButtonText>
+        </Strings>
+      </Button>
+      
+       <Button guid="guidSccProviderCmdSet" id="icmdGitIgnoreCommand1" type="Button" priority="0x0101">
+        <Parent guid="guidSccProviderCmdSet" id="igrpGitTorCommands" />
+        <Icon guid="guidSccProviderImages" id="iconGitTor" />
+        <CommandFlag>DynamicItemStart</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>FixMenuController</CommandFlag>
         <Strings>
           <CommandName>icmdGitIgnoreCommand1</CommandName>
           <ButtonText>.gitignore</ButtonText>
@@ -353,6 +380,10 @@
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitTorCommand1" priority="0x0000">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitTor"/>
     </CommandPlacement>
+        <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitIgnoreCommand1" priority="0x0000">
+      <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore"/>
+    </CommandPlacement>
+      
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitExtCommand1" priority="0x0000">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitExt"/>
     </CommandPlacement>

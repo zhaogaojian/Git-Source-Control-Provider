@@ -54,6 +54,23 @@ namespace GitScc
             var menu = new MenuCommand(new EventHandler(OnRefreshCommand), cmd);
             mcs.AddCommand(menu);
 
+
+            //CommandID menuMyDynamicComboCommandID = new CommandID(GuidList.guidComboBoxCmdSet,(int)PkgCmdIDList.cmdidMyDynamicCombo);
+            //OleMenuCommand menuMyDynamicComboCommand = new OleMenuCommand(new EventHandler(OnMenuMyDynamicCombo),menuMyDynamicComboCommandID);
+            //menuMyDynamicComboCommand.ParametersDescription = "$";
+            //mcs.AddCommand(menuMyDynamicComboCommand);
+
+
+            mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            CommandID commandId = new CommandID(GuidList.guidSccProviderCmdSet, (int)CommandId.icmdGitIgnoreCommand1);
+            OleMenuCommand menuMyDynamicComboCommand = new OleMenuCommand(new EventHandler(OnRefreshCommand), commandId);
+            mcs.AddCommand(menuMyDynamicComboCommand);
+
+
+            //cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandEditIgnore);
+            //menu = new MenuCommand(new EventHandler(OnRefreshCommand), cmd);
+            //mcs.AddCommand(menu);
+
             //sccProviderService = BasicSccProvider.GetServiceEx<SccProviderService>();
             //var test = sccProviderService.CurrentTracker;
             //Refresh(sccProviderService.CurrentTracker); // refresh when the tool window becomes visible
