@@ -12,7 +12,7 @@ before_build:
 
     $manifestXml = New-Object XML
 
-    $manifestXml.Load($manifestPath)
+    $manifestXml.Load($vsixPath)
 
     $manifestXml.PackageManifest.Metadata.Identity.Version = {version}
 
