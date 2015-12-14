@@ -317,7 +317,7 @@
       </Button>
       
     
-    <Button guid="guidSccProviderCmdSet" id="icmdGitIgnoreSubMenuCommandOpen" priority="0x0000" type="Button">
+    <Button guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0000" type="Button">
     <Parent guid="guidSccProviderCmdSet" id="GitIgnoreSubMenuGroup" />
     <Icon guid="guidSccProviderImages" id="iconGitBash" />
     <Strings>
@@ -330,7 +330,7 @@
     <Parent guid="guidSccProviderCmdSet" id="GitIgnoreSubMenuGroup" />
     <Icon guid="guidSccProviderImages" id="iconGitBash" />
     <Strings>
-       <CommandName>cmdidGitIgnoreSubMenuCommandUpdate</CommandName>
+       <CommandName>icmdGitIgnoreSubMenuCommandUpdate</CommandName>
        <ButtonText>Update Ignore</ButtonText>
     </Strings>
 </Button>

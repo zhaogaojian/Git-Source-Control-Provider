@@ -355,6 +355,10 @@
       <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
       <Name>GitApi</Name>
     </ProjectReference>
+    <ProjectReference Include="..\GitExtension\GitExtension.csproj">
+      <Project>{b6e161a0-86d1-46b8-9d11-42bc0b4156de}</Project>
+      <Name>GitExtension</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ngit\NGit\NGit.csproj">
       <Project>{e3bff8b4-189c-496a-a817-7e8b31e22b91}</Project>
       <Name>NGit</Name>

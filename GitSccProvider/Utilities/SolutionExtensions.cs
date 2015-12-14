@@ -118,6 +118,11 @@ namespace GitSccProvider.Utilities
         {
             List<uint> projectNodes = new List<uint>();
 
+            //if (pHier == null)
+            //{
+            //    return projectNodes;
+            //}
+
             // The method does a breadth-first traversal of the project's hierarchy tree
             Queue<uint> nodesToWalk = new Queue<uint>();
             nodesToWalk.Enqueue(startItemid);
@@ -130,7 +135,7 @@ namespace GitSccProvider.Utilities
                // DebugWalkingNode(pHier, node);
 
                 object property = null;
-                if (pHier.GetProperty(node, (int)__VSHPROPID.VSHPROPID_FirstChild, out property) == VSConstants.S_OK)
+                if (pHier?.GetProperty(node, (int)__VSHPROPID.VSHPROPID_FirstChild, out property) == VSConstants.S_OK)
                 {
                     uint childnode = (uint)(int)property;
                     if (childnode == VSConstants.VSITEMID_NIL)

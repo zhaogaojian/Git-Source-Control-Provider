@@ -19,6 +19,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using EnvDTE;
+using GitExtension;
 using GitSccProvider;
 using GitSccProvider.Utilities;
 using Process = System.Diagnostics.Process;
@@ -128,6 +129,10 @@ namespace GitScc
                 menu = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
                 mcs.AddCommand(menu);
 
+                cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.cmdidGitIgnoreSubMenuCommandUpdate);
+                menu = new MenuCommand(new EventHandler(OnEditUpdate), cmd);
+                mcs.AddCommand(menu);
+
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandGitTortoise);
                 menu = new MenuCommand(new EventHandler(OnTortoiseGitCommand), cmd);
 
@@ -146,12 +151,12 @@ namespace GitScc
                     mcs.AddCommand(mc);
                 }
 
-                for (int i = 0; i < GitToolCommands.IgnoreCommands.Count; i++)
-                {
-                    cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitIgnoreCommand1 + i);
-                    var mc = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
-                    mcs.AddCommand(mc);
-                }
+                //for (int i = 0; i < GitToolCommands.IgnoreCommands.Count; i++)
+                //{
+                //    cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitIgnoreCommand1 + i);
+                //    var mc = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
+                //    mcs.AddCommand(mc);
+                //}
 
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandPendingChanges);
                 menu = new MenuCommand(new EventHandler(ShowPendingChangesWindow), cmd);
@@ -189,6 +194,7 @@ namespace GitScc
             _OnIdleEvent.OnIdleEvent += new OnIdleEvent(sccService.UpdateNodesGlyphs);
 
         }
+
 
         protected override void Dispose(bool disposing)
         {
@@ -281,6 +287,10 @@ namespace GitScc
                     if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
                     break;
 
+                case CommandId.cmdidGitIgnoreSubMenuCommandUpdate:
+                    if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    break;
+
 
                 case CommandId.icmdSccCommandHistory:
                 case CommandId.icmdSccCommandPendingChanges:
@@ -328,14 +338,14 @@ namespace GitScc
                         break;
                     }
 
-                    else if (prgCmds[0].cmdID >= CommandId.icmdGitIgnoreCommand1 &&
-                    prgCmds[0].cmdID < CommandId.icmdGitIgnoreCommand1 + GitToolCommands.IgnoreCommands.Count)
-                    {
-                        int idx = (int)prgCmds[0].cmdID - CommandId.icmdGitTorCommand1;
-                        SetOleCmdText(pCmdText, GitToolCommands.IgnoreCommands[idx]);
-                        cmdf |= OLECMDF.OLECMDF_ENABLED;
-                        break;
-                    }
+                    //else if (prgCmds[0].cmdID >= CommandId.icmdGitIgnoreCommand1 &&
+                    //prgCmds[0].cmdID < CommandId.icmdGitIgnoreCommand1 + GitToolCommands.IgnoreCommands.Count)
+                    //{
+                    //    int idx = (int)prgCmds[0].cmdID - CommandId.icmdGitTorCommand1;
+                    //    SetOleCmdText(pCmdText, GitToolCommands.IgnoreCommands[idx]);
+                    //    cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    //    break;
+                    //}
 
                     else
                         return (int)(Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED);
@@ -385,20 +395,18 @@ namespace GitScc
             RunDetatched("cmd.exe", string.Format("/c \"{0}\" --login -i", gitBashPath));
         }
 
+        //Todo Start to move 
         private void OnEditIgnore(object sender, EventArgs e)
         {
-            var menuCommand = sender as MenuCommand;
-            if (null != menuCommand)
-            {
-                int idx = menuCommand.CommandID.ID - CommandId.icmdGitTorCommand1;
-                if (idx == 0)
-                {
-                    sccService.EditIgnore();
-                }
-              
-            }
-            
+            sccService.EditIgnore();
         }
+
+        private void OnEditUpdate(object sender, EventArgs e)
+        {
+            IgnoreFileManager.UpdateGitIgnore(sccService.CurrentTracker?.WorkingDirectory);
+        }
+
+
 
         private void OnGitExtensionCommand(object sender, EventArgs e)
         {
