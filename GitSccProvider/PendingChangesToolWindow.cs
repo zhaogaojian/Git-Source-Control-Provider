@@ -61,10 +61,10 @@ namespace GitScc
             //mcs.AddCommand(menuMyDynamicComboCommand);
 
 
-            mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            CommandID commandId = new CommandID(GuidList.guidSccProviderCmdSet, (int)CommandId.icmdGitIgnoreCommand1);
-            OleMenuCommand menuMyDynamicComboCommand = new OleMenuCommand(new EventHandler(OnRefreshCommand), commandId);
-            mcs.AddCommand(menuMyDynamicComboCommand);
+            //mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            //CommandID commandId = new CommandID(GuidList.guidSccProviderCmdSet, (int)CommandId.icmdGitIgnoreCommand1);
+            //OleMenuCommand menuMyDynamicComboCommand = new OleMenuCommand(new EventHandler(OnRefreshCommand), commandId);
+            //mcs.AddCommand(menuMyDynamicComboCommand);
 
 
             //cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandEditIgnore);

@@ -78,7 +78,7 @@ namespace GitScc
 
         public GitFileStatusTracker GetTrackerForPath(string filename, bool createTracker = true)
         {
-            if (string.IsNullOrEmpty(filename)) return null;
+            if (string.IsNullOrWhiteSpace(filename)) return null;
 
             GitFileStatusTracker repo = null;
 
