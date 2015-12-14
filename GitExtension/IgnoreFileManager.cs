@@ -40,12 +40,13 @@ namespace GitExtension
         public static async Task UpdateGitIgnore(string repoPath)
         {
             var path = Path.Combine(repoPath, ".gitignore");
+            var encoding = GetEncoding(path);
             await GetLatestIgnoreFile();
-            var text = await  BuildNewIgnoreFile(repoPath,path);
-            await WriteTextAsync(path, text, FileMode.Create);
+            var text = await  BuildNewIgnoreFile(repoPath,path, encoding);
+            await WriteTextAsync(path, text, FileMode.Create, encoding);
         }
 
-        private static async Task<string> BuildNewIgnoreFile(string repoPath, string ignorePath)
+        private static async Task<string> BuildNewIgnoreFile(string repoPath, string ignorePath, Encoding encoding)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(HEADER1);
@@ -67,7 +68,7 @@ namespace GitExtension
 
             if (HasGitIgnore(repoPath))
             {
-                var linesToAdd = await GetCustomAllLinesAsync(ignorePath);
+                var linesToAdd = await GetCustomAllLinesAsync(ignorePath, encoding);
                 if (linesToAdd?.Count > 0)
                 {
                     int start = string.IsNullOrWhiteSpace(linesToAdd[0]) ? 1: 0;
@@ -109,11 +110,6 @@ namespace GitExtension
             }
         }
 
-        public static Task<List<string>> GetCustomAllLinesAsync(string path)
-        {
-            return GetCustomAllLinesAsync(path, Encoding.Unicode);
-        }
-
         private static async Task<List<string>> GetCustomAllLinesAsync(string path, Encoding encoding)
         {
             var lines = new List<string>();
@@ -138,9 +134,9 @@ namespace GitExtension
             return lines;
         }
 
-        private static  async Task WriteTextAsync(string filePath, string text, FileMode mode)
+        private static  async Task WriteTextAsync(string filePath, string text, FileMode mode, Encoding encoding)
         {
-            byte[] encodedText = Encoding.Unicode.GetBytes(text);
+            byte[] encodedText = encoding.GetBytes(text);
 
             using (FileStream sourceStream = new FileStream(filePath,
                 mode, FileAccess.Write, FileShare.None,
@@ -165,6 +161,28 @@ namespace GitExtension
             }
         }
 
+        /// Determines a text file's encoding by analyzing its byte order mark (BOM).
+        /// Defaults to ASCII when detection of the text file's endianness fails.
+        /// </summary>
+        /// <param name="filename">The text file to analyze.</param>
+        /// <returns>The detected encoding.</returns>
+        public static Encoding GetEncoding(string filename)
+        {
+            // Read the BOM
+            var bom = new byte[4];
+            using (var file = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                file.Read(bom, 0, 4);
+            }
+
+            // Analyze the BOM
+            if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
+            if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
+            if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; //UTF-16LE
+            if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; //UTF-16BE
+            if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
+            return Encoding.ASCII;
+        }
 
     }
 }
