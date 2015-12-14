@@ -44,7 +44,15 @@
         </Strings>
       </Menu>
       
-      <Menu guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore" priority="0x0012" type="MenuController">
+      <Menu guid="guidSccProviderCmdSet" id="GitIgnoreSubMenu" priority="0x0100" type="Menu">
+      <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
+      <Strings>
+          <ButtonText>.gitignore</ButtonText>
+         
+      </Strings>
+    </Menu>
+      
+      <!--<Menu guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore" priority="0x0012" type="MenuController">
         <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
         <CommandFlag>IconAndText</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
@@ -53,7 +61,7 @@
           <ButtonText>Git Extensions</ButtonText>
           <CommandName>Git Ignore Controller</CommandName>
         </Strings>
-      </Menu>
+      </Menu>-->
       
     
       
@@ -87,8 +95,14 @@
       <Group guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitTor" priority="0x0000">
         <Parent guid="guidSccProviderCmdSet" id="imnuPendingChangesToolWindowGitTor"/>
       </Group>
-      <Group guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore" priority="0x0000">
+      
+      
+      <!--<Group guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore" priority="0x0000">
         <Parent guid="guidSccProviderCmdSet" id="imnuPendingChangesToolWindowGitIgnore"/>
+      </Group>-->
+      
+      <Group guid="guidSccProviderCmdSet" id="GitIgnoreSubMenuGroup" priority="0x0000">
+        <Parent guid="guidSccProviderCmdSet" id="GitIgnoreSubMenu"/>
       </Group>
 
       <!-- Document TabWnd context menu -->
@@ -155,7 +169,7 @@
         </Strings>
       </Button>
 
-      <Button guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0103" type="Button">
+      <!--<Button guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0103" type="Button">
         <Parent guid="guidSccProviderCmdSet" id="igrpGeneralSourceControlCommands"/>
         <Icon guid="guidSccProviderImages" id="iconGitBash" />
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -164,9 +178,9 @@
         <Strings>
           <ButtonText>.gitignore</ButtonText>
         </Strings>
-      </Button>
+      </Button>-->
       
-       <Button guid="guidSccProviderCmdSet" id="icmdGitIgnoreCommand1" type="Button" priority="0x0101">
+       <!--<Button guid="guidSccProviderCmdSet" id="icmdGitIgnoreCommand1" type="Button" priority="0x0101">
         <Parent guid="guidSccProviderCmdSet" id="igrpGitTorCommands" />
         <Icon guid="guidSccProviderImages" id="iconGitTor" />
         <CommandFlag>DynamicItemStart</CommandFlag>
@@ -176,7 +190,7 @@
           <CommandName>icmdGitIgnoreCommand1</CommandName>
           <ButtonText>.gitignore</ButtonText>
         </Strings>
-      </Button>
+      </Button>-->
 
 
       <Button guid="guidSccProviderCmdSet" id="icmdSccCommandRefresh" priority="0x0104" type="Button">
@@ -302,6 +316,25 @@
         </Strings>
       </Button>
       
+    
+    <Button guid="guidSccProviderCmdSet" id="icmdGitIgnoreSubMenuCommandOpen" priority="0x0000" type="Button">
+    <Parent guid="guidSccProviderCmdSet" id="GitIgnoreSubMenuGroup" />
+    <Icon guid="guidSccProviderImages" id="iconGitBash" />
+    <Strings>
+       <CommandName>icmdSccCommandEditIgnore</CommandName>
+       <ButtonText>Open</ButtonText>
+    </Strings>
+</Button>
+      
+        <Button guid="guidSccProviderCmdSet" id="icmdGitIgnoreSubMenuCommandUpdate" priority="0x0000" type="Button">
+    <Parent guid="guidSccProviderCmdSet" id="GitIgnoreSubMenuGroup" />
+    <Icon guid="guidSccProviderImages" id="iconGitBash" />
+    <Strings>
+       <CommandName>cmdidGitIgnoreSubMenuCommandUpdate</CommandName>
+       <ButtonText>Update Ignore</ButtonText>
+    </Strings>
+</Button>
+      
     </Buttons>
     
     <Bitmaps>
@@ -380,9 +413,10 @@
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitTorCommand1" priority="0x0000">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitTor"/>
     </CommandPlacement>
-        <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitIgnoreCommand1" priority="0x0000">
+        
+          <!--<CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitIgnoreCommand1" priority="0x0000">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitIgnore"/>
-    </CommandPlacement>
+    </CommandPlacement>-->
       
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdGitExtCommand1" priority="0x0000">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowGitExt"/>
@@ -413,6 +447,8 @@
 
       <IDSymbol name="imnuPendingChangesToolWindowToolbarMenu" value="0x202"/>
       <IDSymbol name="igrpPendingChangesToolWindowToolbarGroup" value="0x203"/>
+      
+
 
       <IDSymbol name="icmdPendingChangesCommit" value="0x111"/>
       <IDSymbol name="icmdPendingChangesAmend" value="0x112"/>
@@ -421,6 +457,9 @@
       <IDSymbol name="icmdPendingChangesRefresh" value="0x114"/>
       <IDSymbol name="icmdHistoryViewRefresh" value="0x115"/>
       <IDSymbol name="icmdPendingChangesSettings" value="0x116"/>
+      
+      <IDSymbol name="icmdGitIgnoreSubMenuCommandOpen" value="0x2015"/>
+      <IDSymbol name="icmdGitIgnoreSubMenuCommandUpdate" value="0x2016"/>
 
       <IDSymbol name="igrpGeneralSourceControlCommands" value="0x700"/>
       <IDSymbol name="imnuGeneralSourceControlCommands" value="0x701"/>
@@ -428,10 +467,11 @@
       <IDSymbol name="imnuGitExtMenu" value="0x801"/>
       <IDSymbol name="igrpGitTorCommands" value="0x900"/>
       <IDSymbol name="imnuGitTorMenu" value="0x901"/>
+      <IDSymbol name="imnuGitIgnoreMenu" value="0x2001"/>
       
       <IDSymbol name="icmdGitExtCommand1" value="0x811"/>
       <IDSymbol name="icmdGitTorCommand1" value="0x911"/>
-      <IDSymbol name="icmdGitIgnoreCommand1" value="0x2001"/>
+      <IDSymbol name="icmdGitIgnoreCommand1" value="0x2011"/>
 
       <IDSymbol name="imnuPendingChangesToolWindowGitExt" value="0x951"/>
       <IDSymbol name="igrpPendingChangesToolWindowGitExt" value="0x952"/>
@@ -439,8 +479,14 @@
       <IDSymbol name="imnuPendingChangesToolWindowGitTor" value="0x961"/>
       <IDSymbol name="igrpPendingChangesToolWindowGitTor" value="0x962"/>
 
-      <IDSymbol name="imnuPendingChangesToolWindowGitIgnore" value="0x971"/>
-      <IDSymbol name="igrpPendingChangesToolWindowGitIgnore" value="0x972"/>
+      
+      <!--<IDSymbol name="imnuPendingChangesToolWindowGitIgnore" value="0x1100"/>
+      <IDSymbol name="igrpPendingChangesToolWindowGitIgnore" value="0x1150"/>-->
+      <IDSymbol name="GitIgnoreSubMenu" value="0x1100"/>
+      <IDSymbol name="GitIgnoreSubMenuGroup" value="0x1150"/>
+
+      
+    
 
     </GuidSymbol>
     <GuidSymbol name="guidSccProviderImages" value="{495089FD-A8CA-4260-8EB1-794E2956B625}" >
