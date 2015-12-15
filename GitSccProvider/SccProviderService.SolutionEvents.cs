@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -87,7 +88,7 @@ namespace GitScc
 
         public int OnAfterOpenProject([In] IVsHierarchy pHierarchy, [In] int fAdded)
         {
-            _fileCahce.AddProject((IVsSccProject2)pHierarchy);
+            //_fileCahce.AddProject(pHierarchy);
             // If a solution folder is added to the solution after the solution is added to scc, we need to controll that folder
             if (pHierarchy.IsSolutionFolderProject() && (fAdded == 1))
             {
@@ -95,11 +96,12 @@ namespace GitScc
                 //if (IsProjectControlled(solHier))
                 //{
                     // Register this solution folder using the same location as the solution
-                    IVsSccProject2 pSccProject = (IVsSccProject2)pHierarchy;
+                IVsSccProject2 pSccProject = (IVsSccProject2)pHierarchy;
+                RegisterProjectWithGit(pSccProject);
                     //RegisterSccProject(pSccProject, _solutionLocation, "", "", _sccProvider.ProviderName);
 
-                    // We'll also need to refresh the solution folders glyphs to reflect the controlled state
-                    IList<VSITEMSELECTION> nodes = new List<VSITEMSELECTION>();
+                // We'll also need to refresh the solution folders glyphs to reflect the controlled state
+                IList<VSITEMSELECTION> nodes = new List<VSITEMSELECTION>();
 
                     VSITEMSELECTION vsItem;
                     vsItem.itemid = VSConstants.VSITEMID_ROOT;
@@ -111,6 +113,28 @@ namespace GitScc
 
             return VSConstants.S_OK;
         }
+
+        private void RegisterProjectWithGit(IVsSccProject2 pscp2Project)
+        {
+            if (pscp2Project == null)
+            {
+                // Manual registration with source control of the solution, from OnAfterOpenSolution
+                Debug.WriteLine(string.Format(CultureInfo.CurrentUICulture, "Solution {0} is registering with source control - {1}", GetSolutionFileName()));
+
+                //IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+                //string solutionFile = GetSolutionFileName();
+            
+            }
+            else
+            {
+                // Debug.WriteLine(string.Format(CultureInfo.CurrentUICulture, "Project {0} is registering with source control - {1}", GetProjectFileName(pscp2Project)));
+
+                // Add the project to the list of controlled projects
+                _fileCahce.AddProject(pscp2Project);
+            }
+        }
+
+
 
         public int OnBeforeCloseProject([In] IVsHierarchy pHierarchy, [In] int fRemoved)
         {

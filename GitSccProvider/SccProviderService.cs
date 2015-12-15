@@ -548,6 +548,7 @@ namespace GitScc
         {
             Debug.WriteLine("==== Open Tracker");
             RepositoryManager.Instance.Clear();
+            _fileCahce = new SccProviderSolutionCache(_sccProvider);
 
             var solutionFileName = GetSolutionFileName();
 

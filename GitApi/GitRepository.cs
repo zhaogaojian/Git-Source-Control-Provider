@@ -87,7 +87,15 @@ namespace GitScc
 	        }
             else
             {
-                FireFileChangedEvent(e.Name, e.FullPath);
+                if (_repository.Ignore.IsPathIgnored(e.FullPath.Remove(0,WorkingDirectory.Length)))
+                {
+                    int i = 3;
+                }
+                else
+                {
+                    FireFileChangedEvent(e.Name, e.FullPath);
+                }
+
             }
 	        //throw new NotImplementedException();
 	    }

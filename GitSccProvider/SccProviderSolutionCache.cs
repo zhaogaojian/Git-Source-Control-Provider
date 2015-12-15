@@ -13,7 +13,7 @@ using Sharpen;
 
 namespace GitSccProvider
 {
-    public class SccProviderSolutionCache
+    public class SccProviderSolutionCache : IDisposable
     {
         private BasicSccProvider _sccProvider;
         private List<IVsSccProject2> _projects;
@@ -110,6 +110,7 @@ namespace GitSccProvider
             return projects;
         }
 
+
         public void AddProject(IVsSccProject2 project)
         {
             if (!_projects.Contains(project))
@@ -174,6 +175,15 @@ namespace GitSccProvider
             }
         }
 
+        #region Implementation of IDisposable
 
+        public void Dispose()
+        {
+            _projects = null;
+            _fileProjectLookup = null;
+            _projectSelectionLookup = null;
+        }
+
+        #endregion
     }
 }
