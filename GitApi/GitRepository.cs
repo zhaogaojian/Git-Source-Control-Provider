@@ -15,11 +15,13 @@ using static GitScc.GitFile;
 namespace GitScc
 {
     public delegate void GitFileUpdateEventHandler(object sender, GitFileUpdateEventArgs e);
+    public delegate void GitFilesUpdateEventHandler(object sender, GitFilesUpdateEventArgs e);
 
 
     public class GitRepository : IDisposable
 	{
 		private string workingDirectory;
+        private string _lastTipId;
         private List<GitFile> _changedFiles;
         private bool isGit;
         private string _branch;
@@ -28,8 +30,11 @@ namespace GitScc
         private IDictionary<string, string> configs;
         FileSystemWatcher _watcher;
         private MemoryCache _fileCache;
+        private object _repoUpdateLock = new object();
 
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
+
+        private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
 
         public event GitFileUpdateEventHandler FileChanged
         {
@@ -40,6 +45,18 @@ namespace GitScc
             remove
             {
                 _onFileUpdateEventHandler -= value;
+            }
+        }
+
+        public event GitFilesUpdateEventHandler FilesChanged
+        {
+            add
+            {
+                _onFilesUpdateEventHandler += value;
+            }
+            remove
+            {
+                _onFilesUpdateEventHandler -= value;
             }
         }
 
@@ -55,6 +72,7 @@ namespace GitScc
             _repository =  new Repository(workingDirectory);
             this.workingDirectory = _repository.Info.WorkingDirectory;
             _repositoryPath = _repository.Info.Path;
+            //_lastTipId = _repository.Head.Tip.Sha;
             Refresh();
 		}
 
@@ -80,25 +98,35 @@ namespace GitScc
 
 	    private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
 	    {
-            if(e.FullPath.IsSubPathOf(_repositoryPath))
-	        {
-	            //GIT EVENT
-	            int i = 3;
-	        }
+	        CreateGitFileEvent(e.Name, e.FullPath);
+	        //throw new NotImplementedException();
+	    }
+
+        private void CreateGitFileEvent(string filename, string fullPath)
+        {
+            if (fullPath.IsSubPathOf(_repositoryPath))
+            {
+                lock (_repoUpdateLock)
+                {
+                    var files = CreateRepositoryUpdateChangeSet();
+                    FireFilesChangedEvent(files);
+                }
+            }
             else
             {
-                if (_repository.Ignore.IsPathIgnored(e.FullPath.Remove(0,WorkingDirectory.Length)))
+                if (_repository.Ignore.IsPathIgnored(fullPath.Remove(0, WorkingDirectory.Length)))
                 {
                     int i = 3;
                 }
                 else
                 {
-                    FireFileChangedEvent(e.Name, e.FullPath);
+                    FireFileChangedEvent(filename, fullPath);
                 }
 
             }
-	        //throw new NotImplementedException();
-	    }
+        }
+
+
 
         private void FireFileChangedEvent(string filename, string fullpath)
         {
@@ -111,7 +139,12 @@ namespace GitScc
             }
         }
 
-	    public void DisableRepositoryWatcher()
+        private void FireFilesChangedEvent(List<string> files)
+        {
+            _onFilesUpdateEventHandler?.Invoke(this,new GitFilesUpdateEventArgs(files));
+        }
+
+        public void DisableRepositoryWatcher()
 	    {
 	        _watcher.EnableRaisingEvents = false;
             _watcher.Dispose();
@@ -356,25 +389,6 @@ namespace GitScc
             return result.Output;
         }
 
-		//internal string AddTag(string name, string id)
-		//{
-		//	return GitRun(string.Format("tag \"{0}\" {1}", name, id));
-		//}
-
-		//internal string GetTagId(string name)
-		//{
-		//	return GitRun("show-ref refs/tags/" + name);
-		//}
-
-		//internal string DeleteTag(string name)
-		//{
-		//	return GitRun("tag -d " + name);
-		//}
-
-		//internal string AddBranch(string name, string id)
-		//{
-		//	return GitRun(string.Format("branch \"{0}\" {1}", name, id));
-		//}
 
         internal string GetBranchId(string name)
         {
@@ -396,21 +410,6 @@ namespace GitScc
         {
             GitRun(string.Format("checkout {0} {1}", (createNew ? "-b" : ""), branch));
         }
-
-		internal string Archive(string id, string fileName)
-		{
-			return GitRun(string.Format("archive {0} --format=zip --output \"{1}\"", id, fileName));
-		}
-
-		internal void Patch(string id1, string fileName)
-		{
-			GitRun(string.Format("format-patch {0} -1 --stdout > \"{1}\"", id1, fileName));
-		}
-
-		internal void Patch(string id1, string id2, string fileName)
-		{
-			GitRun(string.Format("format-patch {0}..{1} -o \"{2}\"", id1, id2, fileName));
-		}
 
 		#endregion    
 	
@@ -509,34 +508,73 @@ namespace GitScc
         {
             get
             {
-                if (_changedFiles == null)
-                {
-                    try
+
+                    if (_changedFiles == null)
                     {
-                        _changedFiles = new List<GitFile>();
-                        
-                        foreach (var item in _repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = false, RecurseIgnoredDirs = false}))
+                        try
                         {
-                            if (IsChangedStatus(item.State))
-                            {
-                                _changedFiles.Add(new GitFile(_repository, item));
-                            }
+
+                            _changedFiles = GetCurrentChangedFiles();
                         }
-                        //_changedFiles = _files.Where(x => x.Changed == true).ToList();
+                        catch
+                        {
+                            _changedFiles = new List<GitFile>();
+                        }
+
                     }
-                    catch
-                    {
-                        _changedFiles = new List<GitFile>();
-                    }
-                }
-                return _changedFiles;
+                    return _changedFiles;
+                
             }
         }
 
-        #region copied and modified from git extensions
-      
+        private List<string> CreateRepositoryUpdateChangeSet()
+        {
+            var _lastChanged = _changedFiles;
+            //we have no idea what changes happened before.. so update everthing 
+            if (_lastChanged != null)
+            {
+                return GetFullPathForGitFiles(GetCurrentFilesStatus());
+            }
+            var changedFileCache = GetCurrentChangedFiles();
+            var currentChangeList = GetFullPathForGitFiles(changedFileCache);
+            var lastChangeList = GetFullPathForGitFiles(_lastChanged);
+            foreach (var path in lastChangeList)
+            {
+                if (!currentChangeList.Contains(path))
+                {
+                    currentChangeList.Add(path);
+                }
+            }
+            _changedFiles = changedFileCache;
+            return currentChangeList;
 
-        #endregion
+
+        }
+
+        private List<string> GetFullPathForGitFiles(List<GitFile> files)
+        {
+            return files.Select(gitFile => gitFile.FileName).ToList();
+        }
+
+        private List<GitFile> GetCurrentChangedFiles()
+        {
+            var files = new List<GitFile>();
+            foreach (var item in _repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = false, RecurseIgnoredDirs = false }))
+            {
+                if (IsChangedStatus(item.State))
+                {
+                    files.Add(new GitFile(_repository, item));
+                }
+            }
+            return files;
+        }
+
+        private List<GitFile> GetCurrentFilesStatus()
+        {
+            return _repository.RetrieveStatus(new StatusOptions() {IncludeUnaltered = true, RecurseIgnoredDirs = false}).Select(item => new GitFile(_repository, item)).ToList();
+        }
+
+
 
         #region repository status: branch, in the middle of xxx
         public string CurrentBranch

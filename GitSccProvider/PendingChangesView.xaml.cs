@@ -70,13 +70,18 @@ namespace GitScc
                 if (_tracker != null)
                 {
                     _tracker.FileChanged -= CurrentTracker_FileChanged;
+                    CurrentTracker.FilesChanged -= CurrentTracker_FilesChanged;
+
                 }
                 _tracker = tracker;
                 CurrentTracker.FileChanged += CurrentTracker_FileChanged;
+                CurrentTracker.FilesChanged += CurrentTracker_FilesChanged;
             }
         }
 
-#region Git Tracker Event Handlers
+
+
+        #region Git Tracker Event Handlers
         private async void CurrentTracker_FileChanged(object sender, GitFileUpdateEventArgs e)
         {
             await Refresh();
@@ -88,7 +93,12 @@ namespace GitScc
             await Refresh();
         }
 
-#endregion
+        private async void CurrentTracker_FilesChanged(object sender, GitFilesUpdateEventArgs e)
+        {
+            await Refresh();
+        }
+
+        #endregion
 
         protected GitRepository CurrentTracker
         {

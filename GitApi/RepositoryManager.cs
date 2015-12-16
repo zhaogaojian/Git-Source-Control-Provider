@@ -26,6 +26,8 @@ namespace GitScc
 
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
+        private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
+
         private event GitRepositoryEventHandler _onActiveTrackerUpdateEventHandler;
 
         private GitFileStatusTracker _activeTracker;
@@ -94,6 +96,7 @@ namespace GitScc
                     repo = new GitFileStatusTracker(basePath);
                     repo.EnableRepositoryWatcher();
                     repo.FileChanged += Repo_FileChanged;
+                    repo.FilesChanged += Repo_FilesChanged;
                     //add our refrences so we can do a quick lookup later
                     _repositories.Add(repo);
                     _basePathRepoLookup.TryAdd(basePath, repo);
@@ -103,6 +106,8 @@ namespace GitScc
 
             return repo;
         }
+
+
 
 
         #region Public Events
@@ -116,6 +121,18 @@ namespace GitScc
             remove
             {
                 _onFileUpdateEventHandler -= value;
+            }
+        }
+
+        public event GitFilesUpdateEventHandler FilesChanged
+        {
+            add
+            {
+                _onFilesUpdateEventHandler += value;
+            }
+            remove
+            {
+                _onFilesUpdateEventHandler -= value;
             }
         }
 
@@ -140,6 +157,11 @@ namespace GitScc
             FireFileChangedEvent(sender, e);
         }
 
+        private void Repo_FilesChanged(object sender, GitFilesUpdateEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region Event Triggers
@@ -153,6 +175,10 @@ namespace GitScc
         {
             var eventArgs = new GitRepositoryEvent(repository);
             _onActiveTrackerUpdateEventHandler?.Invoke(this, eventArgs);
+        }
+        private void FireFilesChangedEvent(List<string> files)
+        {
+            _onFilesUpdateEventHandler?.Invoke(this, new GitFilesUpdateEventArgs(files));
         }
 
         #endregion

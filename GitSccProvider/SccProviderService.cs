@@ -59,14 +59,13 @@ namespace GitScc
             _fileCahce = new SccProviderSolutionCache(_sccProvider);
 
             RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
+            RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
             //this.trackers = trackers;
 
             SetupSolutionEvents();
             SetupDocumentEvents();
 
         }
-
-
 
         public void Dispose()
         {
@@ -566,6 +565,11 @@ namespace GitScc
                 .HandleNonCriticalExceptions();
         }
 
+        private void RepositoryManager_FilesChanged(object sender, GitFilesUpdateEventArgs e)
+        {
+            ProcessMultiFileChange((GitRepository) sender, e);
+        }
+
         private void ProcessGitFileSystemChange(GitFileUpdateEventArgs e)
         {
             if (GitSccOptions.Current.DisableAutoRefresh)
@@ -585,6 +589,20 @@ namespace GitScc
             repo.Refresh();
             IList<VSITEMSELECTION> nodes = _fileCahce.GetProjectsSelectionForFile(e.FullPath);
             RefreshNodesGlyphs(nodes);
+        }
+
+        private void ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
+        {
+            HashSet<VSITEMSELECTION> nodes = new HashSet<VSITEMSELECTION>();
+            foreach (var file in e.Files)
+            {
+                var items = _fileCahce.GetProjectsSelectionForFile(file);
+                foreach (var vsitemselection in items)
+                {
+                    nodes.Add(vsitemselection);
+                }
+            }
+            RefreshNodesGlyphs(nodes.ToList());
         }
 
 
