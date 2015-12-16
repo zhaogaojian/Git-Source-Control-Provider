@@ -32,7 +32,7 @@ namespace GitScc
     public partial class PendingChangesView : UserControl, IDisposable  
     {
         private SccProviderService service;
-        private GitFileStatusTracker tracker;
+        private GitRepository _tracker;
         private ToolWindowWithEditor<PendingChangesView> toolWindow;
         private IVsTextView textView;
         private string[] diffLines;
@@ -48,11 +48,55 @@ namespace GitScc
             this.service = BasicSccProvider.GetServiceEx<SccProviderService>();
             SetDiffCodeHightlighter();
             VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
+            CurrentTracker = RepositoryManager.Instance.ActiveTracker;
+            RepositoryManager.Instance.ActiveTrackerChanged += Instance_ActiveTrackerChanged;
         }
+
+
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
         {
            SetDiffCodeHightlighter(true);
+        }
+
+        private void SetupTracker(GitRepository tracker)
+        {
+            if (tracker == _tracker)
+            {
+                return;
+            }
+            else
+            {
+                if (_tracker != null)
+                {
+                    _tracker.FileChanged -= CurrentTracker_FileChanged;
+                }
+                _tracker = tracker;
+                CurrentTracker.FileChanged += CurrentTracker_FileChanged;
+            }
+        }
+
+#region Git Tracker Event Handlers
+        private async void CurrentTracker_FileChanged(object sender, GitFileUpdateEventArgs e)
+        {
+            await Refresh();
+        }
+
+        private async void Instance_ActiveTrackerChanged(object sender, GitRepositoryEvent e)
+        {
+            CurrentTracker = e.Repository;
+            await Refresh();
+        }
+
+#endregion
+
+        protected GitRepository CurrentTracker
+        {
+            get { return _tracker; }
+            set
+            {
+                SetupTracker(value);
+            }
         }
 
         private void SetDiffCodeHightlighter(bool force = false)
@@ -171,7 +215,7 @@ namespace GitScc
                     try
                     {
 
-                        var tmpFileName = tracker.Diff(fileName);
+                        var tmpFileName = CurrentTracker.Diff(fileName);
 
                         Action action = () => SetEditorText(tmpFileName);
                         Dispatcher.Invoke(action);
@@ -259,7 +303,7 @@ namespace GitScc
             try
             {
                 var files = this.listView1.SelectedItems.Cast<GitFile>()
-                    .Select(item => System.IO.Path.Combine(this.tracker.WorkingDirectory, item.FileName))
+                    .Select(item => System.IO.Path.Combine(this.CurrentTracker.WorkingDirectory, item.FileName))
                     .ToList();
 
                 foreach (var fileName in files)
@@ -278,39 +322,28 @@ namespace GitScc
 
         #region Git functions
 
-        private void VerifyGit()
-        {
-            var isValid = false;
-            if (GitBash.Exists)
-            {
-                var name  = GitBash.Run("config --global user.name", "").Output;
-                var email = GitBash.Run("config --global user.email", "").Output;
-                isValid = !string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(email);
-            }
+    
 
-            if(!isValid)
-                Settings.Show();
-            else
-                Settings.Hide();
-        }
-
-        internal void Refresh(GitFileStatusTracker tracker)
+        internal async Task Refresh()
         {
             //VerifyGit();
 
             if (!GitBash.Exists)
             {
-                Settings.Show();
+                 Settings.Show(); 
                 return;
             }
             else
-                Settings.Hide();
+                 Settings.Hide();
 
-            this.label3.Content = "Changed files";
-            this.tracker = tracker;
+            await Dispatcher.InvokeAsync(() =>
+            {
+                this.label3.Content = "Changed files";
+            });
+            
             //this.gitConsole1.tracker = tracker;
 
-            if (tracker == null)
+            if (CurrentTracker == null)
             {
                 using (service.DisableRefresh())
                 {
@@ -324,7 +357,7 @@ namespace GitScc
             {
                 Action action = () => ShowStatusMessage("Getting changed files ...");
                 Dispatcher.Invoke(action);
-                return tracker.ChangedFiles;
+                return CurrentTracker.ChangedFiles;
             };
 
             Action<IEnumerable<GitFile>> refreshAction = changedFiles =>
@@ -447,7 +480,7 @@ namespace GitScc
                     try
                     {
                         ShowStatusMessage("Committing ...");
-                        var id = tracker.Commit(Comments, false, chkSignOff.IsChecked == true);
+                        var id = CurrentTracker.Commit(Comments, false, chkSignOff.IsChecked == true);
                         if (!string.IsNullOrWhiteSpace(id))
                         {
                             ClearUI();
@@ -466,6 +499,7 @@ namespace GitScc
             service.MarkDirty(false);
         }
 
+        //Todo UPdate
         internal void AmendCommit()
         {
             const string amendMsg = @"You are about to amend a commit that has tags or remotes, which could cause issues in local and remote repositories.
@@ -474,12 +508,12 @@ Are you sure you want to continue?";
 
             if (string.IsNullOrWhiteSpace(Comments))
             {
-                Comments = tracker.LastCommitMessage;
+                Comments = CurrentTracker.LastCommitMessage;
                 return;
             }
             else
             {
-                if (tracker.CurrentCommitHasRefs() && MessageBox.Show(amendMsg, "Amend Last Commit", 
+                if (CurrentTracker.CurrentCommitHasRefs() && MessageBox.Show(amendMsg, "Amend Last Commit", 
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
                 {
                     return;
@@ -495,7 +529,7 @@ Are you sure you want to continue?";
                     try
                     {
                         ShowStatusMessage("Amending last Commit ...");
-                        var id = tracker.Commit(Comments, true, chkSignOff.IsChecked == true);
+                        var id = CurrentTracker.Commit(Comments, true, chkSignOff.IsChecked == true);
                         ShowStatusMessage("Amend last commit successfully. Commit Hash: " + id);
                         ClearUI();
                     }
@@ -519,14 +553,14 @@ Are you sure you want to continue?";
             int i = 0;
             foreach (var item in unstaged)
             {
-                tracker.StageFile(item.FilePath);
+                CurrentTracker.StageFile(item.FilePath);
                 ShowStatusMessage(string.Format("Staged ({0}/{1}): {2}", i++, count, item.FileName));
             }
 
-            tracker.Refresh();
+            CurrentTracker.Refresh();
 
-            bool hasStaged = tracker == null ? false :
-                             tracker.ChangedFiles.Any(f => f.IsStaged);
+            bool hasStaged = CurrentTracker == null ? false :
+                             CurrentTracker.ChangedFiles.Any(f => f.IsStaged);
 
             if (!hasStaged && showWarning)
             {
@@ -613,7 +647,7 @@ Are you sure you want to continue?";
         {
             GetSelectedFileFullName(fileName =>
             {
-                tracker.StageFile(fileName);
+                CurrentTracker.StageFile(fileName);
                 ShowStatusMessage("Staged file: " + fileName);
             }, false);
         }
@@ -622,7 +656,7 @@ Are you sure you want to continue?";
         {
             GetSelectedFileFullName(fileName =>
             {
-                tracker.UnStageFile(fileName);
+                CurrentTracker.UnStageFile(fileName);
                 ShowStatusMessage("Un-staged file: " + fileName);
             }, false);
         }
@@ -661,7 +695,7 @@ Note: if the file is included project, you need to delete the file from project 
         {
             GetSelectedFileName((fileName) =>
             {
-                tracker.AddIgnoreItem(fileName);
+                CurrentTracker.AddIgnoreItem(fileName);
             }, true);
         }
 
@@ -669,7 +703,7 @@ Note: if the file is included project, you need to delete the file from project 
         {
             GetSelectedFileName((fileName) =>
             {
-                tracker.AddIgnoreItem(Path.GetDirectoryName(fileName) + "*/");
+                CurrentTracker.AddIgnoreItem(Path.GetDirectoryName(fileName) + "*/");
             }, true);
         }
 
@@ -677,7 +711,7 @@ Note: if the file is included project, you need to delete the file from project 
         {
             GetSelectedFileName((fileName) =>
             {
-                tracker.AddIgnoreItem("*" + Path.GetExtension(fileName));
+                CurrentTracker.AddIgnoreItem("*" + Path.GetExtension(fileName));
             }, true);
         }
         #endregion
@@ -822,7 +856,7 @@ Note: if the file is included project, you need to delete the file from project 
 
         internal void OnSettings()
         {
-            Settings.Show();
+             Settings.Show();
         }
 
         public void Dispose()

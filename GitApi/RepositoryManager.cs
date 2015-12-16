@@ -38,8 +38,11 @@ namespace GitScc
             get { return _activeTracker; }
             set
             {
-                _activeTracker = value;
-                FireActiveTrackerChangedEvent(value);
+                if (_activeTracker != value)
+                {
+                    _activeTracker = value;
+                    FireActiveTrackerChangedEvent(value);
+                }
             }
         }
 
@@ -76,7 +79,7 @@ namespace GitScc
         }
 
 
-        public GitFileStatusTracker GetTrackerForPath(string filename, bool createTracker = true)
+        public GitFileStatusTracker GetTrackerForPath(string filename,bool setActiveTracker = false ,bool createTracker = true)
         {
             if (string.IsNullOrWhiteSpace(filename)) return null;
 

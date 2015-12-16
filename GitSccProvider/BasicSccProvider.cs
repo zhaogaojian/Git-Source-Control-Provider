@@ -520,8 +520,9 @@ namespace GitScc
         
         private void ShowPendingChangesWindow(object sender, EventArgs e)
         {
+            RepositoryManager.Instance.ActiveTracker = sccService.CurrentTracker;
             var window = ShowToolWindow<PendingChangesToolWindow>();
-            window.Refresh(sccService.CurrentTracker);
+            //window.Refresh(sccService.CurrentTracker);
            //ShowToolWindow(typeof(PendingChangesToolWindow));
         }
 

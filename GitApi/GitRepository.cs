@@ -356,25 +356,25 @@ namespace GitScc
             return result.Output;
         }
 
-		internal string AddTag(string name, string id)
-		{
-			return GitRun(string.Format("tag \"{0}\" {1}", name, id));
-		}
+		//internal string AddTag(string name, string id)
+		//{
+		//	return GitRun(string.Format("tag \"{0}\" {1}", name, id));
+		//}
 
-		internal string GetTagId(string name)
-		{
-			return GitRun("show-ref refs/tags/" + name);
-		}
+		//internal string GetTagId(string name)
+		//{
+		//	return GitRun("show-ref refs/tags/" + name);
+		//}
 
-		internal string DeleteTag(string name)
-		{
-			return GitRun("tag -d " + name);
-		}
+		//internal string DeleteTag(string name)
+		//{
+		//	return GitRun("tag -d " + name);
+		//}
 
-		internal string AddBranch(string name, string id)
-		{
-			return GitRun(string.Format("branch \"{0}\" {1}", name, id));
-		}
+		//internal string AddBranch(string name, string id)
+		//{
+		//	return GitRun(string.Format("branch \"{0}\" {1}", name, id));
+		//}
 
         internal string GetBranchId(string name)
         {

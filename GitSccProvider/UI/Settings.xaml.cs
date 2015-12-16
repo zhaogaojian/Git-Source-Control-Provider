@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace GitScc.UI
 {
@@ -103,21 +104,32 @@ namespace GitScc.UI
             }
         }
 
-        internal void Show()
+        internal async void Show()
         {
-            this.Visibility = Visibility.Visible;
-            txtGitExePath.Text = GitBash.GitExePath;
-            btnOK.IsEnabled = false;
-            txtGitExePath.Text = GitSccOptions.Current.GitBashPath;
-            txtMessage.Content = "";
-            CheckGitBash();
+
+             await Dispatcher.InvokeAsync(() =>
+            {
+                this.Visibility = Visibility.Visible;
+                txtGitExePath.Text = GitBash.GitExePath;
+                btnOK.IsEnabled = false;
+                txtGitExePath.Text = GitSccOptions.Current.GitBashPath;
+                txtMessage.Content = "";
+                CheckGitBash();
+            });
+           
         }
 
-        internal void Hide()
-        {
-            this.Visibility = Visibility.Hidden;
-        }
 
+        //TODO Sync Thread 
+        internal async void Hide()
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                this.Visibility = Visibility.Hidden;
+            });
+            
+        }
+            
         private void btnVerify_Click(object sender, RoutedEventArgs e)
         {
             btnOK.IsEnabled = false;
@@ -125,9 +137,9 @@ namespace GitScc.UI
             CheckGitBash();
         }
 
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        private async void btnCancel_Click(object sender, RoutedEventArgs e)
         {
-            Hide();
+            await Task.Factory.StartNew(() => Hide());
         }
 
         private void txtGitExePath_KeyUp(object sender, KeyEventArgs e)

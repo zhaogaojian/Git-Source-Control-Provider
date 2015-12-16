@@ -126,7 +126,7 @@ namespace GitScc
 
                 this.Caption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption") + repository;
 
-                control.Refresh(tracker);
+                control.Refresh();
                 if (GitSccOptions.Current.DisableAutoRefresh)
                 {
                     this.Caption += " - [AUTO REFRESH DISABLED]";
