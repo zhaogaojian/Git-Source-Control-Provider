@@ -754,23 +754,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
             if (string.IsNullOrEmpty(projectName)) return;
             string projectDirecotry = Path.GetDirectoryName(projectName);
-
-            //Debug.WriteLine("==== Adding project: " + projectDirecotry);
-
-           
             RepositoryManager.Instance.GetTrackerForPath(projectDirecotry);
-            //var tracker = new GitFileStatusTracker(projectDirecotry);
-            //string gitfolder = tracker.WorkingDirectory;
-
-            //if (string.IsNullOrEmpty(gitfolder) ||
-            //    trackers.Any(t => t.IsGit && 
-            //                 string.Compare(t.WorkingDirectory, gitfolder, true)==0)) return;
-
-            //if (gitfolder.Length < monitorFolder.Length) monitorFolder = gitfolder;
-            //trackers.Add(tracker);
-
-            //Debug.WriteLine("==== Added git tracker: " + gitfolder);
-
         }
 
         internal string CurrentBranchName
