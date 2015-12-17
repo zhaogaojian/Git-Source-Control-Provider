@@ -475,13 +475,7 @@ namespace GitScc
 
         public string DiffFile(string fileName)
         {
-          
             var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
-
-            //var changes = _repository.Diff.Compare<Patch>(_repository.Head.Tip.Tree,
-            //    DiffTargets.Index | DiffTargets.WorkingDirectory);
-            //changes["File"].Patch
-
             foreach (var c in _repository.Diff.Compare<Patch>(_repository.Head.Tip.Tree,
                                                   DiffTargets.Index | DiffTargets.WorkingDirectory))
             {
