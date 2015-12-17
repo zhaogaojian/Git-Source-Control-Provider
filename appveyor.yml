@@ -3,11 +3,10 @@ os: Visual Studio 2015
 
 install:
   - ps: (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
-
+git submodule -q update --init
 
 
 before_build:
- -ps: git submodule -q update --init
   - ps: Vsix-IncrementVsixVersion | Vsix-UpdateBuildVersion
 
 build_script:
