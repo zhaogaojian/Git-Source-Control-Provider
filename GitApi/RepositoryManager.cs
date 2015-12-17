@@ -159,7 +159,7 @@ namespace GitScc
 
         private void Repo_FilesChanged(object sender, GitFilesUpdateEventArgs e)
         {
-            throw new NotImplementedException();
+            FireFilesChangedEvent(sender, e);
         }
 
         #endregion
@@ -176,9 +176,9 @@ namespace GitScc
             var eventArgs = new GitRepositoryEvent(repository);
             _onActiveTrackerUpdateEventHandler?.Invoke(this, eventArgs);
         }
-        private void FireFilesChangedEvent(List<string> files)
+        private void FireFilesChangedEvent(object sender, GitFilesUpdateEventArgs e)
         {
-            _onFilesUpdateEventHandler?.Invoke(this, new GitFilesUpdateEventArgs(files));
+            _onFilesUpdateEventHandler?.Invoke(sender, e);
         }
 
         #endregion

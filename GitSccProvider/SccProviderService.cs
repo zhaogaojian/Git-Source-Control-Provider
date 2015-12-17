@@ -49,6 +49,7 @@ namespace GitScc
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
         private SccProviderSolutionCache _fileCahce;
+        private object _glyphsLock = new object();
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -585,24 +586,31 @@ namespace GitScc
         }
 
         private void ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
-        {
-            repo.Refresh();
-            IList<VSITEMSELECTION> nodes = _fileCahce.GetProjectsSelectionForFile(e.FullPath);
-            RefreshNodesGlyphs(nodes);
+        { 
+            lock (_glyphsLock)
+            {
+                repo.Refresh();
+                IList<VSITEMSELECTION> nodes = _fileCahce.GetProjectsSelectionForFile(e.FullPath);
+                RefreshNodesGlyphs(nodes);
+            }
         }
 
         private void ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
         {
-            HashSet<VSITEMSELECTION> nodes = new HashSet<VSITEMSELECTION>();
-            foreach (var file in e.Files)
+            lock (_glyphsLock)
             {
-                var items = _fileCahce.GetProjectsSelectionForFile(file);
-                foreach (var vsitemselection in items)
+                HashSet<VSITEMSELECTION> nodes = new HashSet<VSITEMSELECTION>();
+                foreach (var file in e.Files)
                 {
-                    nodes.Add(vsitemselection);
+                    var items = _fileCahce.GetProjectsSelectionForFile(file);
+                    foreach (var vsitemselection in items)
+                    {
+                        nodes.Add(vsitemselection);
+                    }
                 }
+
+                RefreshNodesGlyphs(nodes.ToList());
             }
-            RefreshNodesGlyphs(nodes.ToList());
         }
 
 
