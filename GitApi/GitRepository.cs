@@ -542,7 +542,7 @@ namespace GitScc
         {
             var _lastChanged = _changedFiles;
             //we have no idea what changes happened before.. so update everthing 
-            if (_lastChanged != null)
+            if (_lastChanged == null)
             {
                 return GetFullPathForGitFiles(GetCurrentFilesStatus());
             }

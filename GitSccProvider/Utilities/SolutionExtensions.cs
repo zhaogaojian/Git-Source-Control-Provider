@@ -164,7 +164,7 @@ namespace GitSccProvider.Utilities
                         }
 
                         //DebugWalkingNode(pHier, childnode);
-
+                        //TODO exception to fix here
                         if ((pHier.GetProperty(childnode, (int)__VSHPROPID.VSHPROPID_Expandable, out property) == VSConstants.S_OK && (int)property != 0) ||
                             (pHier.GetProperty(childnode, (int)__VSHPROPID2.VSHPROPID_Container, out property) == VSConstants.S_OK && (bool)property))
                         {
