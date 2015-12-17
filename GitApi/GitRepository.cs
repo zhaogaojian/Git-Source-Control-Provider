@@ -149,8 +149,6 @@ namespace GitScc
             }
         }
 
-
-
         private void FireFileChangedEvent(string filename, string fullpath)
         {
             GitFileUpdateEventHandler changedHandler = _onFileUpdateEventHandler;
