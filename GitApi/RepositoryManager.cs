@@ -91,7 +91,7 @@ namespace GitScc
             if (!_fileRepoLookup.TryGetValue(filename, out repo))
             {
                 var basePath = GetGitRepository(filename);
-                if (!_basePathRepoLookup.TryGetValue(basePath, out repo))
+                if (!string.IsNullOrWhiteSpace(basePath) && !_basePathRepoLookup.TryGetValue(basePath, out repo))
                 {
                     repo = new GitFileStatusTracker(basePath);
                     repo.EnableRepositoryWatcher();
