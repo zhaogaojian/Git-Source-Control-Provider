@@ -610,6 +610,15 @@ namespace GitScc
                 }
 
                 RefreshNodesGlyphs(nodes.ToList());
+
+                //todo maybe move this
+                var caption = "Solution Explorer";
+                string branch = CurrentBranchName;
+                if (!string.IsNullOrEmpty(branch))
+                {
+                    caption += " (" + branch + ")";
+                    SetSolutionExplorerTitle(caption);
+                }
             }
         }
 

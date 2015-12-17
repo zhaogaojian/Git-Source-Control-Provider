@@ -58,6 +58,15 @@ How to use
 
 ## Change Logs -- Visual Studio 2015
 
+    **C.I Build - V1.4.3** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
+
+    ---New Features---
+*Added ability to update your .gitingore file to latest version from github
+
+    ---Fixes---
+*   Theme now swithes with the need to resart.
+
+
 **V1.4.2**
 
 *   Fixed Issues #1,#7,#8,#9,#10,#11, #12

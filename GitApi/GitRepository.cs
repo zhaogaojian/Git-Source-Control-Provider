@@ -107,7 +107,14 @@ namespace GitScc
             var fullPath = e.FullPath;
             var filename = e.Name;
 
-            if (fullPath.EndsWith(".TMP") || fullPath.EndsWith(".tmp"))
+            var extension = Path.GetExtension(fullPath)?.ToLower();
+
+            if (string.Equals(extension,".suo"))
+            {
+                return;
+            }
+
+            if (string.Equals(extension,".tmp"))
             {
                 if (fullPath.Contains("~RF")|| fullPath.Contains("\\ve-"))
                 {
@@ -115,12 +122,17 @@ namespace GitScc
                 }
             }
 
+
             if (fullPath.IsSubPathOf(_repositoryPath))
             {
                 lock (_repoUpdateLock)
                 {
-                    var files = CreateRepositoryUpdateChangeSet();
-                    FireFilesChangedEvent(files);
+                    var test = _repository.Info.CurrentOperation;
+                        var files = CreateRepositoryUpdateChangeSet();
+                        if (files != null && files.Count > 0)
+                        {
+                            FireFilesChangedEvent(files);
+                        }
                 }
             }
             else
@@ -564,18 +576,25 @@ namespace GitScc
 
         private List<string> GetFullPathForGitFiles(List<GitFile> files)
         {
-            return files.Select(gitFile => gitFile.FileName).ToList();
+            return files.Select(gitFile => gitFile.FilePath).ToList();
         }
 
         private List<GitFile> GetCurrentChangedFiles()
         {
             var files = new List<GitFile>();
-            foreach (var item in _repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = false, RecurseIgnoredDirs = false }))
+            try
             {
-                if (IsChangedStatus(item.State))
+                foreach (var item in _repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = false, RecurseIgnoredDirs = false }))
                 {
-                    files.Add(new GitFile(_repository, item));
+                    if (IsChangedStatus(item.State))
+                    {
+                        files.Add(new GitFile(_repository, item));
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                //Console.WriteLine(e);
             }
             return files;
         }
@@ -595,16 +614,31 @@ namespace GitScc
                 if (_branch == null)
                 {
                     _branch = "master";
-                    var result = GitBash.Run("rev-parse --abbrev-ref HEAD", this.WorkingDirectory);
-                    if (!result.HasError && !result.Output.StartsWith("fatal:"))
+                    var repoState = _repository.Info.CurrentOperation;
+
+                    switch (repoState)
                     {
-                        _branch = result.Output.Trim();
-                        if (IsInTheMiddleOfBisect) _branch += " | BISECTING";
-                        if (IsInTheMiddleOfMerge) _branch += " | MERGING";
-                        if (IsInTheMiddleOfPatch) _branch += " | AM";
-                        if (IsInTheMiddleOfRebase) _branch += " | REBASE";
-                        if (IsInTheMiddleOfRebaseI) _branch += " | REBASE-i";
-                        if (IsInTheMiddleOfCherryPick) _branch += " | CHERRY-PIKCING";
+                        case CurrentOperation.Merge:
+                            _branch += " | MERGING";
+                            break;
+                        case CurrentOperation.Revert:
+                            _branch += " | REVERTING";
+                            break;
+                        case CurrentOperation.CherryPick:
+                            _branch += " | CHERRY-PIKCING";
+                            break;
+                        case CurrentOperation.Bisect:
+                            _branch += " | BISECTING";
+                            break;
+                        case CurrentOperation.Rebase:
+                            _branch += " | REBASE";
+                            break;
+                        case CurrentOperation.RebaseInteractive:
+                            _branch += " | REBASE-i";
+                            break;
+                        case CurrentOperation.RebaseMerge:
+                            _branch += " | REBASE-MERGE";
+                            break;
                     }
                 }
                 return _branch;
@@ -613,42 +647,27 @@ namespace GitScc
 
         public bool IsInTheMiddleOfBisect
         {
-            get
-            {
-                return this.IsGit && FileExistsInGit("BISECT_START");
-            }
+            get { return this.IsGit && FileExistsInGit("BISECT_START"); }
         }
 
         public bool IsInTheMiddleOfMerge
         {
-            get
-            {
-                return this.IsGit && FileExistsInGit("MERGE_HEAD");
-            }
+            get { return this.IsGit && FileExistsInGit("MERGE_HEAD"); }
         }
 
         public bool IsInTheMiddleOfPatch
         {
-            get
-            {
-                return this.IsGit && FileExistsInGit("rebase-*", "applying");
-            }
+            get { return this.IsGit && FileExistsInGit("rebase-*", "applying"); }
         }
 
         public bool IsInTheMiddleOfRebase
         {
-            get
-            {
-                return this.IsGit && FileExistsInGit("rebase-*", "rebasing");
-            }
+            get { return this.IsGit && FileExistsInGit("rebase-*", "rebasing"); }
         }
 
         public bool IsInTheMiddleOfRebaseI
         {
-            get
-            {
-                return this.IsGit && FileExistsInGit("rebase-*", "git-rebase-todo");
-            }
+            get { return this.IsGit && FileExistsInGit("rebase-*", "git-rebase-todo"); }
         }
 
         private bool FileExistsInGit(string fileName)
@@ -658,18 +677,12 @@ namespace GitScc
 
         public bool IsInTheMiddleOfCherryPick
         {
-            get
-            {
-                return this.IsGit && FileExistsInGit("CHERRY_PICK_HEAD");
-            }
+            get { return this.IsGit && FileExistsInGit("CHERRY_PICK_HEAD"); }
         }
 
         private string GitDirectory
         {
-            get
-            {
-                return Path.Combine(WorkingDirectory, ".git");
-            }
+            get { return Path.Combine(WorkingDirectory, ".git"); }
         }
 
         private bool FileExistsInRepo(string fileName)
@@ -748,43 +761,42 @@ namespace GitScc
         }
 
 
-
-	    public string GetUnmodifiedFile(string filename)
-	    {
-	        var relativePath = "";
+        public string GetUnmodifiedFile(string filename)
+        {
+            var relativePath = "";
             Blob oldBlob = null;
             if (TryGetRelativePath(filename, out relativePath))
-	        {
+            {
                 string objectName = Path.GetFileName(filename);
-                
+
                 var indexEntry = _repository.Index[relativePath];
                 if (indexEntry != null)
                 {
                     oldBlob = _repository.Lookup<Blob>(indexEntry.Id);
                 }
-	        }
+            }
             return oldBlob != null ? oldBlob.GetContentText(new FilteringOptions(relativePath)) : string.Empty;
-	    }
+        }
 
-	    public string DefaultDiffCommand
-	    {
-	        get
-	        {
-	            var diffGuiTool = _repository.Config.Get<string>("diff.guitool");
-	            if (diffGuiTool == null)
-	            {
-	                diffGuiTool = _repository.Config.Get<string>("diff.tool");
-	                if (diffGuiTool == null)
-	                    return string.Empty;
-	            }
+        public string DefaultDiffCommand
+        {
+            get
+            {
+                var diffGuiTool = _repository.Config.Get<string>("diff.guitool");
+                if (diffGuiTool == null)
+                {
+                    diffGuiTool = _repository.Config.Get<string>("diff.tool");
+                    if (diffGuiTool == null)
+                        return string.Empty;
+                }
 
-	            var diffCmd = _repository.Config.Get<string>("difftool." + diffGuiTool.Value + ".cmd");
-	            if (diffCmd == null || diffCmd.Value == null)
-	                return string.Empty;
+                var diffCmd = _repository.Config.Get<string>("difftool." + diffGuiTool.Value + ".cmd");
+                if (diffCmd == null || diffCmd.Value == null)
+                    return string.Empty;
 
-	            return diffCmd.Value;
-	        }
-	    }
+                return diffCmd.Value;
+            }
+        }
 
         public string GetRevision(string filename)
         {
@@ -803,21 +815,20 @@ namespace GitScc
                     else
                         revision = _repository.Head.Tip.Sha.Substring(0, 7);
                 }
-
             }
             return revision;
         }
 
         private bool TryGetRelativePath(string fileName, out string relativePath)
-	    {
-	        relativePath = null;
-	        if (fileName.StartsWith(workingDirectory, StringComparison.OrdinalIgnoreCase))
-	        {
-	            relativePath = fileName.Substring(workingDirectory.Length);
-	            return true;
-	        }
-	        return false;
-	    }
+        {
+            relativePath = null;
+            if (fileName.StartsWith(workingDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                relativePath = fileName.Substring(workingDirectory.Length);
+                return true;
+            }
+            return false;
+        }
 
         public string DiffFile(string fileName, string commitId1, string commitId2)
         {
@@ -839,7 +850,6 @@ namespace GitScc
             var fileNameRel = fileName;
             GitBash.RunCmd(string.Format("blame -M -w -- \"{0}\" > \"{1}\"", fileNameRel, tmpFileName), WorkingDirectory);
             return tmpFileName;
-
         }
 
         public IEnumerable<string> GetCommitsForFile(string fileName)
@@ -850,7 +860,7 @@ namespace GitScc
 
             var result = GitBash.Run(string.Format("log -z --ignore-space-change --pretty=format:%H -- \"{0}\"", fileNameRel), WorkingDirectory);
             if (!result.HasError)
-                return result.Output.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
+                return result.Output.Split(new char[] {'\0'}, StringSplitOptions.RemoveEmptyEntries);
             return new string[0];
         }
 
@@ -868,10 +878,7 @@ namespace GitScc
                 cmd = cmd.Replace("/", "\\");
                 var pinfo = new ProcessStartInfo("cmd.exe")
                 {
-                    Arguments = "/C \"" + cmd + "\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = this.WorkingDirectory,
+                    Arguments = "/C \"" + cmd + "\"", UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = this.WorkingDirectory,
                 };
                 Process.Start(pinfo);
             }
@@ -943,16 +950,18 @@ namespace GitScc
             }
         }
 
-	    public void Dispose()
-	    {
+        public void Dispose()
+        {
             DisableRepositoryWatcher();
-	        _repository.Dispose();
-	        _repository = null;
-	    }
+            _repository.Dispose();
+            _repository = null;
+        }
 	}
 
-    public class GitFileStatusTracker: GitRepository
+    public class GitFileStatusTracker : GitRepository
     {
-        public GitFileStatusTracker(string directory) : base(directory) { }
+        public GitFileStatusTracker(string directory) : base(directory)
+        {
+        }
     }
 }

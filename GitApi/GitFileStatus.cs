@@ -166,6 +166,8 @@ namespace GitScc
                     return GitFileStatus.Unreadable;
                 case FileStatus.Ignored:
                     return GitFileStatus.Ignored;
+                case FileStatus.Conflicted:
+                    return GitFileStatus.Conflict;
                 default:
                     return GitFileStatus.Ignored;
             }
