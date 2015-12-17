@@ -98,12 +98,23 @@ namespace GitScc
 
 	    private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
 	    {
-	        CreateGitFileEvent(e.Name, e.FullPath);
+	        CreateGitFileEvent(e);
 	        //throw new NotImplementedException();
 	    }
 
-        private void CreateGitFileEvent(string filename, string fullPath)
+        private void CreateGitFileEvent(FileSystemEventArgs e)
         {
+            var fullPath = e.FullPath;
+            var filename = e.Name;
+
+            if (fullPath.EndsWith(".TMP") || fullPath.EndsWith(".tmp"))
+            {
+                if (fullPath.Contains("~RF")|| fullPath.Contains("\\ve-"))
+                {
+                    return;
+                }
+            }
+
             if (fullPath.IsSubPathOf(_repositoryPath))
             {
                 lock (_repoUpdateLock)
