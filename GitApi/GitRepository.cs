@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Caching;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using GitScc.Extensions;
 using LibGit2Sharp;
@@ -578,7 +579,7 @@ namespace GitScc
             return files.Select(gitFile => gitFile.FilePath).ToList();
         }
 
-        private List<GitFile> GetCurrentChangedFiles()
+        private List<GitFile> GetCurrentChangedFiles(bool retryAllowed = true)
         {
             var files = new List<GitFile>();
             try
@@ -591,9 +592,21 @@ namespace GitScc
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                //Console.WriteLine(e);
+                if (retryAllowed)
+                {
+                    return Task.Run(() =>
+                    {
+                        Thread.Sleep(500);
+                        return GetCurrentChangedFiles(false);
+                    }).Result;
+                }
+                else
+                {
+                    Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
+                }
+                
             }
             return files;
         }
