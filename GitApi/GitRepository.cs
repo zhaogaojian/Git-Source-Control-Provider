@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Caching;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using GitScc.Extensions;
 using LibGit2Sharp;
@@ -96,10 +97,16 @@ namespace GitScc
             _watcher.EnableRaisingEvents = true;
         }
 
-	    private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
+	    private async void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
 	    {
-	        CreateGitFileEvent(e);
-	        //throw new NotImplementedException();
+            try
+            {
+                await Task.Run(() => CreateGitFileEvent(e));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error In File System Changed Event: " + ex.Message);
+            }
 	    }
 
         private void CreateGitFileEvent(FileSystemEventArgs e)
@@ -127,7 +134,6 @@ namespace GitScc
             {
                 lock (_repoUpdateLock)
                 {
-                    var test = _repository.Info.CurrentOperation;
                         var files = CreateRepositoryUpdateChangeSet();
                         if (files != null && files.Count > 0)
                         {
@@ -571,7 +577,7 @@ namespace GitScc
             return files.Select(gitFile => gitFile.FilePath).ToList();
         }
 
-        private List<GitFile> GetCurrentChangedFiles()
+        private List<GitFile> GetCurrentChangedFiles(bool retryAllowed = true)
         {
             var files = new List<GitFile>();
             try
@@ -584,9 +590,21 @@ namespace GitScc
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                //Console.WriteLine(e);
+                if (retryAllowed)
+                {
+                    return Task.Run(() =>
+                    {
+                        Thread.Sleep(500);
+                        return GetCurrentChangedFiles(false);
+                    }).Result;
+                }
+                else
+                {
+                    Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
+                }
+                
             }
             return files;
         }
