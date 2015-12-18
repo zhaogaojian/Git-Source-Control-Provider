@@ -30,7 +30,12 @@ namespace GitScc
 
         private event GitRepositoryEventHandler _onActiveTrackerUpdateEventHandler;
 
+        private event EventHandler<string> _onActiveTrackerBranchChanged;
+
+        private event EventHandler<string> _onSolutionTrackerBranchChanged;
+
         private GitFileStatusTracker _activeTracker;
+        private GitFileStatusTracker _solutionTracker;
 
 
         //Public
@@ -42,9 +47,27 @@ namespace GitScc
             {
                 if (_activeTracker != value)
                 {
+                    if (_activeTracker != null)
+                    {
+                        _activeTracker.BranchChanged-= _activeTracker_BranchChanged;
+                    }
+                    
                     _activeTracker = value;
+                    _activeTracker.BranchChanged += _activeTracker_BranchChanged;
                     FireActiveTrackerChangedEvent(value);
                 }
+            }
+        }
+
+        public GitFileStatusTracker SolutionTracker
+        {
+            get
+            {
+                if (_solutionTracker == null)
+                {
+                    return _activeTracker;
+                }
+                return _solutionTracker;
             }
         }
 
@@ -74,11 +97,43 @@ namespace GitScc
             foreach (var repo in _repositories)
             {
                 repo.FileChanged -= Repo_FileChanged;
+                repo.FilesChanged -= Repo_FilesChanged;
             }
+
+            if (_solutionTracker != null)
+            {
+                _solutionTracker.BranchChanged -= _solutionTracker_BranchChanged;
+                _solutionTracker = null;
+            }
+
+            if (_activeTracker != null)
+            {
+                _activeTracker.BranchChanged -= _solutionTracker_BranchChanged;
+                _activeTracker = null;
+            }
+
             _repositories = new List<GitFileStatusTracker>();
             _fileRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
             _basePathRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
         }
+
+
+        public void SetSolutionTracker(string solutionFilePath)
+        {
+            if (!string.IsNullOrWhiteSpace(solutionFilePath))
+            {
+                if (_solutionTracker != null)
+                {
+                    _solutionTracker.BranchChanged -= _solutionTracker_BranchChanged;
+                }
+                _solutionTracker = GetTrackerForPath(solutionFilePath, true, true);
+                if (_solutionTracker != null)
+                {
+                    _solutionTracker.BranchChanged += _solutionTracker_BranchChanged;
+                }
+            }
+        }
+
 
 
         public GitFileStatusTracker GetTrackerForPath(string filename,bool setActiveTracker = false ,bool createTracker = true)
@@ -97,6 +152,7 @@ namespace GitScc
                     repo.EnableRepositoryWatcher();
                     repo.FileChanged += Repo_FileChanged;
                     repo.FilesChanged += Repo_FilesChanged;
+                    //repo.BranchChanged += Repo_BranchChanged;
 
                     //add our refrences so we can do a quick lookup later
                     _repositories.Add(repo);
@@ -107,9 +163,6 @@ namespace GitScc
 
             return repo;
         }
-
-
-
 
         #region Public Events
 
@@ -149,6 +202,30 @@ namespace GitScc
             }
         }
 
+        public event EventHandler<string> ActiveTrackerBranchChanged
+        {
+            add
+            {
+                _onActiveTrackerBranchChanged += value;
+            }
+            remove
+            {
+                _onActiveTrackerBranchChanged -= value;
+            }
+        }
+
+        public event EventHandler<string> SolutionTrackerBranchChanged
+        {
+            add
+            {
+                _onSolutionTrackerBranchChanged += value;
+            }
+            remove
+            {
+                _onSolutionTrackerBranchChanged -= value;
+            }
+        }
+
         #endregion
 
         #region Event Handlers
@@ -161,6 +238,17 @@ namespace GitScc
         private void Repo_FilesChanged(object sender, GitFilesUpdateEventArgs e)
         {
             FireFilesChangedEvent(sender, e);
+        }
+
+
+        private void _solutionTracker_BranchChanged(object sender, string e)
+        {
+            FireSolutionTrackerBranchChangedEvent(sender,e);
+        }
+
+        private void _activeTracker_BranchChanged(object sender, string e)
+        {
+            FireActiveTrackerBranchChangedEvent(sender,e);
         }
 
         #endregion
@@ -180,6 +268,15 @@ namespace GitScc
         private void FireFilesChangedEvent(object sender, GitFilesUpdateEventArgs e)
         {
             _onFilesUpdateEventHandler?.Invoke(sender, e);
+        }
+
+        private void FireSolutionTrackerBranchChangedEvent(object sender, string name)
+        {
+            _onSolutionTrackerBranchChanged?.Invoke(sender, name);
+        }
+        private void FireActiveTrackerBranchChangedEvent(object sender, string name)
+        {
+            _onActiveTrackerBranchChanged?.Invoke(sender, name);
         }
 
         #endregion

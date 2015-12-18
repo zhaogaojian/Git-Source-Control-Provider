@@ -194,7 +194,7 @@ namespace GitUI
 			this.topToolBar.GitViewModel = gitViewModel;
 
 			this.Title = gitViewModel.Tracker.IsGit ?
-				string.Format("{0} ({1})", gitViewModel.Tracker.WorkingDirectory, gitViewModel.Tracker.CurrentBranch) :
+				string.Format("{0} ({1})", gitViewModel.Tracker.WorkingDirectory, gitViewModel.Tracker.CurrentBranchDisplayName) :
 				string.Format("{0} (No Repository)", gitViewModel.WorkingDirectory);
 
 			gitViewModel.EnableAutoRefresh();

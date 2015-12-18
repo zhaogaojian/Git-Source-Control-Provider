@@ -33,7 +33,7 @@ namespace GitScc
     {
         private SccProviderService service;
         private GitRepository _tracker;
-        private ToolWindowWithEditor<PendingChangesView> toolWindow;
+        private readonly ToolWindowWithEditor<PendingChangesView> _toolWindow;
         private IVsTextView textView;
         private string[] diffLines;
         private bool _diffHightlighted = false;
@@ -44,7 +44,7 @@ namespace GitScc
         public PendingChangesView(ToolWindowWithEditor<PendingChangesView> toolWindow)
         {
             InitializeComponent();
-            this.toolWindow = toolWindow;
+            this._toolWindow = toolWindow;
             this.service = BasicSccProvider.GetServiceEx<SccProviderService>();
             SetDiffCodeHightlighter();
             VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
@@ -71,13 +71,16 @@ namespace GitScc
                 {
                     _tracker.FileChanged -= CurrentTracker_FileChanged;
                     CurrentTracker.FilesChanged -= CurrentTracker_FilesChanged;
+                    CurrentTracker.BranchChanged -= CurrentTracker_BranchChanged;
 
                 }
                 _tracker = tracker;
                 CurrentTracker.FileChanged += CurrentTracker_FileChanged;
                 CurrentTracker.FilesChanged += CurrentTracker_FilesChanged;
+                CurrentTracker.BranchChanged += CurrentTracker_BranchChanged;
             }
         }
+
 
 
 
@@ -97,6 +100,12 @@ namespace GitScc
         {
             await Refresh();
         }
+
+        private void CurrentTracker_BranchChanged(object sender, string e)
+        {
+            _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
+        }
+
 
         #endregion
 
@@ -276,7 +285,7 @@ namespace GitScc
 
         private void ClearEditor()
         {
-            this.toolWindow.ClearEditor();
+            this._toolWindow.ClearEditor();
             this.DiffEditor.Text = null;
         }
 
@@ -332,12 +341,9 @@ namespace GitScc
 
         #region Git functions
 
-    
 
         internal async Task Refresh()
         {
-            //VerifyGit();
-
             if (!GitBash.Exists)
             {
                  Settings.Show(); 

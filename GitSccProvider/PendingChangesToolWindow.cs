@@ -1,11 +1,13 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using System.Windows.Threading;
 using Gitscc;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
 using GitSccProvider;
+using Task = System.Threading.Tasks.Task;
 
 namespace GitScc
 {
@@ -16,6 +18,8 @@ namespace GitScc
     public class PendingChangesToolWindow : ToolWindowWithEditor<PendingChangesView>
     {
         private SccProviderService sccProviderService;
+        private string _currentRepoName;
+        private const string CAPTION_STRING = "{0} {1}";
 
         public PendingChangesToolWindow()
         {
@@ -28,6 +32,7 @@ namespace GitScc
             // set the icon for the frame
             this.BitmapResourceID = CommandId.ibmpToolWindowsImages;  // bitmap strip resource ID
             this.BitmapIndex = CommandId.iconSccProviderToolWindow;   // index in the bitmap strip
+            _currentRepoName = "";
         }
 
         protected override void Initialize()
@@ -122,9 +127,10 @@ namespace GitScc
             try
             {
                 var repository = (tracker == null || !tracker.IsGit) ? "" :
-                    string.Format(" ({0})", tracker.CurrentBranch, tracker.WorkingDirectory);
+                    string.Format(" ({0})", tracker.CurrentBranchDisplayName, tracker.WorkingDirectory);
 
-                this.Caption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption") + repository;
+                UpdateRepositoryName(repository);
+                //this.Caption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption") + repository;
 
                 control.Refresh();
                 if (GitSccOptions.Current.DisableAutoRefresh)
@@ -142,5 +148,16 @@ namespace GitScc
         {
             control.OnSettings();
         }
+
+        #region Overrides of ToolWindowWithEditor<PendingChangesView>
+
+        public override void  UpdateRepositoryName(string repositoryName)
+        {
+
+            Caption = string.Format(CAPTION_STRING,Resources.ResourceManager.GetString("PendingChangesToolWindowCaption"),repositoryName);
+        }
+
+
+        #endregion
     }
 }

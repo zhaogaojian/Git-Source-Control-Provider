@@ -9,11 +9,12 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Task = System.Threading.Tasks.Task;
 
 
 namespace GitScc
 {
-    public class ToolWindowWithEditor<T> : ToolWindowPane //, IOleCommandTarget, IVsFindTarget
+    public abstract class ToolWindowWithEditor<T> : ToolWindowPane //, IOleCommandTarget, IVsFindTarget
         where T : Control
     {
 
@@ -126,6 +127,8 @@ namespace GitScc
             catch { }
             return null;
         }
+
+        public abstract void UpdateRepositoryName(string repositoryName);
 
         #endregion
 

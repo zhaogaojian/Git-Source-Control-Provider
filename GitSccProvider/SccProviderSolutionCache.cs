@@ -19,6 +19,8 @@ namespace GitSccProvider
         private List<IVsSccProject2> _projects;
         private ConcurrentDictionary<string, List<VSITEMSELECTION>> _fileProjectLookup;
         private ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION> _projectSelectionLookup;
+        private DateTime _lastNewFileScan;
+        private static int _projectScanDelaySeconds = 5;
 
         public SccProviderSolutionCache(BasicSccProvider provider)
         {
@@ -26,6 +28,7 @@ namespace GitSccProvider
             _projects = new List<IVsSccProject2>();
             _fileProjectLookup = new ConcurrentDictionary<string, List<VSITEMSELECTION>>();
             _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
+            _lastNewFileScan = DateTime.UtcNow;
         }
 
         private void AddFileToList(string filename, IVsSccProject2 project)
@@ -99,11 +102,15 @@ namespace GitSccProvider
             {
                 if (!search)
                 {
-                    projects = new List<VSITEMSELECTION>();
+                    _fileProjectLookup.TryAdd(filename, null);
+                    return null;
                 }
                 else
                 {
-                    ScanSolution();
+                    if (DateTime.UtcNow > _lastNewFileScan.AddSeconds(_projectScanDelaySeconds))
+                    {
+                        ScanSolution();
+                    }
                     projects = GetProjectsSelectionForFile(filename, false);
                 }
             }

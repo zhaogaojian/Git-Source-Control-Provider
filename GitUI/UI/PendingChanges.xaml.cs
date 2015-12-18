@@ -206,7 +206,7 @@ namespace GitUI.UI
 
             Action act = () =>
             {
-                lblMessage.Content = "Commit to: " + tracker.CurrentBranch;
+                lblMessage.Content = "Commit to: " + tracker.CurrentBranchDisplayName;
                 service.NoRefresh = true;
                 ShowStatusMessage("Getting changed files ...");
 
@@ -245,7 +245,7 @@ namespace GitUI.UI
                     ShowStatusMessage("");
 
                     var changed = tracker.ChangedFiles;
-                    this.label3.Content = string.Format("Changed files: ({0}) +{1} ~{2} -{3} !{4}", tracker.CurrentBranch,
+                    this.label3.Content = string.Format("Changed files: ({0}) +{1} ~{2} -{3} !{4}", tracker.CurrentBranchDisplayName,
                         changed.Where(f => f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added).Count(),
                         changed.Where(f => f.Status == GitFileStatus.Modified || f.Status == GitFileStatus.Staged).Count(),
                         changed.Where(f => f.Status == GitFileStatus.Deleted || f.Status == GitFileStatus.Removed).Count(),

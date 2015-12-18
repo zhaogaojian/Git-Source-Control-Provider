@@ -53,7 +53,7 @@ namespace GitScc.UI
         {
             if(tracker==null || !tracker.IsGit) return "No Git Repository";
             var changed = tracker.ChangedFiles;
-            return string.Format("{0} +{1} ~{2} -{3} !{4}", tracker.CurrentBranch,
+            return string.Format("{0} +{1} ~{2} -{3} !{4}", tracker.CurrentBranchDisplayName,
                 changed.Where(f=> f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added).Count(),
                 changed.Where(f => f.Status == GitFileStatus.Modified || f.Status == GitFileStatus.Staged).Count(),
                 changed.Where(f => f.Status == GitFileStatus.Deleted || f.Status == GitFileStatus.Removed).Count(),

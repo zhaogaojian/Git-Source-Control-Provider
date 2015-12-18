@@ -52,7 +52,7 @@ namespace GitUI
         {
             if(!GitViewModel.Current.Tracker.IsGit) return "No Git Repository";
             var changed = GitViewModel.Current.Tracker.ChangedFiles;
-            return string.Format("{0} +{1} ~{2} -{3} !{4}", GitViewModel.Current.Tracker.CurrentBranch,
+            return string.Format("{0} +{1} ~{2} -{3} !{4}", GitViewModel.Current.Tracker.CurrentBranchDisplayName,
                 changed.Count(f => f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added),
                 changed.Count(f => f.Status == GitFileStatus.Modified || f.Status == GitFileStatus.Staged),
                 changed.Count(f => f.Status == GitFileStatus.Deleted || f.Status == GitFileStatus.Removed),

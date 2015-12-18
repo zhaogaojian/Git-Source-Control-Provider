@@ -61,12 +61,15 @@ namespace GitScc
 
             RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
+            RepositoryManager.Instance.SolutionTrackerBranchChanged += RepositoryManager_SolutionTrackerBranchChanged;
             //this.trackers = trackers;
 
             SetupSolutionEvents();
             SetupDocumentEvents();
 
         }
+
+
 
         public void Dispose()
         {
@@ -551,6 +554,7 @@ namespace GitScc
             _fileCahce = new SccProviderSolutionCache(_sccProvider);
 
             var solutionFileName = GetSolutionFileName();
+            RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {
@@ -587,6 +591,18 @@ namespace GitScc
             }
         }
 
+        private void RepositoryManager_SolutionTrackerBranchChanged(object sender, string e)
+        {
+
+            var caption = "Solution Explorer";
+            string branch = RepositoryManager.Instance.SolutionTracker.CurrentBranchDisplayName;
+            if (!string.IsNullOrEmpty(branch))
+            {
+                caption += " (" + branch + ")";
+                SetSolutionExplorerTitle(caption);
+            }
+        }
+
         private void ProcessGitFileSystemChange(GitFileUpdateEventArgs e)
         {
             if (GitSccOptions.Current.DisableAutoRefresh)
@@ -607,7 +623,10 @@ namespace GitScc
             {
                 repo.Refresh();
                 IList<VSITEMSELECTION> nodes = _fileCahce.GetProjectsSelectionForFile(e.FullPath);
-                RefreshNodesGlyphs(nodes);
+                if (nodes != null)
+                {
+                    RefreshNodesGlyphs(nodes);
+                }
             }
         }
 
@@ -619,13 +638,18 @@ namespace GitScc
                 foreach (var file in e.Files)
                 {
                     var items = _fileCahce.GetProjectsSelectionForFile(file);
-                    foreach (var vsitemselection in items)
+                    if (items != null)
                     {
-                        nodes.Add(vsitemselection);
+                        foreach (var vsitemselection in items)
+                        {
+                            nodes.Add(vsitemselection);
+                        }
                     }
                 }
-
-                RefreshNodesGlyphs(nodes.ToList());
+                if (nodes.Count > 0)
+                {
+                    RefreshNodesGlyphs(nodes.ToList());
+                }
 
                 //todo maybe move this
                 var caption = "Solution Explorer";
@@ -778,7 +802,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             get
             {
                 GitFileStatusTracker tracker = CurrentTracker;
-                return tracker != null ? tracker.CurrentBranch : null;
+                return tracker != null ? tracker.CurrentBranchDisplayName : null;
             }
         }
 
@@ -1011,13 +1035,13 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
             RefreshNodesGlyphs(nodes);
 
-            var caption = "Solution Explorer";
-            string branch = CurrentBranchName;
-            if (!string.IsNullOrEmpty(branch))
-            {
-                caption += " (" + branch + ")";
-                SetSolutionExplorerTitle(caption);
-            }
+            //var caption = "Solution Explorer";
+            //string branch = CurrentBranchName;
+            //if (!string.IsNullOrEmpty(branch))
+            //{
+            //    caption += " (" + branch + ")";
+            //    SetSolutionExplorerTitle(caption);
+            //}
         }
 
         /// <summary>
