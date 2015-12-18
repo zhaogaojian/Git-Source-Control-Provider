@@ -558,17 +558,33 @@ namespace GitScc
             }
         }
 
-        private void RepositoryManager_FileChanged(object sender, GitFileUpdateEventArgs e)
+        private async void RepositoryManager_FileChanged(object sender, GitFileUpdateEventArgs e)
         {
             //TODO update files change here
-            Action action = () => ProcessSingleFileSystemChange((GitRepository)sender, e);
-            Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SccProviderService.TaskScheduler)
-                .HandleNonCriticalExceptions();
+
+            try
+            {
+                await Task.Run(() => ProcessSingleFileSystemChange((GitRepository)sender, e));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error in RepositoryManager_FileChanged: " + ex.Message);
+            }
+            //Action action = () => ProcessSingleFileSystemChange((GitRepository)sender, e);
+            //Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SccProviderService.TaskScheduler)
+            //    .HandleNonCriticalExceptions();
         }
 
-        private void RepositoryManager_FilesChanged(object sender, GitFilesUpdateEventArgs e)
+        private async void RepositoryManager_FilesChanged(object sender, GitFilesUpdateEventArgs e)
         {
-            ProcessMultiFileChange((GitRepository) sender, e);
+            try
+            {
+                await Task.Run(() => ProcessMultiFileChange((GitRepository) sender, e));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error in RepositoryManager_FilesChanged: " + ex.Message);
+            }
         }
 
         private void ProcessGitFileSystemChange(GitFileUpdateEventArgs e)

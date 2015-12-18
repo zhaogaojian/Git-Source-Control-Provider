@@ -96,10 +96,16 @@ namespace GitScc
             _watcher.EnableRaisingEvents = true;
         }
 
-	    private void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
+	    private async void HandleFileSystemChanged(object sender, FileSystemEventArgs e)
 	    {
-	        CreateGitFileEvent(e);
-	        //throw new NotImplementedException();
+            try
+            {
+                await Task.Run(() => CreateGitFileEvent(e));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error In File System Changed Event: " + ex.Message);
+            }
 	    }
 
         private void CreateGitFileEvent(FileSystemEventArgs e)
@@ -127,7 +133,6 @@ namespace GitScc
             {
                 lock (_repoUpdateLock)
                 {
-                    var test = _repository.Info.CurrentOperation;
                         var files = CreateRepositoryUpdateChangeSet();
                         if (files != null && files.Count > 0)
                         {

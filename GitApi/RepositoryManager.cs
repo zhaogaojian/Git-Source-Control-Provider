@@ -97,6 +97,7 @@ namespace GitScc
                     repo.EnableRepositoryWatcher();
                     repo.FileChanged += Repo_FileChanged;
                     repo.FilesChanged += Repo_FilesChanged;
+
                     //add our refrences so we can do a quick lookup later
                     _repositories.Add(repo);
                     _basePathRepoLookup.TryAdd(basePath, repo);
