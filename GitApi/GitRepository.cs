@@ -29,12 +29,13 @@ namespace GitScc
         private string _branchDisplayName;
         private string _cachedBranchName;
         private CurrentOperation _cachedBranchOperation;
-        private string _repositoryPath;
+        private string repositoryPath;
         private IEnumerable<string> remotes;
         private IDictionary<string, string> configs;
         FileSystemWatcher _watcher;
         private MemoryCache _fileCache;
         private object _repoUpdateLock = new object();
+        private List<GitBranchInfo> _branchInfoList;
 
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
@@ -78,7 +79,7 @@ namespace GitScc
             }
         }
 
-        //private Repository _repository;
+        //private Repository repository;
 
 
         public string WorkingDirectory { get { return workingDirectory; } }
@@ -90,17 +91,16 @@ namespace GitScc
             using (var repository = GetRepository())
             {
                 this.workingDirectory = repository.Info.WorkingDirectory;
-                _repositoryPath = repository.Info.Path;
+                repositoryPath = repository.Info.Path;
             }
             _cachedBranchOperation = CurrentOperation.None;
-            //_lastTipId = _repository.Head.Tip.Sha;
+            //_lastTipId = repository.Head.Tip.Sha;
             Refresh();
         }
 
         private Repository GetRepository()
         {
-          
-                return  new Repository(_gitDirectory);
+            return  new Repository(_gitDirectory);
         }
 
 
@@ -156,21 +156,17 @@ namespace GitScc
             }
 
 
-            if (fullPath.IsSubPathOf(_repositoryPath))
+            if (fullPath.IsSubPathOf(repositoryPath))
             {
-                lock (_repoUpdateLock)
-                {
-                    var files = CreateRepositoryUpdateChangeSet();
-                    SetBranchName();
-                    if (files != null && files.Count > 0)
-                    {
-                        FireFilesChangedEvent(files);
-                    }
-                }
+                HandleGitFileSystemChange();
             }
             else
             {
-                if (_repository.Ignore.IsPathIgnored(fullPath.Remove(0, WorkingDirectory.Length)))
+                using (var repository = GetRepository())
+                {
+                    
+                
+                    if (repository.Ignore.IsPathIgnored(fullPath.Remove(0, WorkingDirectory.Length)))
                 {
                     int i = 3;
                 }
@@ -178,7 +174,26 @@ namespace GitScc
                 {
                     FireFileChangedEvent(filename, fullPath);
                 }
+                }
 
+            }
+        }
+
+
+        /// <summary>
+        /// Update status when some file change is detected in the .git dir
+        /// </summary>
+        private void HandleGitFileSystemChange()
+        {
+            lock (_repoUpdateLock)
+            {
+                var files = CreateRepositoryUpdateChangeSet();
+                SetBranchName();
+                _branchInfoList = null;
+                if (files != null && files.Count > 0)
+                {
+                    FireFilesChangedEvent(files);
+                }
             }
         }
 
@@ -198,78 +213,83 @@ namespace GitScc
             _cachedBranchOperation = CurrentOperation.None;
             this.remotes = null;
             this.configs = null;
+            _branchInfoList = null;
             SetBranchName();
         }
         #region Checkout Functions
 
         public async Task<GitActionResult<GitBranchInfo>> CheckoutAsync(GitBranchInfo info, bool force = false)
         {
-            var branch = GetLib2GitBranch(info);
-            return await Task.Run(() => Checkout(branch, force));
+            return await Task.Run(() => Checkout(info, force));
         }
 
-        public async Task<GitActionResult<GitBranchInfo>> CheckoutAsync(string branch = "master", bool force = false)
+      
+        private GitActionResult<GitBranchInfo> Checkout(GitBranchInfo info, bool force = false)
         {
-            return await Task.Run(() => Checkout(branch, force));
-        }
-
-        public GitActionResult<GitBranchInfo> Checkout(string branch = "master", bool force = false)
-        {
-            return Checkout(_repository.Branches[branch], force);
-
-        }
-
-        private GitActionResult<GitBranchInfo> Checkout(Branch branch, bool force = false)
-        {
-            var result = new GitActionResult<GitBranchInfo>();
-
-            CheckoutOptions options = new CheckoutOptions();
-
-            if (force)
+            using (var repository = GetRepository())
             {
-                options.CheckoutModifiers = CheckoutModifiers.Force;
-            }
-            try
-            {
-                var checkoutBranch = _repository.Checkout(branch, options);
-                if (checkoutBranch != null)
+
+                var result = new GitActionResult<GitBranchInfo>();
+
+                CheckoutOptions options = new CheckoutOptions();
+                var branch = repository.Branches.FirstOrDefault(
+                        x => string.Equals(x.CanonicalName, info.CanonicalName, StringComparison.OrdinalIgnoreCase));
+
+                if (force)
                 {
-                    result.Item = new GitBranchInfo
-                    {
-                        CanonicalName = checkoutBranch.CanonicalName,
-                        RemoteName = checkoutBranch.Remote?.Name,
-                        Name = checkoutBranch.FriendlyName,
-                        IsRemote = checkoutBranch.IsRemote
-                    };
-                    result.Succeeded = true;
-                    return result;
+                    options.CheckoutModifiers = CheckoutModifiers.Force;
                 }
-                result.Succeeded = false;
-            }
-            catch (CheckoutConflictException conflict)
-            {
-                result.Succeeded = false;
-                result.ErrorMessage = conflict.Message;
-            }
+                try
+                {
+                    var checkoutBranch = repository.Checkout(branch, options);
+                    if (checkoutBranch != null)
+                    {
+                        result.Item = new GitBranchInfo
+                        {
+                            CanonicalName = checkoutBranch.CanonicalName,
+                            RemoteName = checkoutBranch.Remote?.Name,
+                            Name = checkoutBranch.FriendlyName,
+                            IsRemote = checkoutBranch.IsRemote
+                        };
+                        result.Succeeded = true;
+                        return result;
+                    }
+                    result.Succeeded = false;
+                }
+                catch (CheckoutConflictException conflict)
+                {
+                    result.Succeeded = false;
+                    result.ErrorMessage = conflict.Message;
+                }
 
-            return result;
+                return result;
+            }
         }
 
         public void UndoFileChanges(string filename)
         {
-            CheckoutOptions options = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
-            _repository.CheckoutPaths("HEAD", new string[] { filename }, options);
+            using (var repository = GetRepository())
+            {
+                CheckoutOptions options = new CheckoutOptions {CheckoutModifiers = CheckoutModifiers.Force};
+                repository.CheckoutPaths("HEAD", new string[] {filename}, options);
+            }
         }
 
         public void StageFile(string fileName)
         {
-            _repository.Stage(fileName);
+            using (var repository = GetRepository())
+            {
+                repository.Stage(fileName);
+            }
 
         }
 
         public void UnStageFile(string fileName)
         {
-            _repository.Unstage(fileName);
+            using (var repository = GetRepository())
+            {
+                repository.Unstage(fileName);
+            }
         }
 
 
@@ -281,17 +301,20 @@ namespace GitScc
 
         public string Commit(string message, bool amend = false, bool signoff = false)
         {
-            if (string.IsNullOrEmpty(message))
+            using (var repository = GetRepository())
             {
-                throw new ArgumentException("Commit message must not be null or empty!", "message");
-            }
-            Signature author = _repository.Config.BuildSignature(DateTimeOffset.Now);
-            Signature committer = author;
+                if (string.IsNullOrEmpty(message))
+                {
+                    throw new ArgumentException("Commit message must not be null or empty!", "message");
+                }
+                Signature author = repository.Config.BuildSignature(DateTimeOffset.Now);
+                Signature committer = author;
 
-            CommitOptions opts = new CommitOptions();
-            opts.AmendPreviousCommit = amend;
-            var commit = _repository.Commit(message, author, committer);
-            return commit.Sha;
+                CommitOptions opts = new CommitOptions();
+                opts.AmendPreviousCommit = amend;
+                var commit = repository.Commit(message, author, committer);
+                return commit.Sha;
+            }
         }
 
         public bool CurrentCommitHasRefs()
@@ -315,7 +338,12 @@ namespace GitScc
 
         private Branch GetLib2GitBranch(GitBranchInfo info)
         {
-            return _repository.Branches.FirstOrDefault(x => string.Equals(x.CanonicalName, info.CanonicalName, StringComparison.OrdinalIgnoreCase));
+            using (var repository = GetRepository())
+            {
+                return
+                    repository.Branches.FirstOrDefault(
+                        x => string.Equals(x.CanonicalName, info.CanonicalName, StringComparison.OrdinalIgnoreCase));
+            }
         }
 
 
@@ -324,21 +352,24 @@ namespace GitScc
             var result = new GitActionResult<GitBranchInfo>();
             try
             {
-                var branch = _repository.CreateBranch(branchName, "HEAD");
-                if (branch != null)
+                using (var repository = GetRepository())
                 {
-                    result.Item = new GitBranchInfo
+                    var branch = repository.CreateBranch(branchName, "HEAD");
+                    if (branch != null)
                     {
-                        CanonicalName = branch.CanonicalName,
-                        RemoteName = branch.Remote?.Name,
-                        Name = branch.FriendlyName,
-                        IsRemote = branch.IsRemote
-                    };
-                    result.Succeeded = true;
-                }
-                else
-                {
-                    result.Succeeded = false;
+                        result.Item = new GitBranchInfo
+                        {
+                            CanonicalName = branch.CanonicalName,
+                            RemoteName = branch.Remote?.Name,
+                            Name = branch.FriendlyName,
+                            IsRemote = branch.IsRemote
+                        };
+                        result.Succeeded = true;
+                    }
+                    else
+                    {
+                        result.Succeeded = false;
+                    }
                 }
             }
             catch (Exception ex)
@@ -353,14 +384,17 @@ namespace GitScc
         {
             get
             {
-                var branch = _repository.Head;
-                return new GitBranchInfo
+                using (var repository = GetRepository())
                 {
-                    CanonicalName = branch.CanonicalName,
-                    RemoteName = branch.Remote?.Name,
-                    Name = branch.FriendlyName,
-                    IsRemote = branch.IsRemote
-                };
+                    var branch = repository.Head;
+                    return new GitBranchInfo
+                    {
+                        CanonicalName = branch.CanonicalName,
+                        RemoteName = branch.Remote?.Name,
+                        Name = branch.FriendlyName,
+                        IsRemote = branch.IsRemote
+                    };
+                }
             }
         }
 
@@ -368,14 +402,17 @@ namespace GitScc
         {
             get
             {
-                var names = new List<string>();
-
-                foreach (Branch b in _repository.Branches.Where(b => !b.IsRemote))
+                using (var repository = GetRepository())
                 {
-                    names.Add(b.FriendlyName);
-                }
+                    var names = new List<string>();
 
-                return names;
+                    foreach (Branch b in repository.Branches.Where(b => !b.IsRemote))
+                    {
+                        names.Add(b.FriendlyName);
+                    }
+
+                    return names;
+                }
             }
         }
 
@@ -383,39 +420,77 @@ namespace GitScc
         {
             get
             {
-                var names = new List<string>();
-
-                foreach (Branch b in _repository.Branches.Where(b => b.IsRemote))
+                using (var repository = GetRepository())
                 {
-                    names.Add(b.FriendlyName);
+                    var names = new List<string>();
+
+                    foreach (Branch b in repository.Branches.Where(b => b.IsRemote))
+                    {
+                        names.Add(b.FriendlyName);
+                    }
+                    return names;
                 }
-                return names;
             }
         }
 
         public List<GitBranchInfo> GetBranchInfo(bool includeRemote = true, bool includeLocal = true)
         {
-            var branches = new List<GitBranchInfo>();
+            using (var repository = GetRepository())
+            {
+                if (_branchInfoList == null || _branchInfoList.Count <= 0)
+                {
+                    _branchInfoList = new List<GitBranchInfo>();
 
-            if (includeRemote && includeLocal)
-            {
-                branches.AddRange(_repository.Branches.Select(b => new GitBranchInfo { CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote }));
-            }
-            else if (includeRemote && !includeLocal)
-            {
-                branches.AddRange(_repository.Branches.Where(b => b.IsRemote).Select(b => new GitBranchInfo { CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote }));
-            }
-            else
-            {
-                branches.AddRange(_repository.Branches.Where(b => !b.IsRemote).Select(b => new GitBranchInfo { CanonicalName = b.CanonicalName, RemoteName = b.Remote?.Name, Name = b.FriendlyName, IsRemote = b.IsRemote }));
-            }
+                    if (includeRemote && includeLocal)
+                    {
+                        _branchInfoList.AddRange(
+                            repository.Branches.Select(
+                                b =>
+                                    new GitBranchInfo
+                                    {
+                                        CanonicalName = b.CanonicalName,
+                                        RemoteName = b.Remote?.Name,
+                                        Name = b.FriendlyName,
+                                        IsRemote = b.IsRemote
+                                    }));
+                    }
+                    else if (includeRemote && !includeLocal)
+                    {
+                        _branchInfoList.AddRange(
+                            repository.Branches.Where(b => b.IsRemote)
+                                .Select(
+                                    b =>
+                                        new GitBranchInfo
+                                        {
+                                            CanonicalName = b.CanonicalName,
+                                            RemoteName = b.Remote?.Name,
+                                            Name = b.FriendlyName,
+                                            IsRemote = b.IsRemote
+                                        }));
+                    }
+                    else
+                    {
+                        _branchInfoList.AddRange(
+                            repository.Branches.Where(b => !b.IsRemote)
+                                .Select(
+                                    b =>
+                                        new GitBranchInfo
+                                        {
+                                            CanonicalName = b.CanonicalName,
+                                            RemoteName = b.Remote?.Name,
+                                            Name = b.FriendlyName,
+                                            IsRemote = b.IsRemote
+                                        }));
+                    }
 
-            //we did not find and branch.. must just have a master and never pushed to the server
-            if (branches.Count == 0)
-            {
-                branches.Add(CurrentBranchInfo);
+                    //we did not find and branch.. must just have a master and never pushed to the server
+                    if (_branchInfoList.Count == 0)
+                    {
+                        _branchInfoList.Add(CurrentBranchInfo);
+                    }
+                }
+                return _branchInfoList;
             }
-            return branches;
         }
 
         #endregion
@@ -485,46 +560,54 @@ namespace GitScc
 
         public string Diff(string fileName)
         {
-            var diffTree = _repository.Diff.Compare<Patch>(_repository.Head.Tip.Tree,
-                DiffTargets.Index | DiffTargets.WorkingDirectory);
+            using (var repository = GetRepository())
+            {
+                var diffTree = repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
+                    DiffTargets.Index | DiffTargets.WorkingDirectory);
 
-            return diffTree[fileName].Patch;
+                return diffTree[fileName].Patch;
+            }
 
         }
 
         public string DiffFile(string fileName)
         {
-            var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
-            foreach (var c in _repository.Diff.Compare<Patch>(_repository.Head.Tip.Tree,
-                                                  DiffTargets.Index | DiffTargets.WorkingDirectory))
+            using (var repository = GetRepository())
             {
-
-                Console.WriteLine(c.Patch);
-            }
-
-            try
-            {
-                var status = GetFileStatus(fileName);
-                if (status == GitFileStatus.NotControlled || status == GitFileStatus.New || status == GitFileStatus.Added)
+                var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
+                foreach (var c in repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
+                    DiffTargets.Index | DiffTargets.WorkingDirectory))
                 {
-                    tmpFileName = Path.ChangeExtension(tmpFileName, Path.GetExtension(fileName));
-                    File.Copy(Path.Combine(WorkingDirectory, fileName), tmpFileName);
 
-                    if (IsBinaryFile(tmpFileName))
-                    {
-                        File.Delete(tmpFileName);
-                        File.WriteAllText(tmpFileName, "Binary file: " + fileName);
-                    }
-                    return tmpFileName;
+                    Console.WriteLine(c.Patch);
                 }
 
-                GitBash.RunCmd(string.Format("diff HEAD -- \"{0}\" > \"{1}\"", fileName, tmpFileName), WorkingDirectory);
+                try
+                {
+                    var status = GetFileStatus(fileName);
+                    if (status == GitFileStatus.NotControlled || status == GitFileStatus.New ||
+                        status == GitFileStatus.Added)
+                    {
+                        tmpFileName = Path.ChangeExtension(tmpFileName, Path.GetExtension(fileName));
+                        File.Copy(Path.Combine(WorkingDirectory, fileName), tmpFileName);
+
+                        if (IsBinaryFile(tmpFileName))
+                        {
+                            File.Delete(tmpFileName);
+                            File.WriteAllText(tmpFileName, "Binary file: " + fileName);
+                        }
+                        return tmpFileName;
+                    }
+
+                    GitBash.RunCmd(string.Format("diff HEAD -- \"{0}\" > \"{1}\"", fileName, tmpFileName),
+                        WorkingDirectory);
+                }
+                catch (Exception ex)
+                {
+                    File.WriteAllText(tmpFileName, ex.Message);
+                }
+                return tmpFileName;
             }
-            catch (Exception ex)
-            {
-                File.WriteAllText(tmpFileName, ex.Message);
-            }
-            return tmpFileName;
         }
 
         public string ChangedFilesStatus
@@ -597,12 +680,20 @@ namespace GitScc
             var files = new List<GitFile>();
             try
             {
-                u
-                foreach (var item in _repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = false, RecurseIgnoredDirs = false }))
+                using (var repository = GetRepository())
                 {
-                    if (IsChangedStatus(item.State))
+                    foreach (
+                        var item in
+                            repository.RetrieveStatus(new StatusOptions()
+                            {
+                                IncludeUnaltered = false,
+                                RecurseIgnoredDirs = false
+                            }))
                     {
-                        files.Add(new GitFile(_repository, item));
+                        if (IsChangedStatus(item.State))
+                        {
+                            files.Add(new GitFile(repository, item));
+                        }
                     }
                 }
             }
@@ -627,42 +718,53 @@ namespace GitScc
 
         private List<GitFile> GetCurrentFilesStatus()
         {
-            return _repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = true, RecurseIgnoredDirs = false }).Select(item => new GitFile(_repository, item)).ToList();
+            using (var repository = GetRepository())
+            {
+                return
+                    repository.RetrieveStatus(new StatusOptions() {IncludeUnaltered = true, RecurseIgnoredDirs = false})
+                        .Select(item => new GitFile(repository, item))
+                        .ToList();
+
+            }
         }
 
 
         private void SetBranchName(bool supressEvent = false)
         {
-            //logic getting complicated time to breka it out
-            if (_cachedBranchOperation != _repository.Info.CurrentOperation)
+            using (var repository = GetRepository())
             {
-                _cachedBranchOperation = _repository.Info.CurrentOperation;
-                _cachedBranchName = null;
-            }
-            if (string.IsNullOrWhiteSpace(_cachedBranchName) || !string.Equals(_cachedBranchName, _repository.Head.FriendlyName))
-            {
-                //if ((string.IsNullOrWhiteSpace(_repository.Head.FriendlyName) && string.Equals(_cachedBranchName, "master")) )
-                //{
-                    
-                    var newBranchName = string.IsNullOrWhiteSpace(_repository.Head.FriendlyName)
+                //logic getting complicated time to breka it out
+                if (_cachedBranchOperation != repository.Info.CurrentOperation)
+                {
+                    _cachedBranchOperation = repository.Info.CurrentOperation;
+                    _cachedBranchName = null;
+                }
+                if (string.IsNullOrWhiteSpace(_cachedBranchName) ||
+                    !string.Equals(_cachedBranchName, repository.Head.FriendlyName))
+                {
+                    //if ((string.IsNullOrWhiteSpace(repository.Head.FriendlyName) && string.Equals(_cachedBranchName, "master")) )
+                    //{
+
+                    var newBranchName = string.IsNullOrWhiteSpace(repository.Head.FriendlyName)
                         ? "master"
-                        : _repository.Head.FriendlyName;
-                if (string.Equals(_cachedBranchName, newBranchName))
-                {
-                    supressEvent = true;
-                }
-                else
-                {
-                    _cachedBranchName = newBranchName;
-                    _branchDisplayName = null;
-                }
-                
+                        : repository.Head.FriendlyName;
+                    if (string.Equals(_cachedBranchName, newBranchName))
+                    {
+                        supressEvent = true;
+                    }
+                    else
+                    {
+                        _cachedBranchName = newBranchName;
+                        _branchDisplayName = null;
+                    }
+
                     if (!supressEvent)
                     {
                         FireBranchChangedEvent(_cachedBranchName);
                     }
-                //}
+                    //}
 
+                }
             }
         }
 
@@ -678,32 +780,35 @@ namespace GitScc
                 }
                 if (_branchDisplayName == null)
                 {
-                    _branchDisplayName = _cachedBranchName;
-                    var repoState = _repository.Info.CurrentOperation;
-
-                    switch (repoState)
+                    using (var repository = GetRepository())
                     {
-                        case CurrentOperation.Merge:
-                            _branchDisplayName += " | MERGING";
-                            break;
-                        case CurrentOperation.Revert:
-                            _branchDisplayName += " | REVERTING";
-                            break;
-                        case CurrentOperation.CherryPick:
-                            _branchDisplayName += " | CHERRY-PIKCING";
-                            break;
-                        case CurrentOperation.Bisect:
-                            _branchDisplayName += " | BISECTING";
-                            break;
-                        case CurrentOperation.Rebase:
-                            _branchDisplayName += " | REBASE";
-                            break;
-                        case CurrentOperation.RebaseInteractive:
-                            _branchDisplayName += " | REBASE-i";
-                            break;
-                        case CurrentOperation.RebaseMerge:
-                            _branchDisplayName += " | REBASE-MERGE";
-                            break;
+                        _branchDisplayName = _cachedBranchName;
+                        var repoState = repository.Info.CurrentOperation;
+
+                        switch (repoState)
+                        {
+                            case CurrentOperation.Merge:
+                                _branchDisplayName += " | MERGING";
+                                break;
+                            case CurrentOperation.Revert:
+                                _branchDisplayName += " | REVERTING";
+                                break;
+                            case CurrentOperation.CherryPick:
+                                _branchDisplayName += " | CHERRY-PIKCING";
+                                break;
+                            case CurrentOperation.Bisect:
+                                _branchDisplayName += " | BISECTING";
+                                break;
+                            case CurrentOperation.Rebase:
+                                _branchDisplayName += " | REBASE";
+                                break;
+                            case CurrentOperation.RebaseInteractive:
+                                _branchDisplayName += " | REBASE-i";
+                                break;
+                            case CurrentOperation.RebaseMerge:
+                                _branchDisplayName += " | REBASE-MERGE";
+                                break;
+                        }
                     }
                 }
                 return _branchDisplayName;
@@ -832,14 +937,17 @@ namespace GitScc
         {
             var relativePath = "";
             Blob oldBlob = null;
-            if (TryGetRelativePath(filename, out relativePath))
+            using (var repository = GetRepository())
             {
-                string objectName = Path.GetFileName(filename);
-
-                var indexEntry = _repository.Index[relativePath];
-                if (indexEntry != null)
+                if (TryGetRelativePath(filename, out relativePath))
                 {
-                    oldBlob = _repository.Lookup<Blob>(indexEntry.Id);
+                    string objectName = Path.GetFileName(filename);
+
+                    var indexEntry = repository.Index[relativePath];
+                    if (indexEntry != null)
+                    {
+                        oldBlob = repository.Lookup<Blob>(indexEntry.Id);
+                    }
                 }
             }
             return oldBlob != null ? oldBlob.GetContentText(new FilteringOptions(relativePath)) : string.Empty;
@@ -849,19 +957,22 @@ namespace GitScc
         {
             get
             {
-                var diffGuiTool = _repository.Config.Get<string>("diff.guitool");
-                if (diffGuiTool == null)
+                using (var repository = GetRepository())
                 {
-                    diffGuiTool = _repository.Config.Get<string>("diff.tool");
+                    var diffGuiTool = repository.Config.Get<string>("diff.guitool");
                     if (diffGuiTool == null)
+                    {
+                        diffGuiTool = repository.Config.Get<string>("diff.tool");
+                        if (diffGuiTool == null)
+                            return string.Empty;
+                    }
+
+                    var diffCmd = repository.Config.Get<string>("difftool." + diffGuiTool.Value + ".cmd");
+                    if (diffCmd == null || diffCmd.Value == null)
                         return string.Empty;
+
+                    return diffCmd.Value;
                 }
-
-                var diffCmd = _repository.Config.Get<string>("difftool." + diffGuiTool.Value + ".cmd");
-                if (diffCmd == null || diffCmd.Value == null)
-                    return string.Empty;
-
-                return diffCmd.Value;
             }
         }
 
@@ -869,18 +980,21 @@ namespace GitScc
         {
             var relativePath = "";
             var revision = "";
-            if (TryGetRelativePath(filename, out relativePath))
+            using (var repository = GetRepository())
             {
-                string objectName = Path.GetFileName(filename);
-                var indexEntry = _repository.Index[relativePath];
-                if (indexEntry != null)
+                if (TryGetRelativePath(filename, out relativePath))
                 {
-                    // determine if the file has been staged
-                    var status = GetFileStatus(filename);
-                    if (status == GitFileStatus.Added || status == GitFileStatus.Staged)
-                        revision = "index";
-                    else
-                        revision = _repository.Head.Tip.Sha.Substring(0, 7);
+                    string objectName = Path.GetFileName(filename);
+                    var indexEntry = repository.Index[relativePath];
+                    if (indexEntry != null)
+                    {
+                        // determine if the file has been staged
+                        var status = GetFileStatus(filename);
+                        if (status == GitFileStatus.Added || status == GitFileStatus.Staged)
+                            revision = "index";
+                        else
+                            revision = repository.Head.Tip.Sha.Substring(0, 7);
+                    }
                 }
             }
             return revision;
@@ -1013,8 +1127,8 @@ namespace GitScc
         public void Dispose()
         {
             DisableRepositoryWatcher();
-            _repository.Dispose();
-            _repository = null;
+            //repository.Dispose();
+            //repository = null;
         }
     }
 
