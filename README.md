@@ -64,12 +64,12 @@ How to use
 *Added ability to update your .gitingore file to latest version from github
 
     ---Fixes---
-*   Theme now swithes with the need to resart.
+*   Theme now switches with the need to resart.
 
 
 **V1.4.2**
 
-*   Fixed Issues #1,#7,#8,#9,#10,#11, #12
+*   Fixed Issues #1, #7, #8, #9, #10, #11 and #12
 *   Fixed Switch command
 *   Added dark theme form diff window
 
