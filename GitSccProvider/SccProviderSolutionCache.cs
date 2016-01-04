@@ -28,7 +28,7 @@ namespace GitSccProvider
             _projects = new List<IVsSccProject2>();
             _fileProjectLookup = new ConcurrentDictionary<string, List<VSITEMSELECTION>>();
             _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
-            _lastNewFileScan = DateTime.UtcNow;
+            _lastNewFileScan = DateTime.MinValue;
         }
 
         private void AddFileToList(string filename, IVsSccProject2 project)
@@ -98,11 +98,12 @@ namespace GitSccProvider
         private List<VSITEMSELECTION> GetProjectsSelectionForFile(string filename, bool search)
         {
             List<VSITEMSELECTION> projects;
-            if (!_fileProjectLookup.TryGetValue(filename, out projects))
+            var filePath = filename.ToLower();
+            if (!_fileProjectLookup.TryGetValue(filePath, out projects))
             {
                 if (!search)
                 {
-                    _fileProjectLookup.TryAdd(filename, null);
+                    _fileProjectLookup.TryAdd(filePath, null);
                     return null;
                 }
                 else
@@ -110,8 +111,9 @@ namespace GitSccProvider
                     if (DateTime.UtcNow > _lastNewFileScan.AddSeconds(_projectScanDelaySeconds))
                     {
                         ScanSolution();
+                        _lastNewFileScan = DateTime.UtcNow;
                     }
-                    projects = GetProjectsSelectionForFile(filename, false);
+                    projects = GetProjectsSelectionForFile(filePath, false);
                 }
             }
             return projects;
@@ -120,16 +122,20 @@ namespace GitSccProvider
 
         public void AddProject(IVsSccProject2 project)
         {
-            if (!_projects.Contains(project))
+            if (!_projects.Contains(project) && project != null)
             {
                 _projects.Add(project);
             }
+
             var files = SolutionExtensions.GetProjectFiles(project);
+
             foreach (var file in files)
             {
-                AddFileToList(file, project);
+                AddFileToList(file.ToLower(), project);
             }
         }
+
+
 
         private void ScanSolution()
         {
@@ -138,7 +144,7 @@ namespace GitSccProvider
             {
                 AddProject(project);
             }
-            
+
         }
 
         //TODo Temp

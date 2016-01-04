@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using EnvDTE;
@@ -34,17 +35,56 @@ namespace GitSccProvider.Utilities
         public static IList<string> GetProjectFiles(IVsSccProject2 pscp2Project, uint startItemId)
         {
             IList<string> projectFiles = new List<string>();
-            IVsHierarchy hierProject = (IVsHierarchy)pscp2Project;
-            IList<uint> projectItems = GetProjectItems(hierProject, startItemId);
-
-            foreach (uint itemid in projectItems)
+            if (pscp2Project == null)
             {
-                IList<string> sccFiles = GetNodeFiles(pscp2Project, itemid);
-                foreach (string file in sccFiles)
+                return projectFiles;
+            }
+            IVsHierarchy hierProject = (IVsHierarchy)pscp2Project;
+            
+
+
+            //if (solutionService.GetProjectOfUniqueName(project.UniqueName, out projectHierarchy) == S_OK)
+            //{
+            //    if (projectHierarchy != null)
+            //    {
+
+            //    }
+            //}
+            
+
+            var itemid = VSConstants.VSITEMID_ROOT;
+            object objProj;
+            hierProject.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
+            var project = objProj as EnvDTE.Project;
+            var tttet = project.Name;
+            foreach (ProjectItem projectItem in project.ProjectItems)
+            {
+                try
                 {
-                    projectFiles.Add(file);
+                    if (projectItem.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+                    {
+                        projectFiles.Add(projectItem.get_FileNames(0));
+                    }
+                }
+                catch (Exception)
+                {
+
+                    
                 }
             }
+
+
+            //IVsHierarchy hierProject = (IVsHierarchy)pscp2Project;
+            //IList<uint> projectItems = GetProjectItems(hierProject, startItemId);
+
+            //foreach (uint itemid in projectItems)
+            //{
+            //    IList<string> sccFiles = GetNodeFiles(pscp2Project, itemid);
+            //    foreach (string file in sccFiles)
+            //    {
+            //        projectFiles.Add(file);
+            //    }
+            //}
 
             return projectFiles;
         }
@@ -165,6 +205,11 @@ namespace GitSccProvider.Utilities
 
                         //DebugWalkingNode(pHier, childnode);
                         //TODO exception to fix here
+                        var propertyCache = pHier.GetProperty(childnode, (int) __VSHPROPID.VSHPROPID_Expandable,
+                            out property);
+                        object property2 = null;
+                        var propertyCache2 = pHier.GetProperty(childnode, (int)__VSHPROPID.VSHPROPID_Name,
+                          out property2);
                         if ((pHier.GetProperty(childnode, (int)__VSHPROPID.VSHPROPID_Expandable, out property) == VSConstants.S_OK && (int)property != 0) ||
                             (pHier.GetProperty(childnode, (int)__VSHPROPID2.VSHPROPID_Container, out property) == VSConstants.S_OK && (bool)property))
                         {
