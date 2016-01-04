@@ -37,6 +37,11 @@ namespace GitScc
         private object _repoUpdateLock = new object();
         private List<GitBranchInfo> _branchInfoList;
 
+        private DateTime _lastFileEvent = DateTime.MinValue;
+        private DateTime _lastGitEvent = DateTime.MinValue;
+        private static int _fileEventDelay = 2;
+        private static int _gitEventDelay = 2;
+
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
         private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
@@ -142,7 +147,7 @@ namespace GitScc
 
             var extension = Path.GetExtension(fullPath)?.ToLower();
 
-            if (string.Equals(extension, ".suo"))
+            if (extension != null && (string.Equals(extension, ".suo") || extension.EndsWith("~")))
             {
                 return;
             }
@@ -158,21 +163,27 @@ namespace GitScc
 
             if (fullPath.IsSubPathOf(repositoryPath))
             {
-                HandleGitFileSystemChange();
+                if ((DateTime.UtcNow - _lastGitEvent).TotalSeconds > _gitEventDelay)
+                {
+                    HandleGitFileSystemChange();
+                    _lastGitEvent = DateTime.UtcNow;
+                }
             }
             else
             {
                 using (var repository = GetRepository())
                 {
-                    
-                
                     if (repository.Ignore.IsPathIgnored(fullPath.Remove(0, WorkingDirectory.Length)))
                 {
-                    int i = 3;
+                    return;
                 }
                 else
                 {
-                    FireFileChangedEvent(filename, fullPath);
+                        //if ((DateTime.UtcNow - _lastFileEvent).TotalSeconds > _fileEventDelay)
+                        //
+                            FireFileChangedEvent(filename, fullPath);
+                        //    _lastFileEvent = DateTime.UtcNow;
+                        //}
                 }
                 }
 

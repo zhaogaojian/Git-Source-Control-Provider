@@ -32,6 +32,8 @@ namespace GitScc
         public bool UseVsDiff { get; set; }
         public DiffTools DiffTool { get; set; }
 
+        public bool TrackActiveGitRepo { get; set; }
+
         private static GitSccOptions gitSccOptions;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -67,7 +69,10 @@ namespace GitScc
 
         private GitSccOptions()
         {
-            
+            //As Homer Simpson would say.. "Default? Woohoo! The two sweetest words in the English language!"
+            //Default settings
+            TrackActiveGitRepo = true;
+            DisableAutoRefresh = true;
         }
 
         internal static GitSccOptions LoadFromConfig()

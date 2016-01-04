@@ -63,10 +63,8 @@ namespace GitScc
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
             RepositoryManager.Instance.SolutionTrackerBranchChanged += RepositoryManager_SolutionTrackerBranchChanged;
             //this.trackers = trackers;
-
             SetupSolutionEvents();
             SetupDocumentEvents();
-
         }
 
 

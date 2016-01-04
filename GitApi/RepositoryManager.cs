@@ -161,6 +161,11 @@ namespace GitScc
                 }
             }
 
+            if (setActiveTracker)
+            {
+                ActiveTracker = repo;
+            }
+
             return repo;
         }
 

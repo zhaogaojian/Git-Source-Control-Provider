@@ -56,12 +56,12 @@ namespace GitScc
         private CheckBox checkBox1;
         private CheckBox checkBox2;
         private CheckBox checkBox3;
-        private CheckBox checkBox4;
         private CheckBox checkBox5;
         private CheckBox checkBox6;
         private ComboBox cbDiffTool;
         private Label label3;
         private Label label5;
+        private CheckBox _cbrepoTrack;
 
         // The parent page, use to persist data
         private SccProviderOptions _customPage;
@@ -113,12 +113,12 @@ namespace GitScc
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.cbDiffTool = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
+            this._cbrepoTrack = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // openFileDialog1
@@ -253,17 +253,6 @@ namespace GitScc
             this.checkBox3.Text = "Use TortoiseGit style icon set";
             this.checkBox3.UseVisualStyleBackColor = true;
             // 
-            // checkBox4
-            // 
-            this.checkBox4.AutoSize = true;
-            this.checkBox4.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox4.Location = new System.Drawing.Point(6, 252);
-            this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(120, 17);
-            this.checkBox4.TabIndex = 26;
-            this.checkBox4.Text = "Disable auto-refresh";
-            this.checkBox4.UseVisualStyleBackColor = true;
-            // 
             // checkBox5
             // 
             this.checkBox5.AutoSize = true;
@@ -316,16 +305,29 @@ namespace GitScc
             this.label5.TabIndex = 31;
             this.label5.Text = "Select Diff Tool";
             // 
+            // _cbrepoTrack
+            // 
+            this._cbrepoTrack.AutoSize = true;
+            this._cbrepoTrack.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this._cbrepoTrack.Location = new System.Drawing.Point(6, 253);
+            this._cbrepoTrack.Name = "_cbrepoTrack";
+            this._cbrepoTrack.Size = new System.Drawing.Size(116, 17);
+            this._cbrepoTrack.TabIndex = 32;
+            this._cbrepoTrack.Text = "Track Active Repo";
+            this._cbrepoTrack.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
+            this._cbrepoTrack.UseVisualStyleBackColor = true;
+            this._cbrepoTrack.CheckedChanged += new System.EventHandler(this._cbrepoTrack_CheckedChanged);
+            // 
             // SccProviderOptionsControl
             // 
             this.AllowDrop = true;
             this.AutoScroll = true;
             this.AutoSize = true;
+            this.Controls.Add(this._cbrepoTrack);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.cbDiffTool);
             this.Controls.Add(this.checkBox6);
             this.Controls.Add(this.checkBox5);
-            this.Controls.Add(this.checkBox4);
             this.Controls.Add(this.checkBox3);
             this.Controls.Add(this.checkBox2);
             this.Controls.Add(this.checkBox1);
@@ -367,10 +369,11 @@ namespace GitScc
             this.checkBox1.Checked = GitSccOptions.Current.NotExpandGitExtensions;
             this.checkBox2.Checked = GitSccOptions.Current.NotExpandTortoiseGit;
             this.checkBox3.Checked = GitSccOptions.Current.UseTGitIconSet;
-            this.checkBox4.Checked = GitSccOptions.Current.DisableAutoRefresh;
+            //this.checkBox4.Checked = GitSccOptions.Current.DisableAutoRefresh;
             this.checkBox5.Checked = GitSccOptions.Current.DisableAutoLoad;
             this.checkBox6.Checked = GitSccOptions.Current.NotUseUTF8FileNames;
             //this.useVsDiffChk.Checked = GitSccOptions.Current.UseVsDiff;
+            _cbrepoTrack.Checked = GitSccOptions.Current.TrackActiveGitRepo;
             cbDiffTool.Items.Clear();
             PopulateDiffTools();
 
@@ -419,8 +422,9 @@ namespace GitScc
             GitSccOptions.Current.NotExpandGitExtensions = this.checkBox1.Checked;
             GitSccOptions.Current.NotExpandTortoiseGit = this.checkBox2.Checked;
             GitSccOptions.Current.UseTGitIconSet = this.checkBox3.Checked;
-            GitSccOptions.Current.DisableAutoRefresh = this.checkBox4.Checked;
+            GitSccOptions.Current.DisableAutoRefresh = true;
             GitSccOptions.Current.DisableAutoLoad = this.checkBox5.Checked;
+            GitSccOptions.Current.TrackActiveGitRepo = _cbrepoTrack.Checked;
             GitSccOptions.Current.NotUseUTF8FileNames = this.checkBox6.Checked;
             GitSccOptions.Current.DisableDiffMargin = true;
             GitSccOptions.Current.UseVsDiff = false;
@@ -482,6 +486,16 @@ namespace GitScc
         }
 
         private void cbDiffTool_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBox4_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void _cbrepoTrack_CheckedChanged(object sender, EventArgs e)
         {
 
         }

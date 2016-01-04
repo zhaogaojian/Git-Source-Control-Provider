@@ -61,7 +61,9 @@ How to use
 **C.I Build - V1.4.3** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
 
     ---New Features---
-*Added ability to update your .gitingore file to latest version from github
+*   Added ability to update your .gitingore file to latest version from github
+*   Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  
+
 
     ---Fixes---
 *   Theme now switches with the need to resart.
