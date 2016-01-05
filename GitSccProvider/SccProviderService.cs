@@ -13,6 +13,7 @@ using EnvDTE;
 using GitSccProvider;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using CancellationToken = System.Threading.CancellationToken;
 using CommandID = System.ComponentModel.Design.CommandID;
@@ -103,7 +104,7 @@ namespace GitScc
             GlobalCommandHook hook = GlobalCommandHook.GetInstance(_sccProvider);
             hook.HookCommand(new CommandID(VSConstants.VSStd2K, (int)VSConstants.VSStd2KCmdID.SLNREFRESH), HandleSolutionRefresh);
 
-            MarkDirty(false);
+            //MarkDirty(false);
             return VSConstants.S_OK;
         }
 
@@ -291,8 +292,9 @@ namespace GitScc
 
         #region File Names
 
-        private void SetSolutionExplorerTitle(string message)
+        private async void SetSolutionExplorerTitle(string message)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var dte = (DTE)_sccProvider.GetService(typeof(DTE));
             dte.Windows.Item(EnvDTE.Constants.vsWindowKindSolutionExplorer).Caption = message;
         }
@@ -568,7 +570,7 @@ namespace GitScc
 
             try
             {
-                await Task.Run(() => ProcessSingleFileSystemChange((GitRepository)sender, e));
+                ProcessSingleFileSystemChange((GitRepository)sender, e);
             }
             catch (Exception ex)
             {
@@ -599,7 +601,7 @@ namespace GitScc
         private void SetSolutionExplorerTitle()
         {
             var caption = "Solution Explorer";
-            string branch = RepositoryManager.Instance.SolutionTracker.CurrentBranchDisplayName;
+            string branch = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
             if (!string.IsNullOrEmpty(branch))
             {
                 caption += " (" + branch + ")";
@@ -621,17 +623,20 @@ namespace GitScc
             MarkDirty(false);
         }
 
-        private void ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
-        { 
-            lock (_glyphsLock)
-            {
-                repo.Refresh();
+        private async Task ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
+        {
+            //lock (_glyphsLock)
+            //{
+              await Task.Run(async delegate {
+                await Task.Run(() => repo.Refresh());
                 IList<VSITEMSELECTION> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
                 if (nodes != null)
                 {
                     RefreshNodesGlyphs(nodes);
                 }
-            }
+            });
+           
+           // }
         }
 
         private void ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)

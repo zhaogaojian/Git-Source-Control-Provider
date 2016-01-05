@@ -693,19 +693,12 @@ namespace GitScc
             {
                 using (var repository = GetRepository())
                 {
-                    foreach (
-                        var item in
-                            repository.RetrieveStatus(new StatusOptions()
-                            {
-                                IncludeUnaltered = false,
-                                RecurseIgnoredDirs = false
-                            }))
+                    var repoFiles = repository.RetrieveStatus(new StatusOptions()
                     {
-                        if (IsChangedStatus(item.State))
-                        {
-                            files.Add(new GitFile(repository, item));
-                        }
-                    }
+                        IncludeUnaltered = false,
+                        RecurseIgnoredDirs = false
+                    });
+                    files.AddRange(from item in repoFiles where IsChangedStatus(item.State) select new GitFile(repository, item));
                 }
             }
             catch (Exception ex)

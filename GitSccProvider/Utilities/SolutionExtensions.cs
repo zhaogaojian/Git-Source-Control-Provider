@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -56,7 +57,7 @@ namespace GitSccProvider.Utilities
             object objProj;
             hierProject.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
             var project = objProj as EnvDTE.Project;
-            if (project != null)
+            if (project != null && project.Kind != ProjectKinds.vsProjectKindSolutionFolder)
             {
                 foreach (ProjectItem projectItem in project.ProjectItems)
                 {
@@ -69,8 +70,7 @@ namespace GitSccProvider.Utilities
                     }
                     catch (Exception)
                     {
-
-
+                        Debug.WriteLine("==== Error With : "  + project.Name + " Type : " + project.Kind);
                     }
                 }
             }

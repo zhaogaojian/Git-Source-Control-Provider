@@ -23,6 +23,8 @@ using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using CancellationToken = System.Threading.CancellationToken;
 using IVsTextView = Microsoft.VisualStudio.TextManager.Interop.IVsTextView;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Threading;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace GitScc
 {
@@ -37,6 +39,7 @@ namespace GitScc
         private IVsTextView textView;
         private string[] diffLines;
         private bool _diffHightlighted = false;
+        private bool _refreshing = false; 
 
         private GridViewColumnHeader _currentSortedColumn;
         private ListSortDirection _lastSortDirection;
@@ -344,108 +347,185 @@ namespace GitScc
 
         internal async Task Refresh()
         {
-            if (!GitBash.Exists)
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (!_refreshing)
             {
-                 Settings.Show(); 
-                return;
-            }
-            else
-                 Settings.Hide();
+                _refreshing = true;
+                label3.Content = "Changed files (Updating...)";
 
-            await Dispatcher.InvokeAsync(() =>
-            {
-                this.label3.Content = "Changed files";
-            });
-            
-            //this.gitConsole1.tracker = tracker;
-
-            if (CurrentTracker == null)
-            {
-                using (service.DisableRefresh())
+                if (CurrentTracker == null)
                 {
                     ClearUI();
+                    label3.Content = "Changed files";
+                    return;
                 }
+                var files = await GetFileList();
+                UpdateFileListUI(files);
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _refreshing = false;
+            }
+        }
 
-                return;
+        private async Task<List<GitFile>> GetFileList()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            ShowStatusMessage("Getting changed files ...");
+            await TaskScheduler.Default;
+            return CurrentTracker.ChangedFiles.ToList();
+        }
+
+        private async void UpdateFileListUI(List<GitFile> changedFiles)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var selectedFile = GetSelectedFileName();
+            var selectedFiles = this.listView1.Items.Cast<GitFile>()
+                .Where(i => i.IsSelected)
+                .Select(i => i.FileName).ToList();
+
+            this.listView1.BeginInit();
+            try
+            {
+                this.listView1.ItemsSource = changedFiles;
+
+                SortCurrentColumn();
+
+                this.listView1.SelectedValue = selectedFile;
+                selectedFiles.ForEach(fn =>
+                {
+                    var item = this.listView1.Items.Cast<GitFile>()
+                        .Where(i => i.FileName == fn)
+                        .FirstOrDefault();
+                    if (item != null)
+                        item.IsSelected = true;
+                });
+
+                ShowStatusMessage("");
+
+                var changed = changedFiles;
+                this.label3.Content = string.Format("Changed files (+{0} ~{1} -{2} !{3})",
+                    changed.Where(f => f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added).Count(),
+                    changed.Where(f => f.Status == GitFileStatus.Modified || f.Status == GitFileStatus.Staged).Count(),
+                    changed.Where(f => f.Status == GitFileStatus.Deleted || f.Status == GitFileStatus.Removed).Count(),
+                    changed.Where(f => f.Status == GitFileStatus.Conflict).Count());
+
+                if (!changedFiles.Any())
+                {
+                    this.ClearEditor();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage(ex.Message);
             }
 
-            Func<IEnumerable<GitFile>> getChangedFiles = () =>
-            {
-                Action action = () => ShowStatusMessage("Getting changed files ...");
-                Dispatcher.Invoke(action);
-                return CurrentTracker.ChangedFiles;
-            };
-
-            Action<IEnumerable<GitFile>> refreshAction = changedFiles =>
-            {
-                using (service.DisableRefresh())
-                {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
-                    var selectedFile = GetSelectedFileName();
-                    var selectedFiles = this.listView1.Items.Cast<GitFile>()
-                        .Where(i => i.IsSelected)
-                        .Select(i => i.FileName).ToList();
-
-                    this.listView1.BeginInit();
-
-                    try
-                    {
-                        this.listView1.ItemsSource = changedFiles;
-
-                        SortCurrentColumn();
-
-                        this.listView1.SelectedValue = selectedFile;
-                        selectedFiles.ForEach(fn =>
-                        {
-                            var item = this.listView1.Items.Cast<GitFile>()
-                                .Where(i => i.FileName == fn)
-                                .FirstOrDefault();
-                            if (item != null)
-                                item.IsSelected = true;
-                        });
-
-                        ShowStatusMessage("");
-
-                        var changed = changedFiles;
-                        this.label3.Content = string.Format("Changed files (+{0} ~{1} -{2} !{3})",
-                            changed.Where(f => f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added).Count(),
-                            changed.Where(f => f.Status == GitFileStatus.Modified || f.Status == GitFileStatus.Staged).Count(),
-                            changed.Where(f => f.Status == GitFileStatus.Deleted || f.Status == GitFileStatus.Removed).Count(),
-                            changed.Where(f => f.Status == GitFileStatus.Conflict).Count());
-
-                        if (!changedFiles.Any())
-                        {
-                            this.ClearEditor();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        ShowStatusMessage(ex.Message);
-                    }
-                    this.listView1.EndInit();
-
-                    stopwatch.Stop();
-                    Debug.WriteLine("**** PendingChangesView Refresh: " + stopwatch.ElapsedMilliseconds);
-
-                    if (!GitSccOptions.Current.DisableAutoRefresh && stopwatch.ElapsedMilliseconds > 1000)
-                        this.label4.Visibility = Visibility.Visible;
-                    else
-                        this.label4.Visibility = Visibility.Collapsed;
-                }
-            };
-
-            Action<Task<IEnumerable<GitFile>>> continuationAction = task =>
-            {
-                Dispatcher.Invoke(refreshAction, task.Result);
-            };
-
-            Task.Factory.StartNew(getChangedFiles, CancellationToken.None, TaskCreationOptions.LongRunning, SccProviderService.TaskScheduler)
-                .HandleNonCriticalExceptions()
-                .ContinueWith(continuationAction, TaskContinuationOptions.ExecuteSynchronously)
-                .HandleNonCriticalExceptions();
+            this.listView1.EndInit();
+            Debug.WriteLine("**** PendingChangesView Refresh: ");
         }
+
+        //internal async Task Refresh()
+        //{
+        //    if (!GitBash.Exists)
+        //    {
+        //         Settings.Show(); 
+        //        return;
+        //    }
+        //    else
+        //         Settings.Hide();
+
+        //    await Dispatcher.InvokeAsync(() =>
+        //    {
+        //        this.label3.Content = "Changed files";
+        //    });
+            
+        //    //this.gitConsole1.tracker = tracker;
+
+        //    if (CurrentTracker == null)
+        //    {
+        //        using (service.DisableRefresh())
+        //        {
+        //            ClearUI();
+        //        }
+
+        //        return;
+        //    }
+
+        //    Func<IEnumerable<GitFile>> getChangedFiles = () =>
+        //    {
+        //        Action action = () => ShowStatusMessage("Getting changed files ...");
+        //        Dispatcher.Invoke(action);
+        //        return CurrentTracker.ChangedFiles;
+        //    };
+
+        //    Action<IEnumerable<GitFile>> refreshAction = changedFiles =>
+        //    {
+        //        using (service.DisableRefresh())
+        //        {
+        //            Stopwatch stopwatch = new Stopwatch();
+        //            stopwatch.Start();
+
+        //            var selectedFile = GetSelectedFileName();
+        //            var selectedFiles = this.listView1.Items.Cast<GitFile>()
+        //                .Where(i => i.IsSelected)
+        //                .Select(i => i.FileName).ToList();
+
+        //            this.listView1.BeginInit();
+
+        //            try
+        //            {
+        //                this.listView1.ItemsSource = changedFiles;
+
+        //                SortCurrentColumn();
+
+        //                this.listView1.SelectedValue = selectedFile;
+        //                selectedFiles.ForEach(fn =>
+        //                {
+        //                    var item = this.listView1.Items.Cast<GitFile>()
+        //                        .Where(i => i.FileName == fn)
+        //                        .FirstOrDefault();
+        //                    if (item != null)
+        //                        item.IsSelected = true;
+        //                });
+
+        //                ShowStatusMessage("");
+
+        //                var changed = changedFiles;
+        //                this.label3.Content = string.Format("Changed files (+{0} ~{1} -{2} !{3})",
+        //                    changed.Where(f => f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added).Count(),
+        //                    changed.Where(f => f.Status == GitFileStatus.Modified || f.Status == GitFileStatus.Staged).Count(),
+        //                    changed.Where(f => f.Status == GitFileStatus.Deleted || f.Status == GitFileStatus.Removed).Count(),
+        //                    changed.Where(f => f.Status == GitFileStatus.Conflict).Count());
+
+        //                if (!changedFiles.Any())
+        //                {
+        //                    this.ClearEditor();
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                ShowStatusMessage(ex.Message);
+        //            }
+        //            this.listView1.EndInit();
+
+        //            stopwatch.Stop();
+        //            Debug.WriteLine("**** PendingChangesView Refresh: " + stopwatch.ElapsedMilliseconds);
+
+        //            if (!GitSccOptions.Current.DisableAutoRefresh && stopwatch.ElapsedMilliseconds > 1000)
+        //                this.label4.Visibility = Visibility.Visible;
+        //            else
+        //                this.label4.Visibility = Visibility.Collapsed;
+        //        }
+        //    };
+
+        //    Action<Task<IEnumerable<GitFile>>> continuationAction = task =>
+        //    {
+        //        Dispatcher.Invoke(refreshAction, task.Result);
+        //    };
+
+        //    Task.Factory.StartNew(getChangedFiles, CancellationToken.None, TaskCreationOptions.LongRunning, SccProviderService.TaskScheduler)
+        //        .HandleNonCriticalExceptions()
+        //        .ContinueWith(continuationAction, TaskContinuationOptions.ExecuteSynchronously)
+        //        .HandleNonCriticalExceptions();
+        //}
 
         internal void ClearUI()
         {
@@ -454,6 +534,7 @@ namespace GitScc
             this.ClearEditor();
             var chk = this.listView1.FindVisualChild<CheckBox>("checkBoxAllStaged");
             if (chk != null) chk.IsChecked = false;
+            _refreshing = false;
         }
 
         private string Comments

@@ -153,8 +153,11 @@ namespace GitScc
 
         public override void  UpdateRepositoryName(string repositoryName)
         {
-
-            Caption = string.Format(CAPTION_STRING,Resources.ResourceManager.GetString("PendingChangesToolWindowCaption"),repositoryName);
+            if (!string.IsNullOrEmpty(repositoryName))
+            {
+                Caption = string.Format(CAPTION_STRING,
+                    Resources.ResourceManager.GetString("PendingChangesToolWindowCaption"), repositoryName);
+            }
         }
 
 
