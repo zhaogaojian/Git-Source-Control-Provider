@@ -31,6 +31,14 @@ namespace GitSccProvider
             _lastNewFileScan = DateTime.MinValue;
         }
 
+        public void InValidateCache()
+        {
+            _projects = new List<IVsSccProject2>();
+            _fileProjectLookup = new ConcurrentDictionary<string, List<VSITEMSELECTION>>();
+            _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
+            _lastNewFileScan = DateTime.MinValue;
+        }
+
         private void AddFileToList(string filename, IVsSccProject2 project)
         {
             List<VSITEMSELECTION> projects;
@@ -103,7 +111,7 @@ namespace GitSccProvider
             {
                 if (!search)
                 {
-                    _fileProjectLookup.TryAdd(filePath, null);
+                    _fileProjectLookup.TryAdd(filePath, new List<VSITEMSELECTION>());
                     return null;
                 }
                 else

@@ -56,20 +56,22 @@ namespace GitSccProvider.Utilities
             object objProj;
             hierProject.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
             var project = objProj as EnvDTE.Project;
-            var tttet = project.Name;
-            foreach (ProjectItem projectItem in project.ProjectItems)
+            if (project != null)
             {
-                try
+                foreach (ProjectItem projectItem in project.ProjectItems)
                 {
-                    if (projectItem.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+                    try
                     {
-                        projectFiles.Add(projectItem.get_FileNames(0));
+                        if (projectItem.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+                        {
+                            projectFiles.Add(projectItem.get_FileNames(0));
+                        }
                     }
-                }
-                catch (Exception)
-                {
+                    catch (Exception)
+                    {
 
-                    
+
+                    }
                 }
             }
 

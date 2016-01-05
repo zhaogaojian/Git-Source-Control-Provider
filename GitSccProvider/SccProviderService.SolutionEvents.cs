@@ -77,7 +77,7 @@ namespace GitScc
         public int OnAfterCloseSolution([In] Object pUnkReserved)
         {
             CloseTracker();
-            _fileCahce = new SccProviderSolutionCache(_sccProvider);
+            _fileCache = new SccProviderSolutionCache(_sccProvider);
             return VSConstants.S_OK;
         }
 
@@ -88,7 +88,7 @@ namespace GitScc
 
         public int OnAfterOpenProject([In] IVsHierarchy pHierarchy, [In] int fAdded)
         {
-            //_fileCahce.AddProject(pHierarchy);
+            //_fileCache.AddProject(pHierarchy);
             // If a solution folder is added to the solution after the solution is added to scc, we need to controll that folder
             if (pHierarchy.IsSolutionFolderProject() && (fAdded == 1))
             {
@@ -130,7 +130,7 @@ namespace GitScc
                 // Debug.WriteLine(string.Format(CultureInfo.CurrentUICulture, "Project {0} is registering with source control - {1}", GetProjectFileName(pscp2Project)));
 
                 // Add the project to the list of controlled projects
-                _fileCahce.AddProject(pscp2Project);
+                _fileCache.AddProject(pscp2Project);
             }
         }
 
@@ -138,6 +138,7 @@ namespace GitScc
 
         public int OnBeforeCloseProject([In] IVsHierarchy pHierarchy, [In] int fRemoved)
         {
+            _fileCache.InValidateCache();
             return VSConstants.S_OK;
         }
 
@@ -158,6 +159,7 @@ namespace GitScc
 
         public int OnQueryCloseSolution([In] Object pUnkReserved, [In] ref int pfCancel)
         {
+            _fileCache.InValidateCache();
             return VSConstants.S_OK;
         }
 
@@ -197,6 +199,7 @@ namespace GitScc
         public int UpdateSolution_Begin(ref int pfCancelUpdate)
         {
             Debug.WriteLine("Git Source Control Provider: suppress refresh before build...");
+            //_fileCache = new SccProviderSolutionCache(_sccProvider);
             IDisposable disableRefresh = DisableRefresh();
             disableRefresh = Interlocked.Exchange(ref _updateSolutionDisableRefresh, disableRefresh);
             if (disableRefresh != null)

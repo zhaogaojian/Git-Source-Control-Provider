@@ -48,7 +48,7 @@ namespace GitScc
 
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
-        private SccProviderSolutionCache _fileCahce;
+        private SccProviderSolutionCache _fileCache;
         private object _glyphsLock = new object();
         //private List<GitFileStatusTracker> trackers;
 
@@ -57,7 +57,7 @@ namespace GitScc
         public SccProviderService(BasicSccProvider sccProvider)
         {
             this._sccProvider = sccProvider;
-            _fileCahce = new SccProviderSolutionCache(_sccProvider);
+            _fileCache = new SccProviderSolutionCache(_sccProvider);
 
             RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
@@ -549,10 +549,12 @@ namespace GitScc
         {
             Debug.WriteLine("==== Open Tracker");
             RepositoryManager.Instance.Clear();
-            _fileCahce = new SccProviderSolutionCache(_sccProvider);
+            _fileCache = new SccProviderSolutionCache(_sccProvider);
+            
 
             var solutionFileName = GetSolutionFileName();
             RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
+            SetSolutionExplorerTitle();
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {
@@ -591,7 +593,11 @@ namespace GitScc
 
         private void RepositoryManager_SolutionTrackerBranchChanged(object sender, string e)
         {
+            SetSolutionExplorerTitle();
+        }
 
+        private void SetSolutionExplorerTitle()
+        {
             var caption = "Solution Explorer";
             string branch = RepositoryManager.Instance.SolutionTracker.CurrentBranchDisplayName;
             if (!string.IsNullOrEmpty(branch))
@@ -620,7 +626,7 @@ namespace GitScc
             lock (_glyphsLock)
             {
                 repo.Refresh();
-                IList<VSITEMSELECTION> nodes = _fileCahce.GetProjectsSelectionForFile(e.FullPath);
+                IList<VSITEMSELECTION> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
                 if (nodes != null)
                 {
                     RefreshNodesGlyphs(nodes);
@@ -635,7 +641,7 @@ namespace GitScc
                 HashSet<VSITEMSELECTION> nodes = new HashSet<VSITEMSELECTION>();
                 foreach (var file in e.Files)
                 {
-                    var items = _fileCahce.GetProjectsSelectionForFile(file);
+                    var items = _fileCache.GetProjectsSelectionForFile(file);
                     if (items != null)
                     {
                         foreach (var vsitemselection in items)
