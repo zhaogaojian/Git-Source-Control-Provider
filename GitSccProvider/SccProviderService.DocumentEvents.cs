@@ -20,6 +20,7 @@ namespace GitScc
         private uint _tpdTrackProjectDocumentsCookie;
        // private DTE2 _activeIde;
         private WindowEvents _windowEvents;
+        private SolutionEvents _solutionEvents;
 
         private void SetupDocumentEvents()
         {
@@ -31,12 +32,32 @@ namespace GitScc
             //var activeIde = BasicSccProvider.GetServiceEx<EnvDTE80.DTE2>();
             //activeIde.Events.SolutionItemsEvents.
             _windowEvents = activeIde.Events.WindowEvents;
+            _solutionEvents = activeIde.Events.SolutionEvents;
+            _solutionEvents.Opened += _solutionEvents_Opened;
             _windowEvents.WindowActivated += _windowEvents_WindowActivated;
+
+        }
+
+        private void UnRegisterDocumentEvents()
+        {
+            if (VSConstants.VSCOOKIE_NIL != _tpdTrackProjectDocumentsCookie)
+            {
+                IVsTrackProjectDocuments2 tpdService = (IVsTrackProjectDocuments2)_sccProvider.GetService(typeof(SVsTrackProjectDocuments));
+                tpdService.UnadviseTrackProjectDocumentsEvents(_tpdTrackProjectDocumentsCookie);
+                _tpdTrackProjectDocumentsCookie = VSConstants.VSCOOKIE_NIL;
+            }
+            _windowEvents.WindowActivated -= _windowEvents_WindowActivated;
+            _solutionEvents.Opened -= _solutionEvents_Opened;
+        }
+
+        private void _solutionEvents_Opened()
+        {
+            SetSolutionExplorerTitle();
         }
 
         private async void _windowEvents_WindowActivated(Window GotFocus, Window LostFocus)
         {
-           
+
             if (GitSccOptions.Current.TrackActiveGitRepo)
             {
                 var filename = GotFocus?.Document?.FullName;
@@ -49,18 +70,8 @@ namespace GitScc
             }
         }
 
-        private void UnRegisterDocumentEvents()
-        {
-            if (VSConstants.VSCOOKIE_NIL != _tpdTrackProjectDocumentsCookie)
-            {
-                IVsTrackProjectDocuments2 tpdService = (IVsTrackProjectDocuments2)_sccProvider.GetService(typeof(SVsTrackProjectDocuments));
-                tpdService.UnadviseTrackProjectDocumentsEvents(_tpdTrackProjectDocumentsCookie);
-                _tpdTrackProjectDocumentsCookie = VSConstants.VSCOOKIE_NIL;
-            }
-            _windowEvents.WindowActivated -= _windowEvents_WindowActivated;
-        }
-
         #region Implementation of IVsTrackProjectDocumentsEvents2
+
 
         public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
             VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)

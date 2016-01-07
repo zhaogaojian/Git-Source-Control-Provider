@@ -46,9 +46,10 @@
       
       <Menu guid="guidSccProviderCmdSet" id="GitIgnoreSubMenu" priority="0x0100" type="Menu">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
+        <CommandFlag>IconAndText</CommandFlag>
+        <CommandFlag>TextIsAnchorCommand</CommandFlag>
       <Strings>
           <ButtonText>.gitignore</ButtonText>
-         
       </Strings>
     </Menu>
       
@@ -385,9 +386,9 @@
     <!--<CommandPlacement guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0007">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
     </CommandPlacement>-->
-    <CommandPlacement guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0007">
+    <!--<CommandPlacement guid="guidSccProviderCmdSet" id="icmdSccCommandEditIgnore" priority="0x0007">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
-    </CommandPlacement>
+    </CommandPlacement>-->
     
     <CommandPlacement guid="guidSccProviderCmdSet" id="icmdSccCommandGitBash" priority="0x0008">
       <Parent guid="guidSccProviderCmdSet" id="igrpPendingChangesToolWindowToolbarGroup"/>
