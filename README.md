@@ -58,7 +58,7 @@ How to use
 
 ## Change Logs -- Visual Studio 2015
 
-**C.I Build - V1.4.3** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
+**C.I Build - Pre-V1.5** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
 
     ---New Features---
 *   Added ability to update your .gitingore file to latest version from github
@@ -67,6 +67,10 @@ How to use
 
     ---Fixes---
 *   Theme now switches with the need to resart.
+*   Double clicking on files in Pending Changes now opens/switches to the file. 
+*   No longer slows down when used with Resharper
+*   Fixed issue #21 where sometimes the plugin caused Visual Studio to crash. 
+
 
 
 **V1.4.2**
