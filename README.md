@@ -69,7 +69,8 @@ How to use
 *   Theme now switches with the need to resart.
 *   Double clicking on files in Pending Changes now opens/switches to the file. 
 *   No longer slows down when used with Resharper
-*   Fixed issue #21 where sometimes the plugin caused Visual Studio to crash. 
+*   Fixed issue #15, #21 where sometimes the plugin caused Visual Studio to crash. 
+*   Fixed issue #16, Solution Explorer glyphs not updating. 
 
 
 
