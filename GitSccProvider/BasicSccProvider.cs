@@ -530,7 +530,8 @@ namespace GitScc
         {
             var workingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            var path = Path.Combine(workingPath, "Dragon.pkg");
+            var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            path = Path.Combine(path, "Resources\\Dragon.exe");
             var tmpPath = Path.Combine(Path.GetTempPath(), "Dragon.exe");
             var gitPath = Path.Combine(workingPath, "NativeBinaries"); 
 

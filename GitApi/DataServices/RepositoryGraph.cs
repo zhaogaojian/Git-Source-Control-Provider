@@ -18,10 +18,12 @@ namespace GitScc.DataServices
         private IList<GraphNode> nodes;
         private IList<GraphLink> links;
         private bool isSimplified;
+        private GitRepository _repository;
 
         public RepositoryGraph(string repository)
         {
             this.workingDirectory = repository;
+            _repository = RepositoryManager.Instance.GetTrackerForPath(workingDirectory);
         }
 
         public IEnumerable<Commit> Commits
@@ -30,18 +32,9 @@ namespace GitScc.DataServices
             {
                 if (commits == null)
                 {
-                    var result = GitBash.Run(string.Format("log -n {0} --date-order --all --boundary -z {1} HEAD",
-                        CommitsToLoad, LogFormat),
-                        this.workingDirectory);
+                    commits = _repository.GetLatestCommits(CommitsToLoad);
 
-                    if (result.HasError || string.IsNullOrEmpty(result.Output) || result.Output.StartsWith("fatal:"))
-                    {
-                        commits = new List<Commit>();
-                        return commits;
-                    }
-
-                    var logs = result.Output.Split('\0');
-                    commits = logs.Select(log => ParseCommit(log)).ToList();
+                    //old code starts again
                     commits.ToList().ForEach(
                         commit => commit.ChildIds =
                                   commits.Where(c => c.ParentIds.Contains(commit.Id))
@@ -52,48 +45,25 @@ namespace GitScc.DataServices
             }
         }
 
-        private Commit ParseCommit(string log)
-        {
-            string[] ss = log.Split('\n');
-            return new Commit
-            {
-                Id = ss[0],
-                ParentIds = ss[1].Split(' '),
-                AuthorDateRelative = ss[2],
-                AuthorName = ss[3],
-                AuthorEmail = ss[4],
-                AuthorDate = DateTime.Parse(ss[5]),
-                TreeId = ss[6],
-                Subject = ss[7],
-                Message = ss[7] + (ss.Length <= 8 ? "" : "\n\n" + string.Join("\n", ss, 8, ss.Length - 8))
-            };
-        }
-
         public IList<Ref> Refs
         {
             get
             {
                 if (refs == null)
                 {
-                    var branch = "";
-
-                    var result = GitBash.Run("rev-parse --abbrev-ref HEAD", this.workingDirectory);
-                    if (!result.HasError && !result.Output.Contains("fatal:"))
+                    refs = new List<Ref>();
+                
+                    var branches = _repository.GetBranchInfo();
+                    foreach (var info in branches)
                     {
-                        branch = "refs/heads/" + result.Output.Trim();
-                    }
-
-                    result = GitBash.Run("show-ref --head --dereference", this.workingDirectory);
-                    if (!result.HasError && !result.Output.Contains("fatal:"))
-                    {
-                        refs = (from t in result.Output.Split('\n')
-                                where !string.IsNullOrWhiteSpace(t)
-                                select new Ref
-                                {
-                                    Id = t.Substring(0, 40),
-                                    RefName = t.Substring(41),
-                                    IsHead = t.Substring(41).Equals(branch) ? "*" : ""
-                                }).ToList();
+                        refs.Add(new Ref(
+                            name: info.Name,
+                            refName: info.FullName,
+                            id: info.Sha,
+                            refType:
+                                info.IsCurrentRepoHead
+                                    ? RefTypes.HEAD
+                                    : info.IsRemote ? RefTypes.RemoteBranch : RefTypes.Branch));
                     }
                 }
                 return refs;
@@ -256,10 +226,7 @@ namespace GitScc.DataServices
         {
             try
             {
-                var result = GitBash.Run(string.Format("log -1 {0} {1}", LogFormat, commitId),
-                    this.workingDirectory);
-
-                return ParseCommit(result.Output);
+                return _repository.GetCommitById(commitId);
             }
             catch (Exception ex)
             {

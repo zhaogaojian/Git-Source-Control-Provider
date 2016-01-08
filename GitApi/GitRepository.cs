@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,8 @@ using System.Threading.Tasks;
 using GitScc.Extensions;
 using LibGit2Sharp;
 using static GitScc.GitFile;
+using Commit = GitScc.DataServices.Commit;
+
 
 namespace GitScc
 {
@@ -21,6 +24,9 @@ namespace GitScc
 
     public class GitRepository : IDisposable
     {
+
+        private const string RFC2822Format = "ddd dd MMM HH:mm:ss yyyy K";
+
         private string workingDirectory;
         private readonly string _gitDirectory;
         private string _lastTipId;
@@ -105,7 +111,7 @@ namespace GitScc
 
         private Repository GetRepository()
         {
-            return  new Repository(_gitDirectory);
+            return new Repository(_gitDirectory);
         }
 
 
@@ -174,17 +180,17 @@ namespace GitScc
                 using (var repository = GetRepository())
                 {
                     if (repository.Ignore.IsPathIgnored(fullPath.Remove(0, WorkingDirectory.Length)))
-                {
-                    return;
-                }
-                else
-                {
+                    {
+                        return;
+                    }
+                    else
+                    {
                         //if ((DateTime.UtcNow - _lastFileEvent).TotalSeconds > _fileEventDelay)
                         //
-                            FireFileChangedEvent(filename, fullPath);
+                        FireFileChangedEvent(filename, fullPath);
                         //    _lastFileEvent = DateTime.UtcNow;
                         //}
-                }
+                    }
                 }
 
             }
@@ -234,7 +240,7 @@ namespace GitScc
             return await Task.Run(() => Checkout(info, force));
         }
 
-      
+
         private GitActionResult<GitBranchInfo> Checkout(GitBranchInfo info, bool force = false)
         {
             using (var repository = GetRepository())
@@ -281,8 +287,8 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                CheckoutOptions options = new CheckoutOptions {CheckoutModifiers = CheckoutModifiers.Force};
-                repository.CheckoutPaths("HEAD", new string[] {filename}, options);
+                CheckoutOptions options = new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force };
+                repository.CheckoutPaths("HEAD", new string[] { filename }, options);
             }
         }
 
@@ -340,6 +346,57 @@ namespace GitScc
                 return refs.Count() > 2;
             }
             return false;
+        }
+
+        internal List<Commit> GetLatestCommits(int commitCount)
+        {
+            try
+            {
+                using (var repository = GetRepository())
+                {
+                    var filter = new CommitFilter { SortBy = CommitSortStrategies.Time };
+                    return repository.Commits.QueryBy(filter)
+                        .Take(commitCount)
+                        .Select(commit => CreateCommit(commit)).ToList();
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        internal Commit GetCommitById(string sha)
+        {
+            try
+            {
+                using (var repository = GetRepository())
+                {
+                    var commit = repository.Lookup<LibGit2Sharp.Commit>(sha);
+                    return CreateCommit(commit);
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        private Commit CreateCommit(LibGit2Sharp.Commit commit)
+        {
+            return new Commit
+            {
+                Id = commit.Sha,
+                ParentIds = commit.Parents.Select(parent => parent.Sha).ToList(),
+                AuthorDateRelative = commit.Author.When.ToString(),
+                AuthorName = commit.Author.Name,
+                AuthorEmail = commit.Author.Email,
+                AuthorDate = DateTime.Parse(commit.Author.When.ToString(RFC2822Format, CultureInfo.InvariantCulture)),
+                Subject = commit.MessageShort,
+                Message = commit.Message
+            };
         }
 
         #endregion
@@ -403,7 +460,9 @@ namespace GitScc
                         CanonicalName = branch.CanonicalName,
                         RemoteName = branch.Remote?.Name,
                         Name = branch.FriendlyName,
-                        IsRemote = branch.IsRemote
+                        IsRemote = branch.IsRemote,
+                        Sha = branch.Tip?.Sha,
+                        IsCurrentRepoHead = true
                     };
                 }
             }
@@ -455,43 +514,19 @@ namespace GitScc
                     if (includeRemote && includeLocal)
                     {
                         _branchInfoList.AddRange(
-                            repository.Branches.Select(
-                                b =>
-                                    new GitBranchInfo
-                                    {
-                                        CanonicalName = b.CanonicalName,
-                                        RemoteName = b.Remote?.Name,
-                                        Name = b.FriendlyName,
-                                        IsRemote = b.IsRemote
-                                    }));
+                            repository.Branches.Select(CreateBranchInfoFromBranch));
                     }
-                    else if (includeRemote && !includeLocal)
+                    else if (includeRemote)
                     {
                         _branchInfoList.AddRange(
                             repository.Branches.Where(b => b.IsRemote)
-                                .Select(
-                                    b =>
-                                        new GitBranchInfo
-                                        {
-                                            CanonicalName = b.CanonicalName,
-                                            RemoteName = b.Remote?.Name,
-                                            Name = b.FriendlyName,
-                                            IsRemote = b.IsRemote
-                                        }));
+                               .Select(CreateBranchInfoFromBranch));
                     }
                     else
                     {
                         _branchInfoList.AddRange(
                             repository.Branches.Where(b => !b.IsRemote)
-                                .Select(
-                                    b =>
-                                        new GitBranchInfo
-                                        {
-                                            CanonicalName = b.CanonicalName,
-                                            RemoteName = b.Remote?.Name,
-                                            Name = b.FriendlyName,
-                                            IsRemote = b.IsRemote
-                                        }));
+                                .Select(CreateBranchInfoFromBranch));
                     }
 
                     //we did not find and branch.. must just have a master and never pushed to the server
@@ -502,6 +537,19 @@ namespace GitScc
                 }
                 return _branchInfoList;
             }
+        }
+
+        private GitBranchInfo CreateBranchInfoFromBranch(Branch branch)
+        {
+            return new GitBranchInfo
+            {
+                CanonicalName = branch.CanonicalName,
+                RemoteName = branch.Remote?.Name,
+                Name = branch.FriendlyName,
+                IsRemote = branch.IsRemote,
+                Sha = branch.Tip?.Sha,
+                IsCurrentRepoHead = branch.IsCurrentRepositoryHead
+            };
         }
 
         #endregion
@@ -547,26 +595,26 @@ namespace GitScc
             GitBash.Run("config core.ignorecase true", folderName);
         }
 
-        private bool IsBinaryFile(string fileName)
-        {
-            FileStream fs = File.OpenRead(fileName);
-            try
-            {
-                int len = Convert.ToInt32(fs.Length);
-                if (len > 1000) len = 1000;
-                byte[] bytes = new byte[len];
-                fs.Read(bytes, 0, len);
-                for (int i = 0; i < len - 1; i++)
-                {
-                    if (bytes[i] == 0) return true;
-                }
-                return false;
-            }
-            finally
-            {
-                fs.Close();
-            }
-        }
+        //private bool IsBinaryFile(string fileName)
+        //{
+        //    FileStream fs = File.OpenRead(fileName);
+        //    try
+        //    {
+        //        int len = Convert.ToInt32(fs.Length);
+        //        if (len > 1000) len = 1000;
+        //        byte[] bytes = new byte[len];
+        //        fs.Read(bytes, 0, len);
+        //        for (int i = 0; i < len - 1; i++)
+        //        {
+        //            if (bytes[i] == 0) return true;
+        //        }
+        //        return false;
+        //    }
+        //    finally
+        //    {
+        //        fs.Close();
+        //    }
+        //}
 
 
         public string Diff(string fileName)
@@ -581,45 +629,56 @@ namespace GitScc
 
         }
 
-        public string DiffFile(string fileName)
+        public string DiffFile(string fileName, string commitId1, string commitId2)
         {
             using (var repository = GetRepository())
             {
-                var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
-                foreach (var c in repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
-                    DiffTargets.Index | DiffTargets.WorkingDirectory))
-                {
-
-                    Console.WriteLine(c.Patch);
-                }
-
-                try
-                {
-                    var status = GetFileStatus(fileName);
-                    if (status == GitFileStatus.NotControlled || status == GitFileStatus.New ||
-                        status == GitFileStatus.Added)
-                    {
-                        tmpFileName = Path.ChangeExtension(tmpFileName, Path.GetExtension(fileName));
-                        File.Copy(Path.Combine(WorkingDirectory, fileName), tmpFileName);
-
-                        if (IsBinaryFile(tmpFileName))
-                        {
-                            File.Delete(tmpFileName);
-                            File.WriteAllText(tmpFileName, "Binary file: " + fileName);
-                        }
-                        return tmpFileName;
-                    }
-
-                    GitBash.RunCmd(string.Format("diff HEAD -- \"{0}\" > \"{1}\"", fileName, tmpFileName),
-                        WorkingDirectory);
-                }
-                catch (Exception ex)
-                {
-                    File.WriteAllText(tmpFileName, ex.Message);
-                }
-                return tmpFileName;
+                var commitOld = repository.Lookup<LibGit2Sharp.Commit>(commitId1);
+                var commitNew = repository.Lookup<LibGit2Sharp.Commit>(commitId2);
+                var diffTree = repository.Diff.Compare<Patch>(commitOld.Tree, commitNew.Tree);
+                return diffTree[fileName].Patch;
             }
         }
+
+        //public string DiffFile(string fileName)
+        //{
+        //    using (var repository = GetRepository())
+        //    {
+        //        var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
+        //        foreach (var c in repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
+        //            DiffTargets.Index | DiffTargets.WorkingDirectory))
+        //        {
+
+        //            Console.WriteLine(c.Patch);
+        //        }
+
+        //        try
+        //        {
+        //            var status = GetFileStatus(fileName);
+        //            if (status == GitFileStatus.NotControlled || status == GitFileStatus.New ||
+        //                status == GitFileStatus.Added)
+        //            {
+        //                tmpFileName = Path.ChangeExtension(tmpFileName, Path.GetExtension(fileName));
+        //                File.Copy(Path.Combine(WorkingDirectory, fileName), tmpFileName);
+
+        //                if (IsBinaryFile(tmpFileName))
+        //                {
+        //                    File.Delete(tmpFileName);
+        //                    File.WriteAllText(tmpFileName, "Binary file: " + fileName);
+        //                }
+        //                return tmpFileName;
+        //            }
+
+        //            GitBash.RunCmd(string.Format("diff HEAD -- \"{0}\" > \"{1}\"", fileName, tmpFileName),
+        //                WorkingDirectory);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            File.WriteAllText(tmpFileName, ex.Message);
+        //        }
+        //        return tmpFileName;
+        //    }
+        //}
 
         public string ChangedFilesStatus
         {
@@ -725,7 +784,7 @@ namespace GitScc
             using (var repository = GetRepository())
             {
                 return
-                    repository.RetrieveStatus(new StatusOptions() {IncludeUnaltered = true, RecurseIgnoredDirs = false})
+                    repository.RetrieveStatus(new StatusOptions() { IncludeUnaltered = true, RecurseIgnoredDirs = false })
                         .Select(item => new GitFile(repository, item))
                         .ToList();
 
@@ -886,7 +945,10 @@ namespace GitScc
             {
                 try
                 {
-                    return GitRun("log -1 --format=%s\r\n\r\n%b").Trim();
+                    using (var repository = GetRepository())
+                    {
+                        return repository.Head.Tip.Message;
+                    }
                 }
                 catch
                 {
@@ -1015,16 +1077,7 @@ namespace GitScc
             return false;
         }
 
-        public string DiffFile(string fileName, string commitId1, string commitId2)
-        {
-            if (!this.IsGit) return "";
-
-            var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
-            var fileNameRel = fileName;
-
-            GitBash.RunCmd(string.Format("diff {2} {3} -- \"{0}\" > \"{1}\"", fileNameRel, tmpFileName, commitId1, commitId2), WorkingDirectory);
-            return tmpFileName;
-        }
+      
 
 
         public string Blame(string fileName)
@@ -1039,14 +1092,23 @@ namespace GitScc
 
         public IEnumerable<string> GetCommitsForFile(string fileName)
         {
-            if (!this.IsGit) return new string[0];
-
-            var fileNameRel = fileName;
-
-            var result = GitBash.Run(string.Format("log -z --ignore-space-change --pretty=format:%H -- \"{0}\"", fileNameRel), WorkingDirectory);
-            if (!result.HasError)
-                return result.Output.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
-            return new string[0];
+            try
+            {
+                var commitList = new List<string>();
+                using (var repository = GetRepository())
+                {
+                   var logs = repository.Commits.QueryBy(fileName);
+                    foreach (var log in logs)
+                    {
+                        commitList.Add(log.Commit.Sha);
+                    }
+                }
+                return commitList;
+            }
+            catch (Exception)
+            {
+                return new string[0];
+            }
         }
 
 

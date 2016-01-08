@@ -7,28 +7,25 @@ namespace GitScc.DataServices
 {
     public class Ref
     {
-        public string Id { get; set; }
-        public string RefName { get; set; }
-        public string IsHead { get; set; }
-        public string Name
+        private readonly string _name;
+        private readonly string _refName;
+        private readonly string _id;
+        private readonly RefTypes _refType;
+
+        public Ref(string name, string refName, string id, RefTypes refType)
         {
-            get
-            {
-                var name = RefName.Replace("refs/", "");
-                return name.Substring(name.IndexOf("/") + 1);
-            }
+            _name = name;
+            _refName = refName;
+            _refType = refType;
+            _id = id;
         }
-        public RefTypes Type
-        {
-            get
-            {
-                if (RefName == "HEAD") return RefTypes.HEAD;
-                else if (RefName.StartsWith("refs/heads")) return RefTypes.Branch;
-                else if (RefName.StartsWith("refs/tags")) return RefTypes.Tag;
-                else if (RefName.StartsWith("refs/remotes")) return RefTypes.RemoteBranch;
-                return RefTypes.Unknown;
-            }
-        }
+
+        public string Id => _id;
+        public string RefName => _refName;
+        public string Name => _name;
+
+        public RefTypes Type => _refType;
+       
 
         public override string ToString()
         {
