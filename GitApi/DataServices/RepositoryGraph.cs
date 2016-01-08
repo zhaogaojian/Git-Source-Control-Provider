@@ -258,93 +258,19 @@ namespace GitScc.DataServices
 
         public IEnumerable<Change> GetChanges(string fromCommitId, string toCommitId)
         {
-            var changes = new List<Change>();
-
             try
             {
-                var result = GitBash.Run(string.Format("diff -M -C --name-status -z {0} {1}", fromCommitId, toCommitId), this.workingDirectory);
+                return _repository.GetChanges(fromCommitId, toCommitId);
 
-                if (!string.IsNullOrWhiteSpace(result.Output))
-                {
-                    //from gitextensions GitCommandHelper.cs
-                    var nl = new char[] { '\n', '\r' };
-                    string trimmedStatus = result.Output.Trim(nl);
-                    int lastNewLinePos = trimmedStatus.LastIndexOfAny(nl);
-                    if (lastNewLinePos > 0)
-                    {
-                        int ind = trimmedStatus.LastIndexOf('\0');
-                        if (ind < lastNewLinePos) //Warning at end
-                        {
-                            lastNewLinePos = trimmedStatus.IndexOfAny(nl, ind >= 0 ? ind : 0);
-                            trimmedStatus = trimmedStatus.Substring(0, lastNewLinePos).Trim(nl);
-                        }
-                        else //Warning at beginning
-                            trimmedStatus = trimmedStatus.Substring(lastNewLinePos).Trim(nl);
-                    }
-
-                    var files = trimmedStatus.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int n = 0; n < files.Length; n++)
-                    {
-                        string status = files[n];
-                        var fileName = string.Empty;
-                        var change = ParseStaus(status);
-
-                        switch (change)
-                        {
-                            case ChangeType.Renamed:
-                            case ChangeType.Copied:
-                                fileName = files[n + 2];
-                                n++; n++;
-                                break;
-                            case ChangeType.Unknown: 
-                                continue;
-                            default: 
-                            
-                                fileName = files[n + 1];
-                                n++;
-                                break;
-                        }
-
-                        changes.Add(new Change
-                        {
-                            ChangeType = change,
-                            Name = fileName.Trim()
-                        });
-                    }
-                }
             }
             catch (Exception ex)
             {
                 Log.WriteLine("Repository.GetChanges: {0} - {1}\r\n{2}", fromCommitId, toCommitId, ex.ToString());
             }
-
-            return changes;
+            return new List<Change>();
         }
 
-        private ChangeType ParseStaus(string status)
-        {
-            if(string.IsNullOrEmpty(status)) return ChangeType.Unknown;
 
-            char x = status[0];
-            switch (x)
-            {
-                case 'A':
-                    return ChangeType.Added;
-                case 'C':
-                    return ChangeType.Copied;
-                case 'D':
-                    return ChangeType.Deleted;
-                case 'M':
-                    return ChangeType.Modified;
-                case 'R':
-                    return ChangeType.Renamed;
-                case 'T':
-                    return ChangeType.TypeChanged;
-                case 'U':
-                    return ChangeType.Unmerged;
-            }
-            return ChangeType.Unknown;
-        }
 
         public byte[] GetFileContent(string commitId, string fileName)
         {

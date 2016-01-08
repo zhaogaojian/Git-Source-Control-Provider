@@ -393,7 +393,7 @@ namespace GitScc
                 AuthorDateRelative = commit.Author.When.ToString(),
                 AuthorName = commit.Author.Name,
                 AuthorEmail = commit.Author.Email,
-                AuthorDate = DateTime.Parse(commit.Author.When.ToString(RFC2822Format, CultureInfo.InvariantCulture)),
+                AuthorDate = commit.Author.When.DateTime,
                 Subject = commit.MessageShort,
                 Message = commit.Message
             };
@@ -640,45 +640,50 @@ namespace GitScc
             }
         }
 
-        //public string DiffFile(string fileName)
-        //{
-        //    using (var repository = GetRepository())
-        //    {
-        //        var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".diff");
-        //        foreach (var c in repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
-        //            DiffTargets.Index | DiffTargets.WorkingDirectory))
-        //        {
 
-        //            Console.WriteLine(c.Patch);
-        //        }
+        public List<Change> GetChanges(string commitId1, string commitId2)
+        {
+            List<Change> changes = new List<Change>();
+            using (var repository = GetRepository())
+            {
+                var commitOld = repository.Lookup<LibGit2Sharp.Commit>(commitId1);
+                var commitNew = repository.Lookup<LibGit2Sharp.Commit>(commitId2);
+                return repository.Diff.Compare<Patch>(commitOld.Tree, commitNew.Tree).Select(BuildChange).ToList();
 
-        //        try
-        //        {
-        //            var status = GetFileStatus(fileName);
-        //            if (status == GitFileStatus.NotControlled || status == GitFileStatus.New ||
-        //                status == GitFileStatus.Added)
-        //            {
-        //                tmpFileName = Path.ChangeExtension(tmpFileName, Path.GetExtension(fileName));
-        //                File.Copy(Path.Combine(WorkingDirectory, fileName), tmpFileName);
+            }
+        }
 
-        //                if (IsBinaryFile(tmpFileName))
-        //                {
-        //                    File.Delete(tmpFileName);
-        //                    File.WriteAllText(tmpFileName, "Binary file: " + fileName);
-        //                }
-        //                return tmpFileName;
-        //            }
+        private Change BuildChange(PatchEntryChanges change)
+        {
+            var fileChange = new Change();
+            fileChange.Name = change.Path;
+            switch (change.Status)
+            {
+                case ChangeKind.Added:
+                    fileChange.ChangeType = ChangeType.Added;
+                    break;
+                case ChangeKind.Copied:
+                    fileChange.ChangeType =ChangeType.Copied;
+                    break;
+                case ChangeKind.Deleted:
+                    fileChange.ChangeType =ChangeType.Deleted;
+                    break;
+                case ChangeKind.Modified:
+                    fileChange.ChangeType =ChangeType.Modified;
+                    break;
+                case ChangeKind.Renamed:
+                    fileChange.ChangeType =ChangeType.Renamed;
+                    break;
+                case ChangeKind.TypeChanged:
+                    fileChange.ChangeType =ChangeType.TypeChanged;
+                    break;
+                case ChangeKind.Unmodified:
+                    fileChange.ChangeType =ChangeType.Unmerged;
+                    break;
+            }
+            return fileChange;
+        }
 
-        //            GitBash.RunCmd(string.Format("diff HEAD -- \"{0}\" > \"{1}\"", fileName, tmpFileName),
-        //                WorkingDirectory);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            File.WriteAllText(tmpFileName, ex.Message);
-        //        }
-        //        return tmpFileName;
-        //    }
-        //}
 
         public string ChangedFilesStatus
         {

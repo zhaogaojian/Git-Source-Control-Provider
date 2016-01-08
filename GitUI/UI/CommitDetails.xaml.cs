@@ -56,6 +56,28 @@ namespace GitScc.UI
             File.Delete(tmpFileName);
         }
 
+        private void ShowFileFromString(string fileContent, string extension = ".diff")
+        {
+            if (extension == ".diff")
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                using (Stream s = assembly.GetManifestResourceStream("GitUI.Resources.Patch-Mode.xshd"))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(s))
+                    {
+                        this.editor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                    }
+                }
+            }
+            else
+            {
+                this.editor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinitionByExtension(
+                    extension);
+            }
+            this.editor.ShowLineNumbers = true;
+            this.editor.Text = fileContent;
+        }
+
         private void ClearEditor()
         {
             this.editor.Text = "";
@@ -291,8 +313,8 @@ namespace GitScc.UI
                     {
                         try
                         {
-                            var tmpFileName = this.tracker.DiffFile(selection.Name, commitId1, commitId2);
-                            ShowFile(tmpFileName);
+                            var diffText = this.tracker.DiffFile(selection.Name, commitId1, commitId2);
+                            ShowFileFromString(diffText);
                         }
                         catch(Exception ex) { Debug.WriteLine(ex.Message); }
                     };
@@ -418,8 +440,8 @@ namespace GitScc.UI
                         try
                         {
                             var fileName = ((Change) this.patchList.SelectedItem).Name;
-                            var tmpFileName = this.tracker.DiffFile(fileName, selection.Id, this.commitId2);
-                            ShowFile(tmpFileName);
+                            var diffText = this.tracker.DiffFile(fileName, selection.Id, this.commitId2);
+                            ShowFileFromString(diffText);
                         }
                         catch(Exception ex) { Debug.WriteLine(ex.Message); }
                     };
