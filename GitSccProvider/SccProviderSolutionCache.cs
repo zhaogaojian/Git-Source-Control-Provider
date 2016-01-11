@@ -13,6 +13,12 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace GitSccProvider
 {
+    public class ProjectFileCacheItem
+    {
+        public VSITEMSELECTION SelectItem { get; set; }
+        public IVsSccProject2 Project { get; set; }
+    }
+
     public class SccProviderSolutionCache : IDisposable
     {
         private BasicSccProvider _sccProvider;
@@ -49,6 +55,7 @@ namespace GitSccProvider
                 if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
                 {
                     vsItem = CreateItem(filename, project);
+                    _projectSelectionLookup.TryAdd(project, vsItem);
                 }
                 _fileProjectLookup.TryAdd(filename, new List<VSITEMSELECTION> { vsItem });
             }
@@ -58,7 +65,12 @@ namespace GitSccProvider
                 VSITEMSELECTION vsItem;
                 if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
                 {
-                    projects.Add(CreateItem(filename, project));
+                    vsItem = CreateItem(filename, project);
+                    _projectSelectionLookup.TryAdd(project, vsItem);
+                }
+                if (!projects.Contains(vsItem))
+                {
+                    projects.Add(vsItem);
                 }
             }
         }
@@ -147,6 +159,7 @@ namespace GitSccProvider
 
         private void ScanSolution()
         {
+
             var projects = GetLoadedControllableProjects();
             foreach (var project in projects)
             {
