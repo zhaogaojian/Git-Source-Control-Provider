@@ -235,7 +235,7 @@ namespace GitScc.DataServices
             return null;
         }
 
-        public GitTreeObject GetTree(string commitId)
+        private GitTreeObject GetTree(string commitId)
         {
             var commit = GetCommit(commitId);
             if (commit == null) return null;

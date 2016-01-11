@@ -105,7 +105,7 @@ namespace GitScc
                 repositoryPath = repository.Info.Path;
             }
             _cachedBranchOperation = CurrentOperation.None;
-            //_lastTipId = repository.Head.Tip.Sha;
+            //_lastTipId = repository.Head.Tip.sha;
             Refresh();
         }
 
@@ -554,6 +554,173 @@ namespace GitScc
 
         #endregion
 
+
+        #region Diff Functions
+
+        public string Diff(string fileName)
+        {
+            using (var repository = GetRepository())
+            {
+                var diffTree = repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
+                    DiffTargets.Index | DiffTargets.WorkingDirectory);
+
+                return diffTree[fileName].Patch;
+            }
+
+        }
+
+        public string DiffFile(string fileName, string commitId1, string commitId2)
+        {
+            using (var repository = GetRepository())
+            {
+                var commitOld = repository.Lookup<LibGit2Sharp.Commit>(commitId1);
+                var commitNew = repository.Lookup<LibGit2Sharp.Commit>(commitId2);
+                var diffTree = repository.Diff.Compare<Patch>(commitOld.Tree, commitNew.Tree);
+                return diffTree[fileName].Patch;
+            }
+        }
+
+        public List<Change> GetChanges(string commitId1, string commitId2)
+        {
+            List<Change> changes = new List<Change>();
+            using (var repository = GetRepository())
+            {
+                var commitOld = repository.Lookup<LibGit2Sharp.Commit>(commitId1);
+                var commitNew = repository.Lookup<LibGit2Sharp.Commit>(commitId2);
+                return repository.Diff.Compare<Patch>(commitOld.Tree, commitNew.Tree).Select(BuildChange).ToList();
+            }
+        }
+
+        public List<Change> GetChangedFilesForCommit(string commitIdSha)
+        {
+            List<Change> changes = new List<Change>();
+            using (var repository = GetRepository())
+            {
+                try
+                {
+                    var commit = repository.Lookup<LibGit2Sharp.Commit>(commitIdSha);
+                    var commitParent = commit.Parents.Single();
+                    return repository.Diff.Compare<Patch>(commit.Tree, commitParent.Tree).Select(BuildChange).ToList();
+                }
+                catch (Exception)
+                {
+                    return new List<Change>();
+                }
+            }
+        }
+
+
+
+        //TODO
+        public string Blame(string fileName)
+        {
+            return null;
+            //if (String.IsNullOrWhiteSpace(fileName))
+            //{
+            //    return "";
+            //}
+            //try
+            //{
+            //    using (var repository = GetRepository())
+            //    {
+            //        var test = new BlameOptions();
+            //        var blame = repository.Blame(fileName).ToList();
+            //        foreach (var blameHunk in blame)
+            //        {
+            //            blameHunk.FinalCommit
+            //        }
+
+            //    }
+            //}
+            //catch (Exception)
+            //{
+
+            //    throw;
+            //}
+
+            //if (!this.IsGit) return "";
+
+            ////var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".blame");
+            ////var fileNameRel = fileName;
+            ////GitBash.RunCmd(string.Format("blame -M -w -- \"{0}\" > \"{1}\"", fileNameRel, tmpFileName), WorkingDirectory);
+            ////return tmpFileName;
+        }
+
+
+
+        public string DefaultDiffCommand
+        {
+            get
+            {
+                using (var repository = GetRepository())
+                {
+                    var diffGuiTool = repository.Config.Get<string>("diff.guitool");
+                    if (diffGuiTool == null)
+                    {
+                        diffGuiTool = repository.Config.Get<string>("diff.tool");
+                        if (diffGuiTool == null)
+                            return string.Empty;
+                    }
+
+                    var diffCmd = repository.Config.Get<string>("difftool." + diffGuiTool.Value + ".cmd");
+                    if (diffCmd == null || diffCmd.Value == null)
+                        return string.Empty;
+
+                    return diffCmd.Value;
+                }
+            }
+        }
+
+        #endregion
+
+        #region File Functions
+
+
+        public string GetUnmodifiedFileByAbsolutePath(string filename, string sha = null)
+        {
+            var relativePath = "";
+            Blob oldBlob = null;
+
+            if (TryGetRelativePath(filename, out relativePath))
+            {
+                return GetUnmodifiedFileByRelativePath(relativePath, sha);
+            }
+            return null;
+        }
+
+        public string GetUnmodifiedFileByRelativePath(string relativePath, string sha = null)
+        {
+            Blob oldBlob = null;
+            using (var repository = GetRepository())
+            {
+                try
+                {
+                    if (!String.IsNullOrWhiteSpace(sha))
+                    {
+                        var commit = repository.Lookup<LibGit2Sharp.Commit>(sha);
+                        var treeEntry = commit[relativePath];
+                        oldBlob = (Blob)treeEntry.Target;
+                    }
+                    else
+                    {
+                        var indexEntry = repository.Index[relativePath];
+                        if (indexEntry != null)
+                        {
+                            oldBlob = repository.Lookup<Blob>(indexEntry.Id);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                return oldBlob != null ? oldBlob.GetContentText(new FilteringOptions(relativePath)) : string.Empty;
+            }
+        }
+
+
+
+        #endregion
+
         #region Git commands
 
         private string GitRun(string cmd)
@@ -595,63 +762,10 @@ namespace GitScc
             GitBash.Run("config core.ignorecase true", folderName);
         }
 
-        //private bool IsBinaryFile(string fileName)
-        //{
-        //    FileStream fs = File.OpenRead(fileName);
-        //    try
-        //    {
-        //        int len = Convert.ToInt32(fs.Length);
-        //        if (len > 1000) len = 1000;
-        //        byte[] bytes = new byte[len];
-        //        fs.Read(bytes, 0, len);
-        //        for (int i = 0; i < len - 1; i++)
-        //        {
-        //            if (bytes[i] == 0) return true;
-        //        }
-        //        return false;
-        //    }
-        //    finally
-        //    {
-        //        fs.Close();
-        //    }
-        //}
+     
 
 
-        public string Diff(string fileName)
-        {
-            using (var repository = GetRepository())
-            {
-                var diffTree = repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
-                    DiffTargets.Index | DiffTargets.WorkingDirectory);
-
-                return diffTree[fileName].Patch;
-            }
-
-        }
-
-        public string DiffFile(string fileName, string commitId1, string commitId2)
-        {
-            using (var repository = GetRepository())
-            {
-                var commitOld = repository.Lookup<LibGit2Sharp.Commit>(commitId1);
-                var commitNew = repository.Lookup<LibGit2Sharp.Commit>(commitId2);
-                var diffTree = repository.Diff.Compare<Patch>(commitOld.Tree, commitNew.Tree);
-                return diffTree[fileName].Patch;
-            }
-        }
-
-
-        public List<Change> GetChanges(string commitId1, string commitId2)
-        {
-            List<Change> changes = new List<Change>();
-            using (var repository = GetRepository())
-            {
-                var commitOld = repository.Lookup<LibGit2Sharp.Commit>(commitId1);
-                var commitNew = repository.Lookup<LibGit2Sharp.Commit>(commitId2);
-                return repository.Diff.Compare<Patch>(commitOld.Tree, commitNew.Tree).Select(BuildChange).ToList();
-
-            }
-        }
+       
 
         private Change BuildChange(PatchEntryChanges change)
         {
@@ -1004,48 +1118,8 @@ namespace GitScc
         }
 
 
-        public string GetUnmodifiedFile(string filename)
-        {
-            var relativePath = "";
-            Blob oldBlob = null;
-            using (var repository = GetRepository())
-            {
-                if (TryGetRelativePath(filename, out relativePath))
-                {
-                    string objectName = Path.GetFileName(filename);
+     
 
-                    var indexEntry = repository.Index[relativePath];
-                    if (indexEntry != null)
-                    {
-                        oldBlob = repository.Lookup<Blob>(indexEntry.Id);
-                    }
-                }
-            }
-            return oldBlob != null ? oldBlob.GetContentText(new FilteringOptions(relativePath)) : string.Empty;
-        }
-
-        public string DefaultDiffCommand
-        {
-            get
-            {
-                using (var repository = GetRepository())
-                {
-                    var diffGuiTool = repository.Config.Get<string>("diff.guitool");
-                    if (diffGuiTool == null)
-                    {
-                        diffGuiTool = repository.Config.Get<string>("diff.tool");
-                        if (diffGuiTool == null)
-                            return string.Empty;
-                    }
-
-                    var diffCmd = repository.Config.Get<string>("difftool." + diffGuiTool.Value + ".cmd");
-                    if (diffCmd == null || diffCmd.Value == null)
-                        return string.Empty;
-
-                    return diffCmd.Value;
-                }
-            }
-        }
 
         public string GetRevision(string filename)
         {
@@ -1083,17 +1157,6 @@ namespace GitScc
         }
 
       
-
-
-        public string Blame(string fileName)
-        {
-            if (!this.IsGit) return "";
-
-            var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), ".blame");
-            var fileNameRel = fileName;
-            GitBash.RunCmd(string.Format("blame -M -w -- \"{0}\" > \"{1}\"", fileNameRel, tmpFileName), WorkingDirectory);
-            return tmpFileName;
-        }
 
         public IEnumerable<string> GetCommitsForFile(string fileName)
         {

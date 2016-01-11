@@ -17,7 +17,7 @@ namespace GitScc
             var filetype = Path.GetExtension(filename);
 
             //write unmodified file to disk
-            var unmodifiedFile = repository.GetUnmodifiedFile(filename);
+            var unmodifiedFile = repository.GetUnmodifiedFileByAbsolutePath(filename);
             var tempFileName = Path.GetTempFileName() + filetype;
             File.WriteAllText(tempFileName, unmodifiedFile);
             info.UnmodifiedFilePath = tempFileName;

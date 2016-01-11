@@ -19,7 +19,7 @@
             <TextBlock x:Name="txtName" Padding="10,0" Text="{Binding Name}" FontSize="10"
                        VerticalAlignment="Center" HorizontalAlignment="Center" ></TextBlock>
         </Border>
-        <TextBlock x:Name="txtHead" Padding="0,0" Text="{Binding IsHead}" FontSize="10" Foreground="#FF0000"
+        <TextBlock x:Name="txtHead" Padding="0,0" Text="*" Visibility="Hidden" FontSize="10" Foreground="#FF0000"
                        VerticalAlignment="Center" HorizontalAlignment="Left" ></TextBlock>
     </StackPanel>
 </UserControl>

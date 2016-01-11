@@ -21,7 +21,7 @@ namespace GitScc.UI
     /// </summary>
     public partial class CommitDetails : UserControl
     {
-        GitFileStatusTracker tracker;
+        GitFileStatusTracker _tracker;
         string commitId1, commitId2;
 
         public CommitDetails()
@@ -125,7 +125,7 @@ namespace GitScc.UI
                 this.fileTree.ItemsSource = null;
                 this.patchList.ItemsSource = null;
 
-                this.tracker = tracker;
+                this._tracker = tracker;
                 var repositoryGraph = tracker.RepositoryGraph;
                 var commit = repositoryGraph.GetCommit(commitId);
                 if (commit == null)
@@ -179,7 +179,7 @@ namespace GitScc.UI
         {
             try
             {
-                this.tracker = tracker;
+                this._tracker = tracker;
                 var repositoryGraph = tracker.RepositoryGraph;
 
                 var msg1 = repositoryGraph.Commits
@@ -250,11 +250,12 @@ namespace GitScc.UI
             this.patchList.Visibility = Visibility.Collapsed;
             ClearEditor();
 
-            if (this.tracker != null && this.fileTree.ItemsSource == null)
+            if (this._tracker != null && this.fileTree.ItemsSource == null)
             {
-                var repositoryGraph = tracker.RepositoryGraph;
-                if(repositoryGraph!=null)
-                    this.fileTree.ItemsSource = repositoryGraph.GetTree(commitId2).Children;
+                var repositoryGraph = _tracker.RepositoryGraph;
+                if (repositoryGraph != null)
+                    this.fileTree.ItemsSource = _tracker.GetChangedFilesForCommit(commitId2);
+                        //repositoryGraph.GetTree(commitId2).Children;
             }
         }
 
@@ -269,31 +270,27 @@ namespace GitScc.UI
         {
             if (this.fileTree.Visibility != Visibility.Visible) return;
 
-            var selection = this.fileTree.SelectedValue as GitTreeObject;
+            var selection = this.fileTree.SelectedValue as Change;
             if (selection != null)
             {
-                if (this.chkBlame.IsChecked == true) ShowBlame(selection.FullName);
+                if (this.chkBlame.IsChecked == true) ShowBlame(selection.Name);
                 else
                 {
-                    txtFileName.Text = selection.FullName;
+                    txtFileName.Text = selection.Name;
                     var dispatcher = Dispatcher.CurrentDispatcher;
                     Action act = () =>
                     {
                         try
                         {
-                            var content = selection.Content;
-                            if (content != null)
-                            {
-                                var tmpFileName = Path.ChangeExtension(Path.GetTempFileName(), Path.GetExtension(selection.Name));
-                                File.WriteAllBytes(tmpFileName, content);
-                                ShowFile(tmpFileName);
-                            }
+
+                            var file = _tracker.GetUnmodifiedFileByRelativePath(selection.Name, commitId2);
+                              ShowFileFromString(file);
                         }
                         catch(Exception ex) { Debug.WriteLine(ex.Message); }
                     };
                     dispatcher.BeginInvoke(act, DispatcherPriority.ApplicationIdle);
                 }
-                ShowCommitsForFile(selection.FullName);
+                ShowCommitsForFile(selection.Name);
             }
         }
 
@@ -313,7 +310,7 @@ namespace GitScc.UI
                     {
                         try
                         {
-                            var diffText = this.tracker.DiffFile(selection.Name, commitId1, commitId2);
+                            var diffText = this._tracker.DiffFile(selection.Name, commitId1, commitId2);
                             ShowFileFromString(diffText);
                         }
                         catch(Exception ex) { Debug.WriteLine(ex.Message); }
@@ -332,7 +329,7 @@ namespace GitScc.UI
             {
                 try
                 {
-                    var tmpFileName = this.tracker.Blame(fileName);
+                    var tmpFileName = this._tracker.Blame(fileName);
                     ShowFile(tmpFileName);
                 }
                 catch(Exception ex) { Debug.WriteLine(ex.Message); }
@@ -342,9 +339,9 @@ namespace GitScc.UI
 
         private void ShowCommitsForFile(string fileName)
         {
-            var commits = this.tracker.GetCommitsForFile(fileName);
+            var commits = this._tracker.GetCommitsForFile(fileName);
             this.lstFileCommits.ItemsSource = from c in commits
-                                              join commit in tracker.RepositoryGraph.Commits
+                                              join commit in _tracker.RepositoryGraph.Commits
                                               on c equals commit.Id
                                               select commit;
         }
@@ -352,7 +349,7 @@ namespace GitScc.UI
         private void btnSwitch_Click(object sender, RoutedEventArgs e)
         {
             var selected = patchList.SelectedValue;
-            this.Show(this.tracker, this.commitId2, this.commitId1);
+            this.Show(this._tracker, this.commitId2, this.commitId1);
             if (selected != null)
                 patchList.SelectedValue = selected;
         }
@@ -440,7 +437,7 @@ namespace GitScc.UI
                         try
                         {
                             var fileName = ((Change) this.patchList.SelectedItem).Name;
-                            var diffText = this.tracker.DiffFile(fileName, selection.Id, this.commitId2);
+                            var diffText = this._tracker.DiffFile(fileName, selection.Id, this.commitId2);
                             ShowFileFromString(diffText);
                         }
                         catch(Exception ex) { Debug.WriteLine(ex.Message); }
@@ -452,9 +449,10 @@ namespace GitScc.UI
                     {
                         try
                         {
-                            var fileName = ((GitTreeObject) this.fileTree.SelectedValue).FullName;
-                            var tmpFileName = this.tracker.RepositoryGraph.GetFile(selection.Id, fileName);
-                            ShowFile(tmpFileName);
+                            var fileName = ((Change) this.fileTree.SelectedValue).Name;
+                            var fileText = _tracker.GetUnmodifiedFileByRelativePath(fileName, selection.Id);
+                            ShowFileFromString(fileText);
+
                         }
                         catch(Exception ex) { Debug.WriteLine(ex.Message); }
                     };

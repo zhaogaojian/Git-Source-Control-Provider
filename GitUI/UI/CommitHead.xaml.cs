@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using GitScc.DataServices;
 using GitUI;
 
 namespace GitScc.UI
@@ -27,7 +28,8 @@ namespace GitScc.UI
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            if (BranchName == "HEAD" || this.txtHead.Text == "*")
+            var gitRef = DataContext as Ref;
+            if (gitRef != null &&  (BranchName == "HEAD" || gitRef.Type ==  RefTypes.HEAD))
             {
                 this.border.Background = this.border.BorderBrush =
                 this.polygon.Fill = new SolidColorBrush(Color.FromArgb(128, 255, 0, 0));
@@ -35,6 +37,7 @@ namespace GitScc.UI
                 this.txtHead.Foreground = new SolidColorBrush(Color.FromRgb(255, 255, 255));
                 this.menuCheckoutBranch.IsEnabled = this.menuDeleteBranch.IsEnabled =
                 this.menuRebase.IsEnabled = false;
+                this.txtHead.Visibility = Visibility.Visible;
             }
         }
 
