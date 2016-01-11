@@ -331,18 +331,6 @@
       <Project>{b6e161a0-86d1-46b8-9d11-42bc0b4156de}</Project>
       <Name>GitExtension</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ngit\NGit\NGit.csproj">
-      <Project>{e3bff8b4-189c-496a-a817-7e8b31e22b91}</Project>
-      <Name>NGit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ngit\NSch\NSch.csproj">
-      <Project>{a19e6f3f-a25b-4b01-8922-cf0cc35c781d}</Project>
-      <Name>NSch</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ngit\Sharpen\Sharpen.csproj">
-      <Project>{72944a6c-45ff-4ef8-b349-8c9cabf519d4}</Project>
-      <Name>Sharpen</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="PendingChangesView.xaml">

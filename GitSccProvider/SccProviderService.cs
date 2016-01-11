@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using CancellationToken = System.Threading.CancellationToken;
 using CommandID = System.ComponentModel.Design.CommandID;
-using Constants = NGit.Constants;
 using Interlocked = System.Threading.Interlocked;
 using Task = System.Threading.Tasks.Task;
 using TaskContinuationOptions = System.Threading.Tasks.TaskContinuationOptions;
@@ -609,19 +608,19 @@ namespace GitScc
             }
         }
 
-        private void ProcessGitFileSystemChange(GitFileUpdateEventArgs e)
-        {
-            if (GitSccOptions.Current.DisableAutoRefresh)
-                return;
+        //private void ProcessGitFileSystemChange(GitFileUpdateEventArgs e)
+        //{
+        //    if (GitSccOptions.Current.DisableAutoRefresh)
+        //        return;
 
-            if (string.Equals(Path.GetExtension(e.Name), ".lock", StringComparison.OrdinalIgnoreCase))
-            {
-                if (e.FullPath.Contains(Constants.DOT_GIT + Path.DirectorySeparatorChar))
-                    return;
-            }
+        //    if (string.Equals(Path.GetExtension(e.Name), ".lock", StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        if (e.FullPath.Contains(Constants.DOT_GIT + Path.DirectorySeparatorChar))
+        //            return;
+        //    }
 
-            MarkDirty(false);
-        }
+        //    MarkDirty(false);
+        //}
 
         private async Task ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
         {
@@ -672,22 +671,22 @@ namespace GitScc
         }
 
 
-        private void ProcessFileSystemChange(FileSystemEventArgs e)
-        {
-            if (GitSccOptions.Current.DisableAutoRefresh)
-                return;
+        //private void ProcessFileSystemChange(FileSystemEventArgs e)
+        //{
+        //    if (GitSccOptions.Current.DisableAutoRefresh)
+        //        return;
 
-            if (e.ChangeType == WatcherChangeTypes.Changed && Directory.Exists(e.FullPath))
-                return;
+        //    if (e.ChangeType == WatcherChangeTypes.Changed && Directory.Exists(e.FullPath))
+        //        return;
 
-            if (string.Equals(Path.GetExtension(e.Name), ".lock", StringComparison.OrdinalIgnoreCase))
-            {
-                if (e.FullPath.Contains(Constants.DOT_GIT + Path.DirectorySeparatorChar))
-                    return;
-            }
+        //    if (string.Equals(Path.GetExtension(e.Name), ".lock", StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        if (e.FullPath.Contains(Constants.DOT_GIT + Path.DirectorySeparatorChar))
+        //            return;
+        //    }
 
-            MarkDirty(false);
-        }
+        //    MarkDirty(false);
+        //}
 
         private void CloseTracker()
         {

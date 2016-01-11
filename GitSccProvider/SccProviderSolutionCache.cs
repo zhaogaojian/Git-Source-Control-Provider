@@ -9,7 +9,7 @@ using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
-using Sharpen;
+
 
 namespace GitSccProvider
 {
