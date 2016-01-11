@@ -43,6 +43,7 @@
   <ItemGroup>
     <Reference Include="ICSharpCode.AvalonEdit">
       <HintPath>..\packages\AvalonEdit.5.0.2\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Microsoft.Windows.Shell">
@@ -201,13 +202,21 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\GitApi2.dll" />
-    <EmbeddedResource Include="Resources\ICSharpCode.AvalonEdit.dll" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GitApi\GitApi.csproj">
       <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
       <Name>GitApi</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\LibGit2Sharp.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ICSharpCode.SharpZipLib.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ICSharpCode.AvalonEdit.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

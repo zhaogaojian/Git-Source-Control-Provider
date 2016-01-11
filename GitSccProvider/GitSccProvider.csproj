@@ -120,7 +120,10 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\Compare.png" />
-    <Content Include="Resources\Dragon.exe" />
+    <Content Include="Resources\Dragon.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\History.png" />
     <Content Include="Resources\Images_24bit.bmp" />
     <Content Include="Resources\Images_32bit.bmp" />
