@@ -366,6 +366,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <MergeWithCTO>true</MergeWithCTO>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="SccProviderOptionsControl.resx">
       <DependentUpon>SccProviderOptionsControl.cs</DependentUpon>

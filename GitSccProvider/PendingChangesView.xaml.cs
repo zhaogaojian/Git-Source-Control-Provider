@@ -136,6 +136,8 @@ namespace GitScc
 
                 if (theme == VsTheme.Dark)
                 {
+                    //DiffEditor.Background = System.Windows.Media.Brushes.Black; //new SolidColorBrush((Color)ColorConverter.ConvertFromString("#242424"));
+                    //DiffEditor.Foreground = System.Windows.Media.Brushes.White;
                     filename = "GitSccProvider.Resources.Patch-Mode-Dark.xshd";
                 }
                 var assembly = Assembly.GetExecutingAssembly();

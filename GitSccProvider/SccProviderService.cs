@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Windows.Threading;
 using EnvDTE;
 using GitSccProvider;
+using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -628,21 +629,27 @@ namespace GitScc
             //{
               await Task.Run(async delegate {
                 await Task.Run(() => repo.Refresh());
-                IList<VSITEMSELECTION> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
-                if (nodes != null)
+                IList<IVsSccProject2> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
+                if (nodes != null && nodes.Count > 0)
                 {
-                    RefreshNodesGlyphs(nodes);
+                    foreach (var vsSccProject2 in nodes)
+                    {
+                        await QuickRefreshNodesGlyphs(vsSccProject2, new List<string>() {e.FullPath});
+                        //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        //vsSccProject2.SccGlyphChanged(0, null, null, null);
+                    }
+                    //RefreshNodesGlyphs(nodes);
                 }
             });
            
            // }
         }
 
-        private void ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
+        private async Task ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
         {
-            lock (_glyphsLock)
-            {
-                HashSet<VSITEMSELECTION> nodes = new HashSet<VSITEMSELECTION>();
+            //lock (_glyphsLock)
+            //{
+                HashSet<IVsSccProject2> nodes = new HashSet<IVsSccProject2>();
                 foreach (var file in e.Files)
                 {
                     var items = _fileCache.GetProjectsSelectionForFile(file);
@@ -650,14 +657,20 @@ namespace GitScc
                     {
                         foreach (var vsitemselection in items)
                         {
+                           
                             nodes.Add(vsitemselection);
                         }
                     }
                 }
                 if (nodes.Count > 0)
                 {
-                    RefreshNodesGlyphs(nodes.ToList());
+
+                foreach (var project in nodes)
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    project.SccGlyphChanged(0, null, null, null);
                 }
+            }
 
                 //todo maybe move this
                 var caption = "Solution Explorer";
@@ -667,7 +680,7 @@ namespace GitScc
                     caption += " (" + branch + ")";
                     SetSolutionExplorerTitle(caption);
                 }
-            }
+           // }
         }
 
 
@@ -1079,6 +1092,63 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             }
 
             return list;
+        }
+
+
+        public async Task QuickRefreshNodesGlyphs(IVsSccProject2 project, List<string> files)
+        {
+            if (files.Count > 0)
+            {
+                string[] rgpszFullPaths = new string[files.Count];
+                for (int i = 0; i < files.Count; i++)
+                    rgpszFullPaths[i] = files[i];
+
+                VsStateIcon[] rgsiGlyphs = new VsStateIcon[files.Count];
+                uint[] rgdwSccStatus = new uint[files.Count];
+                GetSccGlyph(files.Count, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
+
+                uint[] rguiAffectedNodes = new uint[files.Count];
+
+                //TODO We could/Should cache this mapping !!!! 
+                IList<uint> subnodes = SolutionExtensions.GetProjectItems((IVsHierarchy)project, VSConstants.VSITEMID_ROOT);
+
+                var dict = new Dictionary<string, uint>();
+                var proj = project as IVsProject2;
+
+                foreach (var id in subnodes)
+                {
+                    string docname;
+                    var res = proj.GetMkDocument(id, out docname);
+
+                    if (res == VSConstants.S_OK && !string.IsNullOrEmpty(docname))
+                        dict[docname] = id;
+                }
+
+                for (int i = 0; i < files.Count; ++i)
+                {
+                    uint id;
+                    if (dict.TryGetValue(files[i], out id))
+                    {
+                        rguiAffectedNodes[i] = id;
+                    }
+                }
+
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                project.SccGlyphChanged(files.Count, rguiAffectedNodes, rgsiGlyphs, rgdwSccStatus);
+            }
+
+            //if (sccFiles.Count > 0)
+            //{
+            //    string[] rgpszFullPaths = new string[1];
+            //    rgpszFullPaths[0] = sccFiles[0];
+            //    VsStateIcon[] rgsiGlyphs = new VsStateIcon[1];
+            //    uint[] rgdwSccStatus = new uint[1];
+            //    GetSccGlyph(1, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
+
+            //    uint[] rguiAffectedNodes = new uint[1];
+            //    rguiAffectedNodes[0] = VSConstants.VSITEMID_ROOT;
+            //    project.SccGlyphChanged(1, rguiAffectedNodes, rgsiGlyphs, rgdwSccStatus);
+            //}
         }
 
 

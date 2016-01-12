@@ -40,6 +40,19 @@ namespace GitScc
 
         //Public
 
+        public bool Active
+        {
+            get
+            {
+                if (_solutionTracker != null || _activeTracker != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+
         public GitFileStatusTracker ActiveTracker
         {
             get { return _activeTracker; }

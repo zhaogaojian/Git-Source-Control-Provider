@@ -156,7 +156,7 @@ namespace GitSccProvider.Utilities
             return sccFiles;
         }
 
-        private static IList<uint> GetProjectItems(IVsHierarchy pHier, uint startItemid)
+        public static IList<uint> GetProjectItems(IVsHierarchy pHier, uint startItemid)
         {
             List<uint> projectNodes = new List<uint>();
 

@@ -4,10 +4,10 @@
 
 	<Color name="AddedText" foreground="#80ff80" exampleText="+added" background="#265e4d" />
 	<Color name="RemovedText" foreground="Black" exampleText="-removed" background="#15352d" />
-	<Color name="UnchangedText" foreground="#dbdbdb" background="Black" exampleText=" unchanged" />
-	<Color name="Position" foreground="#2c92af"  background="Black" exampleText="@@ -186,6 +186,12 @@" />
-	<Color name="Header" foreground="#58a64a"  background="Black" exampleText="--- (oldversion)&#10;+++ (newversion)" />
-	<Color name="FileName" foreground="Green" background="Black" fontWeight="bold" exampleText="Index: path/to/file" />
+	<Color name="UnchangedText" foreground="#dbdbdb"  exampleText=" unchanged" />
+	<Color name="Position" foreground="#2c92af"  exampleText="@@ -186,6 +186,12 @@" />
+	<Color name="Header" foreground="#58a64a"   exampleText="--- (oldversion)&#10;+++ (newversion)" />
+	<Color name="FileName" foreground="Green"  fontWeight="bold" exampleText="Index: path/to/file" />
 	<RuleSet>
 	
 		<Span color="FileName">

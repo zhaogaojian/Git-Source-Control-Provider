@@ -23,8 +23,8 @@ namespace GitSccProvider
     {
         private BasicSccProvider _sccProvider;
         private List<IVsSccProject2> _projects;
-        private ConcurrentDictionary<string, List<VSITEMSELECTION>> _fileProjectLookup;
-        private ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION> _projectSelectionLookup;
+        private ConcurrentDictionary<string, List<IVsSccProject2>> _fileProjectLookup;
+        //private ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION> _projectSelectionLookup;
         private DateTime _lastNewFileScan;
         private static int _projectScanDelaySeconds = 5;
 
@@ -32,46 +32,50 @@ namespace GitSccProvider
         {
             _sccProvider = provider;
             _projects = new List<IVsSccProject2>();
-            _fileProjectLookup = new ConcurrentDictionary<string, List<VSITEMSELECTION>>();
-            _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
+            _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
+    //_projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
             _lastNewFileScan = DateTime.MinValue;
         }
 
         public void InValidateCache()
         {
             _projects = new List<IVsSccProject2>();
-            _fileProjectLookup = new ConcurrentDictionary<string, List<VSITEMSELECTION>>();
-            _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
+            _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
+           // _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
             _lastNewFileScan = DateTime.MinValue;
         }
 
         private void AddFileToList(string filename, IVsSccProject2 project)
         {
-            List<VSITEMSELECTION> projects;
+            List<IVsSccProject2> projects;
 
             if (!_fileProjectLookup.TryGetValue(filename, out projects))
             {
-                VSITEMSELECTION vsItem;
-                if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
-                {
-                    vsItem = CreateItem(filename, project);
-                    _projectSelectionLookup.TryAdd(project, vsItem);
-                }
-                _fileProjectLookup.TryAdd(filename, new List<VSITEMSELECTION> { vsItem });
+                //VSITEMSELECTION vsItem;
+                //if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
+                //{
+                //    vsItem = CreateItem(filename, project);
+                //    _projectSelectionLookup.TryAdd(project, vsItem);
+                //}
+                _fileProjectLookup.TryAdd(filename, new List<IVsSccProject2> { project });
             }
 
             else
             {
-                VSITEMSELECTION vsItem;
-                if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
+                if (!projects.Contains(project))
                 {
-                    vsItem = CreateItem(filename, project);
-                    _projectSelectionLookup.TryAdd(project, vsItem);
+                    projects.Add(project);
                 }
-                if (!projects.Contains(vsItem))
-                {
-                    projects.Add(vsItem);
-                }
+                //VSITEMSELECTION vsItem;
+                //if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
+                //{
+                //    vsItem = CreateItem(filename, project);
+                //    _projectSelectionLookup.TryAdd(project, vsItem);
+                //}
+                //if (!projects.Contains(vsItem))
+                //{
+                //    projects.Add(vsItem);
+                //}
             }
         }
 
@@ -110,20 +114,20 @@ namespace GitSccProvider
             return  vsItem;
         }
 
-        public List<VSITEMSELECTION> GetProjectsSelectionForFile(string filename)
+        public List<IVsSccProject2> GetProjectsSelectionForFile(string filename)
         {
             return GetProjectsSelectionForFile(filename,true);
         }
 
-        private List<VSITEMSELECTION> GetProjectsSelectionForFile(string filename, bool search)
+        private List<IVsSccProject2> GetProjectsSelectionForFile(string filename, bool search)
         {
-            List<VSITEMSELECTION> projects;
+            List<IVsSccProject2> projects;
             var filePath = filename.ToLower();
             if (!_fileProjectLookup.TryGetValue(filePath, out projects))
             {
                 if (!search)
                 {
-                    _fileProjectLookup.TryAdd(filePath, new List<VSITEMSELECTION>());
+                    _fileProjectLookup.TryAdd(filePath, new List<IVsSccProject2>());
                     return null;
                 }
                 else
@@ -209,13 +213,35 @@ namespace GitSccProvider
             }
         }
 
+        //public bool IsProjectControlled(IVsHierarchy pHier)
+        //{
+        //    if (pHier == null)
+        //    {
+        //        // this is solution, get the solution hierarchy
+        //        pHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+        //    }
+
+        //    return project_to_storage_map.ContainsKey(pHier);
+        //}
+
+        //public bool IsProjectControlled(IVsSccProject2 project)
+        //{
+        //    if (pHier == null)
+        //    {
+        //        // this is solution, get the solution hierarchy
+        //        pHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+        //    }
+
+        //    return project_to_storage_map.ContainsKey(pHier);
+        //}
+
         #region Implementation of IDisposable
 
         public void Dispose()
         {
             _projects = null;
             _fileProjectLookup = null;
-            _projectSelectionLookup = null;
+           // _projectSelectionLookup = null;
         }
 
         #endregion
