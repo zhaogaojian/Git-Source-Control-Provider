@@ -349,9 +349,10 @@ namespace GitScc
 
         internal async Task Refresh()
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (!_refreshing)
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = true;
                 label3.Content = "Changed files (Updating...)";
 
@@ -363,7 +364,7 @@ namespace GitScc
                 }
                 var files = await GetFileList();
                 UpdateFileListUI(files);
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = false;
             }
         }

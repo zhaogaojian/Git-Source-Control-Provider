@@ -22,6 +22,7 @@ namespace GitSccProvider
     public class SccProviderSolutionCache : IDisposable
     {
         private BasicSccProvider _sccProvider;
+        private ConcurrentDictionary<string, GitFileStatus> _fileStatus;
         private List<IVsSccProject2> _projects;
         private ConcurrentDictionary<string, List<IVsSccProject2>> _fileProjectLookup;
         //private ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION> _projectSelectionLookup;
@@ -33,6 +34,7 @@ namespace GitSccProvider
             _sccProvider = provider;
             _projects = new List<IVsSccProject2>();
             _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
+            _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
     //_projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
             _lastNewFileScan = DateTime.MinValue;
         }
@@ -112,6 +114,26 @@ namespace GitSccProvider
                 }
             }
             return  vsItem;
+        }
+
+        public bool StatusChanged(string filename, GitFileStatus status)
+        {
+
+            var file = filename.ToLower();
+            var fileStatus = GitFileStatus.NotControlled;
+
+
+            if (_fileStatus.TryGetValue(file, out fileStatus))
+            {
+                if (fileStatus == status)
+                {
+                    return false;
+                }
+                _fileStatus[file] = status;
+                return true;
+            }
+            _fileStatus.TryAdd(file, status);
+            return true;
         }
 
         public List<IVsSccProject2> GetProjectsSelectionForFile(string filename)

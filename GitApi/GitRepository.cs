@@ -881,18 +881,18 @@ namespace GitScc
             }
             catch (Exception ex)
             {
-                if (retryAllowed)
-                {
-                    return Task.Run(() =>
-                    {
-                        Thread.Sleep(500);
-                        return GetCurrentChangedFiles(false);
-                    }).Result;
-                }
-                else
-                {
-                    Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
-                }
+                //if (retryAllowed)
+                //{
+                //    return Task.Run(() =>
+                //    {
+                //        Thread.Sleep(500);
+                //        return GetCurrentChangedFiles(false);
+                //    }).Result;
+                //}
+                //else
+                //{
+                //    Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
+                //}
 
             }
             return files;

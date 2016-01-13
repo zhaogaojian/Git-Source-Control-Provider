@@ -16,6 +16,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using CancellationToken = System.Threading.CancellationToken;
 using CommandID = System.ComponentModel.Design.CommandID;
 using Interlocked = System.Threading.Interlocked;
@@ -570,7 +571,7 @@ namespace GitScc
 
             try
             {
-                await ProcessSingleFileSystemChange((GitRepository)sender, e);
+                await Task.Run(() => ProcessSingleFileSystemChange((GitRepository)sender, e));
             }
             catch (Exception ex)
             {
@@ -627,20 +628,28 @@ namespace GitScc
         {
             //lock (_glyphsLock)
             //{
-              await Task.Run(async delegate {
-                await Task.Run(() => repo.Refresh());
+            //await Task.Run(async delegate
+            //{
+            //    await Task.Run(() => 
+            //await TaskScheduler.Default;
+            repo.Refresh();
+            if (_fileCache.StatusChanged(e.FullPath, repo.GetFileStatus(e.FullPath)))
+            {
                 IList<IVsSccProject2> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
                 if (nodes != null && nodes.Count > 0)
                 {
                     foreach (var vsSccProject2 in nodes)
                     {
-                        await QuickRefreshNodesGlyphs(vsSccProject2, new List<string>() {e.FullPath});
-                        //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        //vsSccProject2.SccGlyphChanged(0, null, null, null);
+                        //await QuickRefreshNodesGlyphs(vsSccProject2, new List<string>() {e.FullPath});
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        vsSccProject2.SccGlyphChanged(0, null, null, null);
                     }
                     //RefreshNodesGlyphs(nodes);
                 }
-            });
+            }
+            //  }
+            //});
+
            
            // }
         }
@@ -664,10 +673,10 @@ namespace GitScc
                 }
                 if (nodes.Count > 0)
                 {
-
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 foreach (var project in nodes)
                 {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                   
                     project.SccGlyphChanged(0, null, null, null);
                 }
             }
