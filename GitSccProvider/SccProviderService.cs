@@ -570,7 +570,7 @@ namespace GitScc
 
             try
             {
-                ProcessSingleFileSystemChange((GitRepository)sender, e);
+                await ProcessSingleFileSystemChange((GitRepository)sender, e);
             }
             catch (Exception ex)
             {
@@ -1097,58 +1097,60 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         public async Task QuickRefreshNodesGlyphs(IVsSccProject2 project, List<string> files)
         {
-            if (files.Count > 0)
+            try
             {
-                string[] rgpszFullPaths = new string[files.Count];
-                for (int i = 0; i < files.Count; i++)
-                    rgpszFullPaths[i] = files[i];
-
-                VsStateIcon[] rgsiGlyphs = new VsStateIcon[files.Count];
-                uint[] rgdwSccStatus = new uint[files.Count];
-                GetSccGlyph(files.Count, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
-
-                uint[] rguiAffectedNodes = new uint[files.Count];
-
-                //TODO We could/Should cache this mapping !!!! 
-                IList<uint> subnodes = SolutionExtensions.GetProjectItems((IVsHierarchy)project, VSConstants.VSITEMID_ROOT);
-
-                var dict = new Dictionary<string, uint>();
-                var proj = project as IVsProject2;
-
-                foreach (var id in subnodes)
+                if (files.Count > 0)
                 {
-                    string docname;
-                    var res = proj.GetMkDocument(id, out docname);
+                    string[] rgpszFullPaths = new string[files.Count];
+                    for (int i = 0; i < files.Count; i++)
+                        rgpszFullPaths[i] = files[i];
 
-                    if (res == VSConstants.S_OK && !string.IsNullOrEmpty(docname))
-                        dict[docname] = id;
-                }
+                    VsStateIcon[] rgsiGlyphs = new VsStateIcon[files.Count];
+                    uint[] rgdwSccStatus = new uint[files.Count];
+                    GetSccGlyph(files.Count, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
 
-                for (int i = 0; i < files.Count; ++i)
-                {
-                    uint id;
-                    if (dict.TryGetValue(files[i], out id))
+                    uint[] rguiAffectedNodes = new uint[files.Count];
+
+                    //TODO We could/Should cache this mapping !!!! 
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    IList<uint> subnodes = SolutionExtensions.GetProjectItems((IVsHierarchy)project, VSConstants.VSITEMID_ROOT);
+
+                    var dict = new Dictionary<string, uint>();
+                    var proj = project as IVsProject2;
+
+                    foreach (var id in subnodes)
                     {
-                        rguiAffectedNodes[i] = id;
-                    }
-                }
+                        string docname;
+                        var res = proj.GetMkDocument(id, out docname);
 
+                        if (res == VSConstants.S_OK && !string.IsNullOrEmpty(docname))
+                            dict[docname] = id;
+                    }
+
+                    for (int i = 0; i < files.Count; ++i)
+                    {
+                        uint id;
+                        if (dict.TryGetValue(files[i], out id))
+                        {
+                            rguiAffectedNodes[i] = id;
+                        }
+                    }
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    project.SccGlyphChanged(files.Count, rguiAffectedNodes, rgsiGlyphs, rgdwSccStatus);
+                }
+            }
+            catch (Exception ex )
+            {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                project.SccGlyphChanged(files.Count, rguiAffectedNodes, rgsiGlyphs, rgdwSccStatus);
+                IVsActivityLog log = _sccProvider.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+                if (log == null) return;
+
+                int hr = log.LogEntry((UInt32)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
+                    ex.StackTrace,
+                    string.Format(CultureInfo.CurrentCulture,
+                    "Called for: {0}", this.ToString()));
             }
 
-            //if (sccFiles.Count > 0)
-            //{
-            //    string[] rgpszFullPaths = new string[1];
-            //    rgpszFullPaths[0] = sccFiles[0];
-            //    VsStateIcon[] rgsiGlyphs = new VsStateIcon[1];
-            //    uint[] rgdwSccStatus = new uint[1];
-            //    GetSccGlyph(1, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
-
-            //    uint[] rguiAffectedNodes = new uint[1];
-            //    rguiAffectedNodes[0] = VSConstants.VSITEMID_ROOT;
-            //    project.SccGlyphChanged(1, rguiAffectedNodes, rgsiGlyphs, rgdwSccStatus);
-            //}
         }
 
 

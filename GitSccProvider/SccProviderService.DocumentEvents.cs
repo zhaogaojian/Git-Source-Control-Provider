@@ -64,7 +64,7 @@ namespace GitScc
                 if (!string.IsNullOrWhiteSpace(filename))
                 {
                     //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    await TaskScheduler.Default;
+                    //await TaskScheduler.Default;
                     RepositoryManager.Instance.GetTrackerForPath(filename, true);
                 }
             }

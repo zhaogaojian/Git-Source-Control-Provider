@@ -372,7 +372,7 @@ namespace GitScc
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             ShowStatusMessage("Getting changed files ...");
-            await TaskScheduler.Default;
+            //await TaskScheduler.Default;
             return CurrentTracker.ChangedFiles.ToList();
         }
 

@@ -42,6 +42,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+	<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -52,7 +53,7 @@
     <WarningLevel>4</WarningLevel>
     <DeployExtension>True</DeployExtension>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
-    <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
   <ItemGroup>
@@ -132,7 +133,9 @@
     <Resource Include="Resources\Loading.png" />
     <Content Include="Resources\PendingCheckins.png" />
     <EmbeddedResource Include="Resources\Patch-Mode-Blue.xshd" />
-    <EmbeddedResource Include="Resources\Patch-Mode-Dark.xshd" />
+    <EmbeddedResource Include="Resources\Patch-Mode-Dark.xshd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <None Include="Resources\Product.ico" />
     <Content Include="Resources\Refresh.png" />
     <Content Include="Resources\SccGlyphs.bmp" />
