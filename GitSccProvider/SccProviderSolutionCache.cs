@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using GitScc;
 using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 
 namespace GitSccProvider
@@ -81,40 +80,40 @@ namespace GitSccProvider
             }
         }
 
-        private VSITEMSELECTION CreateItem(string filename,IVsSccProject2 project)
-        {
-            VSITEMSELECTION vsItem = new VSITEMSELECTION();
+        //private VSITEMSELECTION CreateItem(string filename,IVsSccProject2 project)
+        //{
+        //    VSITEMSELECTION vsItem = new VSITEMSELECTION();
 
 
-            IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
-            IVsHierarchy pHier = project as IVsHierarchy;
+        //    IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+        //    IVsHierarchy pHier = project as IVsHierarchy;
 
-            if (solHier == pHier)
-            {
-                // This is the solution
-                if (filename.ToLower().CompareTo(GetSolutionFileName().ToLower()) == 0)
-                {
-                    vsItem.itemid = VSConstants.VSITEMID_ROOT;
-                    vsItem.pHier = null;
-                }
-            }
-            else
-            {
-                IVsProject2 pProject = pHier as IVsProject2;
-                // See if the file is member of this project
-                // Caveat: the IsDocumentInProject function is expensive for certain project types, 
-                // you may want to limit its usage by creating your own maps of file2project or folder2project
-                int fFound;
-                uint itemid;
-                VSDOCUMENTPRIORITY[] prio = new VSDOCUMENTPRIORITY[1];
-                if (pProject != null && pProject.IsDocumentInProject(filename, out fFound, prio, out itemid) == VSConstants.S_OK && fFound != 0)
-                {
-                    vsItem.itemid = itemid;
-                    vsItem.pHier = pHier;
-                }
-            }
-            return  vsItem;
-        }
+        //    if (solHier == pHier)
+        //    {
+        //        // This is the solution
+        //        if (filename.ToLower().CompareTo(GetSolutionFileName().ToLower()) == 0)
+        //        {
+        //            vsItem.itemid = VSConstants.VSITEMID_ROOT;
+        //            vsItem.pHier = null;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        IVsProject2 pProject = pHier as IVsProject2;
+        //        // See if the file is member of this project
+        //        // Caveat: the IsDocumentInProject function is expensive for certain project types, 
+        //        // you may want to limit its usage by creating your own maps of file2project or folder2project
+        //        int fFound;
+        //        uint itemid;
+        //        VSDOCUMENTPRIORITY[] prio = new VSDOCUMENTPRIORITY[1];
+        //        if (pProject != null && pProject.IsDocumentInProject(filename, out fFound, prio, out itemid) == VSConstants.S_OK && fFound != 0)
+        //        {
+        //            vsItem.itemid = itemid;
+        //            vsItem.pHier = pHier;
+        //        }
+        //    }
+        //    return  vsItem;
+        //}
 
         public bool StatusChanged(string filename, GitFileStatus status)
         {
@@ -136,12 +135,12 @@ namespace GitSccProvider
             return true;
         }
 
-        public List<IVsSccProject2> GetProjectsSelectionForFile(string filename)
+        public async Task<List<IVsSccProject2>> GetProjectsSelectionForFile(string filename)
         {
-            return GetProjectsSelectionForFile(filename,true);
+           return await  GetProjectsSelectionForFile(filename,true);
         }
 
-        private List<IVsSccProject2> GetProjectsSelectionForFile(string filename, bool search)
+        private async Task<List<IVsSccProject2>> GetProjectsSelectionForFile(string filename, bool search)
         {
             List<IVsSccProject2> projects;
             var filePath = filename.ToLower();
@@ -156,24 +155,24 @@ namespace GitSccProvider
                 {
                     if (DateTime.UtcNow > _lastNewFileScan.AddSeconds(_projectScanDelaySeconds))
                     {
-                        ScanSolution();
+                        await ScanSolution();
                         _lastNewFileScan = DateTime.UtcNow;
                     }
-                    projects = GetProjectsSelectionForFile(filePath, false);
+                    projects = await GetProjectsSelectionForFile(filePath, false);
                 }
             }
             return projects;
         }
 
 
-        public void AddProject(IVsSccProject2 project)
+        public async Task AddProject(IVsSccProject2 project)
         {
             if (!_projects.Contains(project) && project != null)
             {
                 _projects.Add(project);
             }
 
-            var files = SolutionExtensions.GetProjectFiles(project);
+            var files = await SolutionExtensions.GetProjectFiles(project);
 
             foreach (var file in files)
             {
@@ -183,20 +182,22 @@ namespace GitSccProvider
 
 
 
-        private void ScanSolution()
+        private async Task ScanSolution()
         {
-
-            var projects = GetLoadedControllableProjects();
+            var projects = await GetLoadedControllableProjects();
+            //TODO MAke sure I want to do this
+            _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
             foreach (var project in projects)
             {
-                AddProject(project);
+                await AddProject(project);
             }
 
         }
 
         //TODo Temp
-        private List<IVsSccProject2> GetLoadedControllableProjects()
+        private async Task<List<IVsSccProject2>> GetLoadedControllableProjects()
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var list = new List<IVsSccProject2>();
 
             IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
@@ -221,19 +222,19 @@ namespace GitSccProvider
             return list;
         }
 
-        public string GetSolutionFileName()
-        {
-            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
-            string solutionDirectory, solutionFile, solutionUserOptions;
-            if (sol.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionUserOptions) == VSConstants.S_OK)
-            {
-                return solutionFile;
-            }
-            else
-            {
-                return null;
-            }
-        }
+        //public string GetSolutionFileName()
+        //{
+        //    IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
+        //    string solutionDirectory, solutionFile, solutionUserOptions;
+        //    if (sol.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionUserOptions) == VSConstants.S_OK)
+        //    {
+        //        return solutionFile;
+        //    }
+        //    else
+        //    {
+        //        return null;
+        //    }
+        //}
 
         //public bool IsProjectControlled(IVsHierarchy pHier)
         //{

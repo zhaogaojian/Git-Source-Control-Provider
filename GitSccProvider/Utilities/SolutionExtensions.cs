@@ -25,21 +25,22 @@ namespace GitSccProvider.Utilities
         /// <summary>
         /// Gets the list of source controllable files in the specified project
         /// </summary>
-        public static IList<string>  GetProjectFiles(IVsSccProject2 pscp2Project)
+        public static async Task<IList<string>>  GetProjectFiles(IVsSccProject2 pscp2Project)
         {
-            return GetProjectFiles(pscp2Project, VSConstants.VSITEMID_ROOT);
+            return await GetProjectFiles(pscp2Project, VSConstants.VSITEMID_ROOT);
         }
 
         /// <summary>
         /// Gets the list of source controllable files in the specified project
         /// </summary>
-        public static IList<string> GetProjectFiles(IVsSccProject2 pscp2Project, uint startItemId)
+        public static async Task<IList<string>> GetProjectFiles(IVsSccProject2 pscp2Project, uint startItemId)
         {
             IList<string> projectFiles = new List<string>();
             if (pscp2Project == null)
             {
                 return projectFiles;
             }
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             IVsHierarchy hierProject = (IVsHierarchy)pscp2Project;
             
 
@@ -92,71 +93,71 @@ namespace GitSccProvider.Utilities
         }
 
 
-        private static IList<string> GetNodeFiles(IVsSccProject2 pscp2, uint itemid)
-        {
-            // NOTE: the function returns only a list of files, containing both regular files and special files
-            // If you want to hide the special files (similar with solution explorer), you may need to return 
-            // the special files in a hastable (key=master_file, values=special_file_list)
+        //private static IList<string> GetNodeFiles(IVsSccProject2 pscp2, uint itemid)
+        //{
+        //    // NOTE: the function returns only a list of files, containing both regular files and special files
+        //    // If you want to hide the special files (similar with solution explorer), you may need to return 
+        //    // the special files in a hastable (key=master_file, values=special_file_list)
 
-            // Initialize output parameters
-            IList<string> sccFiles = new List<string>();
-            if (pscp2 != null)
-            {
-                CALPOLESTR[] pathStr = new CALPOLESTR[1];
-                CADWORD[] flags = new CADWORD[1];
+        //    // Initialize output parameters
+        //    IList<string> sccFiles = new List<string>();
+        //    if (pscp2 != null)
+        //    {
+        //        CALPOLESTR[] pathStr = new CALPOLESTR[1];
+        //        CADWORD[] flags = new CADWORD[1];
 
-                if (pscp2.GetSccFiles(itemid, pathStr, flags) == VSConstants.S_OK)
-                {
-                    for (int elemIndex = 0; elemIndex < pathStr[0].cElems; elemIndex++)
-                    {
-                        IntPtr pathIntPtr = Marshal.ReadIntPtr(pathStr[0].pElems, elemIndex * IntPtr.Size);
-                        String path = Marshal.PtrToStringAuto(pathIntPtr);
+        //        if (pscp2.GetSccFiles(itemid, pathStr, flags) == VSConstants.S_OK)
+        //        {
+        //            for (int elemIndex = 0; elemIndex < pathStr[0].cElems; elemIndex++)
+        //            {
+        //                IntPtr pathIntPtr = Marshal.ReadIntPtr(pathStr[0].pElems, elemIndex * IntPtr.Size);
+        //                String path = Marshal.PtrToStringAuto(pathIntPtr);
 
-                        sccFiles.Add(path);
+        //                sccFiles.Add(path);
 
-                        // See if there are special files
-                        if (flags.Length > 0 && flags[0].cElems > 0)
-                        {
-                            int flag = Marshal.ReadInt32(flags[0].pElems, elemIndex * IntPtr.Size);
+        //                // See if there are special files
+        //                if (flags.Length > 0 && flags[0].cElems > 0)
+        //                {
+        //                    int flag = Marshal.ReadInt32(flags[0].pElems, elemIndex * IntPtr.Size);
 
-                            if (flag != 0)
-                            {
-                                // We have special files
-                                CALPOLESTR[] specialFiles = new CALPOLESTR[1];
-                                CADWORD[] specialFlags = new CADWORD[1];
+        //                    if (flag != 0)
+        //                    {
+        //                        // We have special files
+        //                        CALPOLESTR[] specialFiles = new CALPOLESTR[1];
+        //                        CADWORD[] specialFlags = new CADWORD[1];
 
-                                if (pscp2.GetSccSpecialFiles(itemid, path, specialFiles, specialFlags) == VSConstants.S_OK)
-                                {
-                                    for (int i = 0; i < specialFiles[0].cElems; i++)
-                                    {
-                                        IntPtr specialPathIntPtr = Marshal.ReadIntPtr(specialFiles[0].pElems, i * IntPtr.Size);
-                                        String specialPath = Marshal.PtrToStringAuto(specialPathIntPtr);
+        //                        if (pscp2.GetSccSpecialFiles(itemid, path, specialFiles, specialFlags) == VSConstants.S_OK)
+        //                        {
+        //                            for (int i = 0; i < specialFiles[0].cElems; i++)
+        //                            {
+        //                                IntPtr specialPathIntPtr = Marshal.ReadIntPtr(specialFiles[0].pElems, i * IntPtr.Size);
+        //                                String specialPath = Marshal.PtrToStringAuto(specialPathIntPtr);
 
-                                        sccFiles.Add(specialPath);
-                                        Marshal.FreeCoTaskMem(specialPathIntPtr);
-                                    }
+        //                                sccFiles.Add(specialPath);
+        //                                Marshal.FreeCoTaskMem(specialPathIntPtr);
+        //                            }
 
-                                    if (specialFiles[0].cElems > 0)
-                                    {
-                                        Marshal.FreeCoTaskMem(specialFiles[0].pElems);
-                                    }
-                                }
-                            }
-                        }
+        //                            if (specialFiles[0].cElems > 0)
+        //                            {
+        //                                Marshal.FreeCoTaskMem(specialFiles[0].pElems);
+        //                            }
+        //                        }
+        //                    }
+        //                }
 
-                        Marshal.FreeCoTaskMem(pathIntPtr);
-                    }
-                    if (pathStr[0].cElems > 0)
-                    {
-                        Marshal.FreeCoTaskMem(pathStr[0].pElems);
-                    }
-                }
-            }
+        //                Marshal.FreeCoTaskMem(pathIntPtr);
+        //            }
+        //            if (pathStr[0].cElems > 0)
+        //            {
+        //                Marshal.FreeCoTaskMem(pathStr[0].pElems);
+        //            }
+        //        }
+        //    }
 
-            return sccFiles;
-        }
+        //    return sccFiles;
+        //}
 
-        public static IList<uint> GetProjectItems(IVsHierarchy pHier, uint startItemid)
+        public static async Task<IList<uint>> GetProjectItems(IVsHierarchy pHier, uint startItemid)
         {
             List<uint> projectNodes = new List<uint>();
 
@@ -174,8 +175,8 @@ namespace GitSccProvider.Utilities
                 uint node = nodesToWalk.Dequeue();
                 projectNodes.Add(node);
 
-               // DebugWalkingNode(pHier, node);
-
+                // DebugWalkingNode(pHier, node);
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 object property = null;
                 if (pHier?.GetProperty(node, (int)__VSHPROPID.VSHPROPID_FirstChild, out property) == VSConstants.S_OK)
                 {
@@ -235,8 +236,9 @@ namespace GitSccProvider.Utilities
         /// <summary>
         /// Checks whether the specified project is a solution folder
         /// </summary>
-        public static bool IsSolutionFolderProject(this IVsHierarchy pHier)
+        public static async Task<bool> IsSolutionFolderProject(this IVsHierarchy pHier)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             IPersistFileFormat pFileFormat = pHier as IPersistFileFormat;
             if (pFileFormat != null)
             {

@@ -104,7 +104,7 @@ namespace GitScc.UI
             }
         }
 
-        internal async void Show()
+        internal async Task Show()
         {
 
              await Dispatcher.InvokeAsync(() =>
@@ -121,7 +121,7 @@ namespace GitScc.UI
 
 
         //TODO Sync Thread 
-        internal async void Hide()
+        internal async Task Hide()
         {
             await Dispatcher.InvokeAsync(() =>
             {

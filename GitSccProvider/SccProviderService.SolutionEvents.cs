@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using GitSccProvider;
 using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace GitScc
@@ -23,6 +24,7 @@ namespace GitScc
         private void SetupSolutionEvents()
         {
             // Subscribe to solution events
+            ThreadHelper.ThrowIfNotOnUIThread();
             IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
             sol.AdviseSolutionEvents(this, out _vsSolutionEventsCookie);
 
@@ -35,6 +37,7 @@ namespace GitScc
 
         private void UnRegisterSolutionEvents()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             // Unregister from receiving solution events
             if (VSConstants.VSCOOKIE_NIL != _vsSolutionEventsCookie)
             {
@@ -55,16 +58,24 @@ namespace GitScc
         public int OnAfterOpenSolution([In] Object pUnkReserved, [In] int fNewSolution)
         {
 
-            OpenTracker();
+            ThreadHelper.JoinableTaskFactory.Run(async delegate
+            {
+                await OpenTracker();
+            });
+           
             //RefreshDelay = InitialRefreshDelay;
 
             //automatic switch the scc provider
             if (!Active && !GitSccOptions.Current.DisableAutoLoad)
             {
-                OpenTracker();
+                ThreadHelper.JoinableTaskFactory.Run(async delegate
+                {
+                    await OpenTracker();
+                });
 
                 if (RepositoryManager.Instance.GetRepositories().Count > 0)
                 {
+                    ThreadHelper.ThrowIfNotOnUIThread();
                     IVsRegisterScciProvider rscp =
                         (IVsRegisterScciProvider)_sccProvider.GetService(typeof(IVsRegisterScciProvider));
                     rscp.RegisterSourceControlProvider(GuidList.guidSccProvider);
@@ -90,9 +101,15 @@ namespace GitScc
 
         public int OnAfterOpenProject([In] IVsHierarchy pHierarchy, [In] int fAdded)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            bool isSolutionFolder = ThreadHelper.JoinableTaskFactory.Run(async delegate
+            {
+                return await pHierarchy.IsSolutionFolderProject();
+            });
             //_fileCache.AddProject(pHierarchy);
             // If a solution folder is added to the solution after the solution is added to scc, we need to controll that folder
-            if (pHierarchy.IsSolutionFolderProject() && (fAdded == 1))
+            if (isSolutionFolder && (fAdded == 1))
             {
                 IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
                 //if (IsProjectControlled(solHier))

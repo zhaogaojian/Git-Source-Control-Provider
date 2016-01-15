@@ -64,7 +64,7 @@
     <Compile Include="GitBash.cs" />
     <Compile Include="GitBashResult.cs" />
     <Compile Include="GitBranchInfo.cs" />
-    <Compile Include="GitChangeset.cs" />
+    <Compile Include="GitChangesetManager.cs" />
     <Compile Include="GitCommands.cs" />
     <Compile Include="GitFileStatus.cs" />
     <Compile Include="GitIntellisenseHelper.cs" />

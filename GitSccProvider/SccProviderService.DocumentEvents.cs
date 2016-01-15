@@ -24,6 +24,7 @@ namespace GitScc
 
         private void SetupDocumentEvents()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             IVsTrackProjectDocuments2 tpdService = (IVsTrackProjectDocuments2)_sccProvider.GetService(typeof(SVsTrackProjectDocuments));
             tpdService.AdviseTrackProjectDocumentsEvents(this, out _tpdTrackProjectDocumentsCookie);
             Debug.Assert(VSConstants.VSCOOKIE_NIL != _tpdTrackProjectDocumentsCookie);
@@ -42,6 +43,7 @@ namespace GitScc
         {
             if (VSConstants.VSCOOKIE_NIL != _tpdTrackProjectDocumentsCookie)
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
                 IVsTrackProjectDocuments2 tpdService = (IVsTrackProjectDocuments2)_sccProvider.GetService(typeof(SVsTrackProjectDocuments));
                 tpdService.UnadviseTrackProjectDocumentsEvents(_tpdTrackProjectDocumentsCookie);
                 _tpdTrackProjectDocumentsCookie = VSConstants.VSCOOKIE_NIL;
@@ -50,9 +52,9 @@ namespace GitScc
             _solutionEvents.Opened -= _solutionEvents_Opened;
         }
 
-        private void _solutionEvents_Opened()
+        private async void _solutionEvents_Opened()
         {
-            SetSolutionExplorerTitle();
+            await SetSolutionExplorerTitle();
         }
 
         private async void _windowEvents_WindowActivated(Window GotFocus, Window LostFocus)

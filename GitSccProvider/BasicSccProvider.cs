@@ -17,12 +17,15 @@ using System.Collections.Generic;
 using GitScc.UI;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using EnvDTE;
 using GitExtension;
 using GitSccProvider;
 using GitSccProvider.Utilities;
+using Microsoft.VisualStudio.Threading;
 using Process = System.Diagnostics.Process;
+using Task = System.Threading.Tasks.Task;
 
 namespace GitScc
 {
@@ -185,6 +188,7 @@ namespace GitScc
             }
 
 
+            ThreadHelper.ThrowIfNotOnUIThread();
             // Register the provider with the source control manager
             // If the package is to become active, this will also callback on OnActiveStateChange and the menu commands will be enabled
             IVsRegisterScciProvider rscp = (IVsRegisterScciProvider)GetService(typeof(IVsRegisterScciProvider));
@@ -378,14 +382,26 @@ namespace GitScc
             sccService.Refresh();
         }
 
-        private void OnCompareCommand(object sender, EventArgs e)
+        private async void OnCompareCommand(object sender, EventArgs e)
         {
-            sccService.CompareSelectedFile();
+            try
+            {
+                await sccService.CompareSelectedFile();
+            }
+            catch (Exception)
+            {
+            }
         }
 
-        private void OnUndoCommand(object sender, EventArgs e)
+        private async void OnUndoCommand(object sender, EventArgs e)
         {
-            sccService.UndoSelectedFile();
+            try
+            {
+                await sccService.UndoSelectedFile();
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private void OnGitBashCommand(object sender, EventArgs e)
@@ -415,10 +431,11 @@ namespace GitScc
         }
 
         //TODO Do a command pattern so we can plugin any diff tool 
-        internal void RunDiffCommand(DiffFileInfo fileInfo)
+        internal async Task RunDiffCommand(DiffFileInfo fileInfo)
         {
             if (GitSccOptions.Current.DiffTool == DiffTools.VisualStudio)
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var diffService = (IVsDifferenceService)GetService(typeof(SVsDifferenceService));
                 if (diffService != null)
                 {
@@ -481,9 +498,18 @@ namespace GitScc
         {
             var workingDirectory = sccService.CurrentWorkingDirectory;
             if (command.Scope == CommandScope.Project) return workingDirectory;
-            var fileName = sccService.GetSelectFileName();
-            if (fileName == sccService.GetSolutionFileName()) return workingDirectory;
-            return fileName;
+            var path = ThreadHelper.JoinableTaskFactory.Run(async delegate
+            {
+                var fileName = await sccService.GetSelectFileName();
+                var solutionName = await sccService.GetSolutionFileName();
+                if (string.Equals(fileName,solutionName,StringComparison.OrdinalIgnoreCase))
+                {
+                    return workingDirectory;
+                }
+                return fileName;
+            });
+
+            return path;
         }
 
         private void OnGitTorCommandExec(object sender, EventArgs e)
@@ -521,7 +547,7 @@ namespace GitScc
         private void ShowPendingChangesWindow(object sender, EventArgs e)
         {
             RepositoryManager.Instance.ActiveTracker = sccService.CurrentTracker;
-            var window = ShowToolWindow<PendingChangesToolWindow>();
+            ShowToolWindow<PendingChangesToolWindow>();
             //window.Refresh(sccService.CurrentTracker);
            //ShowToolWindow(typeof(PendingChangesToolWindow));
         }
@@ -600,13 +626,14 @@ namespace GitScc
         }
 
 
-        private T ShowToolWindow<T>()
+        private async Task<T> ShowToolWindow<T>()
             where T : ToolWindowPane
         {
             ToolWindowPane window = this.FindToolWindow(typeof(T), 0, true);
             IVsWindowFrame windowFrame = null;
             if (window != null && window.Frame != null)
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 windowFrame = (IVsWindowFrame)window.Frame;
             }
             if (windowFrame != null)
@@ -615,21 +642,6 @@ namespace GitScc
                 return window as T;
             }
             return null;
-        }
-
-
-        private void ShowToolWindow(Type type)
-        {
-            ToolWindowPane window = this.FindToolWindow(type, 0, true);
-            IVsWindowFrame windowFrame = null;
-            if (window?.Frame != null)
-            {
-                windowFrame = (IVsWindowFrame)window.Frame;
-            }
-            if (windowFrame != null)
-            {
-                ErrorHandler.ThrowOnFailure(windowFrame.Show());
-            }
         }
 
         private void OnSwitchBranchCommand(object sender, EventArgs e)
@@ -677,55 +689,55 @@ namespace GitScc
             return (T)_SccProvider.GetService(typeof(T));
         }
 
-        public Hashtable GetSolutionFoldersEnum()
-        {
-            Hashtable mapHierarchies = new Hashtable();
+        //public Hashtable GetSolutionFoldersEnum()
+        //{
+        //    Hashtable mapHierarchies = new Hashtable();
 
-            IVsSolution sol = (IVsSolution)GetService(typeof(SVsSolution));
-            Guid rguidEnumOnlyThisType = SolutionExtensions.GuidSolutionFolderProject;
-            IEnumHierarchies ppenum = null;
-            ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
+        //    IVsSolution sol = (IVsSolution)GetService(typeof(SVsSolution));
+        //    Guid rguidEnumOnlyThisType = SolutionExtensions.GuidSolutionFolderProject;
+        //    IEnumHierarchies ppenum = null;
+        //    ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
 
-            IVsHierarchy[] rgelt = new IVsHierarchy[1];
-            uint pceltFetched = 0;
-            while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
-                   pceltFetched == 1)
-            {
-                mapHierarchies[rgelt[0]] = true;
-            }
+        //    IVsHierarchy[] rgelt = new IVsHierarchy[1];
+        //    uint pceltFetched = 0;
+        //    while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
+        //           pceltFetched == 1)
+        //    {
+        //        mapHierarchies[rgelt[0]] = true;
+        //    }
 
-            return mapHierarchies;
-        }
+        //    return mapHierarchies;
+        //}
 
         #region Run Command
-        internal void RunCommand(string cmd, string args)
-        {
-            var pinfo = new ProcessStartInfo(cmd)
-            {
-                Arguments = args,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                WorkingDirectory = sccService.CurrentWorkingDirectory ??
-                    Path.GetDirectoryName(sccService.GetSolutionFileName())
-            };
+        //internal void RunCommand(string cmd, string args)
+        //{
+        //    var pinfo = new ProcessStartInfo(cmd)
+        //    {
+        //        Arguments = args,
+        //        CreateNoWindow = true,
+        //        RedirectStandardError = true,
+        //        RedirectStandardOutput = true,
+        //        UseShellExecute = false,
+        //        WorkingDirectory = sccService.CurrentWorkingDirectory ??
+        //            Path.GetDirectoryName(sccService.GetSolutionFileName())
+        //    };
 
-            Process.Start(pinfo);
+        //    Process.Start(pinfo);
 
-            //using (var process = Process.Start(pinfo))
-            //{
-            //    string output = process.StandardOutput.ReadToEnd();
-            //    string error = process.StandardError.ReadToEnd();
-            //    process.WaitForExit();
+        //    //using (var process = Process.Start(pinfo))
+        //    //{
+        //    //    string output = process.StandardOutput.ReadToEnd();
+        //    //    string error = process.StandardError.ReadToEnd();
+        //    //    process.WaitForExit();
 
-            //    if (!string.IsNullOrEmpty(error))
-            //        throw new Exception(error);
+        //    //    if (!string.IsNullOrEmpty(error))
+        //    //        throw new Exception(error);
 
-            //    return output;
-            //}
-        }
-
+        //    //    return output;
+        //    //}
+        //}
+        //TODO MAKE ASYNC
         internal void RunDetatched(string cmd, string arguments)
         {
             using (Process process = new Process())
@@ -738,8 +750,13 @@ namespace GitScc
                 process.StartInfo.CreateNoWindow = false;
                 process.StartInfo.FileName = cmd;
                 process.StartInfo.Arguments = arguments;
-                process.StartInfo.WorkingDirectory = sccService.CurrentWorkingDirectory ??
-                    Path.GetDirectoryName(sccService.GetSolutionFileName());
+
+                process.StartInfo.WorkingDirectory = ThreadHelper.JoinableTaskFactory.Run(async delegate
+                {
+                    return sccService.CurrentWorkingDirectory ??
+                    Path.GetDirectoryName(await sccService.GetSolutionFileName());
+                });
+
                 process.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
                 process.StartInfo.LoadUserProfile = true;
 

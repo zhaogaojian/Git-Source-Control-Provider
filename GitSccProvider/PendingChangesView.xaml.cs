@@ -377,7 +377,7 @@ namespace GitScc
             return CurrentTracker.ChangedFiles.ToList();
         }
 
-        private async void UpdateFileListUI(List<GitFile> changedFiles)
+        private async Task UpdateFileListUI(List<GitFile> changedFiles)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var selectedFile = GetSelectedFileName();

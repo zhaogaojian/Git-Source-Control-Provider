@@ -1,4 +1,6 @@
-﻿namespace GitScc
+﻿using Microsoft.VisualStudio.Shell;
+
+namespace GitScc
 {
     using System;
     using System.Collections.Generic;
@@ -57,6 +59,7 @@
 
             if (!_hooked)
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
                 IVsRegisterPriorityCommandTarget svc = (IVsRegisterPriorityCommandTarget)_provider.GetService(typeof(SVsRegisterPriorityCommandTarget));
                 if (svc != null && ErrorHandler.Succeeded(svc.RegisterPriorityCommandTarget(0, this, out _cookie)))
                     _hooked = true;
@@ -105,6 +108,7 @@
             if (_hooked)
             {
                 _hooked = false;
+                ThreadHelper.ThrowIfNotOnUIThread();
                 ((IVsRegisterPriorityCommandTarget)_provider.GetService(typeof(SVsRegisterPriorityCommandTarget))).UnregisterPriorityCommandTarget(_cookie);
             }
         }
