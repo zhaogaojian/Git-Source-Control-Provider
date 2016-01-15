@@ -48,6 +48,8 @@ namespace GitScc
         private static int _fileEventDelay = 2;
         private static int _gitEventDelay = 2;
 
+        private DateTime _lastGetChanges = DateTime.MinValue;
+
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
         private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;

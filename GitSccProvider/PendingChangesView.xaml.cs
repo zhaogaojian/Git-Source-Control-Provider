@@ -106,7 +106,7 @@ namespace GitScc
 
         private void CurrentTracker_BranchChanged(object sender, string e)
         {
-            _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
+             _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
         }
 
 
@@ -356,7 +356,7 @@ namespace GitScc
                     return;
                 }
                 var files = await GetFileList();
-                UpdateFileListUI(files);
+                await UpdateFileListUI(files);
                 //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = false;
             }

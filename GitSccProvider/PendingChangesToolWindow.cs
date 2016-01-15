@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.Design;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using Gitscc;
@@ -21,11 +22,13 @@ namespace GitScc
         private string _currentRepoName;
         private const string CAPTION_STRING = "{0} {1}";
 
+        private readonly string _pendingChangesToolWindowCaption;
+
         public PendingChangesToolWindow()
         {
             // set the window title
             this.Caption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption");
-
+            _pendingChangesToolWindowCaption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption");
             //// set the CommandID for the window ToolBar
             base.ToolBar = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.imnuPendingChangesToolWindowToolbarMenu);
 
@@ -122,7 +125,7 @@ namespace GitScc
             sccProviderService.Refresh();
         }
 
-        internal void Refresh(GitFileStatusTracker tracker)
+        internal async Task Refresh(GitFileStatusTracker tracker)
         {
             try
             {
@@ -132,7 +135,7 @@ namespace GitScc
                 UpdateRepositoryName(repository);
                 //this.Caption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption") + repository;
 
-                control.Refresh();
+                await control.Refresh();
                 //if (GitSccOptions.Current.DisableAutoRefresh)
                 //{
                 //    this.Caption += " - [AUTO REFRESH DISABLED]";
@@ -151,12 +154,12 @@ namespace GitScc
 
         #region Overrides of ToolWindowWithEditor<PendingChangesView>
 
-        public override void  UpdateRepositoryName(string repositoryName)
+        public override void UpdateRepositoryName(string repositoryName)
         {
-            if (!string.IsNullOrEmpty(repositoryName))
+            if (!string.IsNullOrEmpty(repositoryName) && !string.Equals(_currentRepoName, repositoryName))
             {
-                Caption = string.Format(CAPTION_STRING,
-                    Resources.ResourceManager.GetString("PendingChangesToolWindowCaption"), repositoryName);
+                _currentRepoName = repositoryName;
+                Caption = string.Format(CAPTION_STRING,_pendingChangesToolWindowCaption, repositoryName);
             }
         }
 
