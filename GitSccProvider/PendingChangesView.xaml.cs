@@ -222,7 +222,7 @@ namespace GitScc
             this.DiffEditor.Text = text;
         }
 
-        private void listView1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void listView1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var fileName = GetSelectedFileName();
             if (fileName == null)
@@ -231,10 +231,7 @@ namespace GitScc
                 diffLines = new string[0];
                 return;
             }
-
-            Action act = () =>
-            {
-                using (service.DisableRefresh())
+                if(!_refreshing)
                 {
                     try
                     {
@@ -251,11 +248,7 @@ namespace GitScc
                         Action action = () => ShowStatusMessage(message);
                         Dispatcher.Invoke(action);
                     }
-                }
             };
-
-            Task.Factory.StartNew(act, CancellationToken.None, TaskCreationOptions.LongRunning, SccProviderService.TaskScheduler)
-                .HandleNonCriticalExceptions();
         }
 
         private void listView1_MouseDoubleClick(object sender, MouseButtonEventArgs e)

@@ -42,9 +42,9 @@ namespace GitScc
         IVsTrackProjectDocumentsEvents2
         
     {
-        private static readonly QueuedTaskScheduler _queuedTaskScheduler =
-            new QueuedTaskScheduler(1, threadName: "Git SCC Tasks", threadPriority: ThreadPriority.BelowNormal);
-        private static readonly TaskScheduler _taskScheduler = _queuedTaskScheduler.ActivateNewQueue();
+        //private static readonly QueuedTaskScheduler _queuedTaskScheduler =
+        //    new QueuedTaskScheduler(1, threadName: "Git SCC Tasks", threadPriority: ThreadPriority.BelowNormal);
+        //private static readonly TaskScheduler _taskScheduler = _queuedTaskScheduler.ActivateNewQueue();
 
         private static readonly TimeSpan InitialRefreshDelay = TimeSpan.FromMilliseconds(500);
         private static TimeSpan RefreshDelay = InitialRefreshDelay;
@@ -79,13 +79,13 @@ namespace GitScc
         }
         #endregion
 
-        public static TaskScheduler TaskScheduler
-        {
-            get
-            {
-                return _taskScheduler;
-            }
-        }
+        //public static TaskScheduler TaskScheduler
+        //{
+        //    get
+        //    {
+        //        return _taskScheduler;
+        //    }
+        //}
 
         #region IVsSccProvider interface functions
         /// <summary>
