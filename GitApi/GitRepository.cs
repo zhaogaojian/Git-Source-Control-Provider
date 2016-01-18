@@ -204,8 +204,8 @@ namespace GitScc
         /// </summary>
         private void HandleGitFileSystemChange()
         {
-            lock (_repoUpdateLock)
-            {
+            //lock (_repoUpdateLock)
+            //{
                 var files = CreateRepositoryUpdateChangeSet();
                 SetBranchName();
                 _branchInfoList = null;
@@ -213,7 +213,7 @@ namespace GitScc
                 {
                     FireFilesChangedEvent(files);
                 }
-            }
+            //}
         }
 
         public void DisableRepositoryWatcher()
@@ -1080,13 +1080,21 @@ namespace GitScc
 
         public GitFileStatus GetFileStatus(string fileName)
         {
-            fileName = Path.GetFullPath(fileName);
-            var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
-            if (file != null) return file.Status;
+            try
+            {
+                fileName = Path.GetFullPath(fileName);
+                var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
+                if (file != null) return file.Status;
 
-            if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
-            // did not check if the file is ignored for performance reason
-            return GitFileStatus.NotControlled;
+                if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
+                // did not check if the file is ignored for performance reason
+                return GitFileStatus.NotControlled;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error In File System Changed Event: " + ex.Message);
+                return GitFileStatus.NotControlled;
+            }
         }
 
 

@@ -415,7 +415,7 @@ namespace GitScc
             }
 
             this.listView1.EndInit();
-            Debug.WriteLine("**** PendingChangesView Refresh: ");
+            //Debug.WriteLine("**** PendingChangesView Refresh: ");
         }
 
         //internal async Task Refresh()

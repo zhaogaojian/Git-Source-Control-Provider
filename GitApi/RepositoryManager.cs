@@ -34,7 +34,7 @@ namespace GitScc
 
         private event EventHandler<string> _onSolutionTrackerBranchChanged;
 
-        private event EventHandler _trackerPauseRequest;
+        private event EventHandler<string> _trackerPauseRequest;
 
         private event EventHandler _trackerUnPauseRequest;
 
@@ -56,6 +56,20 @@ namespace GitScc
                     return true;
                 }
                 return false;
+            }
+        }
+
+        public bool IsPaused
+        {
+            get { return _paused; }
+            
+        }
+
+        public void PauseUpdates(string reason)
+        {
+            if (_paused)
+            {
+                _paused = true;
             }
         }
 
@@ -177,9 +191,10 @@ namespace GitScc
                     //add our refrences so we can do a quick lookup later
                     _repositories.Add(repo);
                     _basePathRepoLookup.TryAdd(basePath, repo);
-                    _fileRepoLookup.TryAdd(filename, repo);
                 }
+                _fileRepoLookup.TryAdd(filename, repo);
             }
+           
 
             if (setActiveTracker)
             {

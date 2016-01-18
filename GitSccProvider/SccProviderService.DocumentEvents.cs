@@ -54,6 +54,7 @@ namespace GitScc
 
         private async void _solutionEvents_Opened()
         {
+            await RegisterEntireSolution();
             await SetSolutionExplorerTitle();
         }
 
@@ -78,6 +79,41 @@ namespace GitScc
         public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
             VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            pSummaryResult[0] = VSQUERYADDFILERESULTS.VSQUERYADDFILERESULTS_AddOK;
+            if (rgResults != null)
+            {
+                for (int iFile = 0; iFile < cFiles; iFile++)
+                {
+                    rgResults[iFile] = VSQUERYADDFILERESULTS.VSQUERYADDFILERESULTS_AddOK;
+                }
+            }
+
+            try
+            {
+                var sccProject = pProject as IVsSccProject2;
+                var pHier = pProject as IVsHierarchy;
+                string projectName = null;
+                if (sccProject == null)
+                {
+                    // This is the solution calling
+                    pHier = (IVsHierarchy) _sccProvider.GetService(typeof (SVsSolution));
+                }
+
+                if (sccProject != null)
+                {
+                   for (int iFile = 0; iFile < cFiles; iFile++)
+					{
+                        _fileCache.AddFile(rgpszMkDocuments[iFile], sccProject);
+                    } 
+                }
+             
+            }
+            catch (Exception)
+            {
+            }
+
+
             return VSConstants.E_NOTIMPL;
         }
 

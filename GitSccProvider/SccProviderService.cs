@@ -53,6 +53,7 @@ namespace GitScc
         private BasicSccProvider _sccProvider = null;
         private SccProviderSolutionCache _fileCache;
         private object _glyphsLock = new object();
+        private DateTime _lastRefresh = DateTime.MinValue;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -630,19 +631,10 @@ namespace GitScc
             }
         }
 
-        //private void ProcessGitFileSystemChange(GitFileUpdateEventArgs e)
-        //{
-        //    if (GitSccOptions.Current.DisableAutoRefresh)
-        //        return;
-
-        //    if (string.Equals(Path.GetExtension(e.Name), ".lock", StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        if (e.FullPath.Contains(Constants.DOT_GIT + Path.DirectorySeparatorChar))
-        //            return;
-        //    }
-
-        //    MarkDirty(false);
-        //}
+        private async Task RegisterEntireSolution()
+        {
+            await _fileCache.RegisterSolution();
+        }
 
         private async Task ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
         {
@@ -651,11 +643,13 @@ namespace GitScc
             //await Task.Run(async delegate
             //{
             //    await Task.Run(() => 
-            //await TaskScheduler.Default;
+            await TaskScheduler.Default;
+
             repo.Refresh();
+
             if (_fileCache.StatusChanged(e.FullPath, repo.GetFileStatus(e.FullPath)))
             {
-                IList<IVsSccProject2> nodes = await _fileCache.GetProjectsSelectionForFile(e.FullPath);
+                IList<IVsSccProject2> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
                 if (nodes != null && nodes.Count > 0)
                 {
                     foreach (var vsSccProject2 in nodes)
@@ -667,11 +661,6 @@ namespace GitScc
                     //RefreshNodesGlyphs(nodes);
                 }
             }
-            //  }
-            //});
-
-           
-           // }
         }
 
         private async Task ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
@@ -681,7 +670,7 @@ namespace GitScc
                 HashSet<IVsSccProject2> nodes = new HashSet<IVsSccProject2>();
                 foreach (var file in e.Files)
                 {
-                    var items = await _fileCache.GetProjectsSelectionForFile(file);
+                    var items = _fileCache.GetProjectsSelectionForFile(file);
                     if (items != null)
                     {
                         foreach (var vsitemselection in items)

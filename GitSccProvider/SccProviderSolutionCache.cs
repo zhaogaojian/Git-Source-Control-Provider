@@ -27,6 +27,7 @@ namespace GitSccProvider
         //private ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION> _projectSelectionLookup;
         private DateTime _lastNewFileScan;
         private static int _projectScanDelaySeconds = 5;
+        private object _registerLock = new object();
 
         public SccProviderSolutionCache(BasicSccProvider provider)
         {
@@ -35,14 +36,6 @@ namespace GitSccProvider
             _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
             _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
     //_projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
-            _lastNewFileScan = DateTime.MinValue;
-        }
-
-        public void InValidateCache()
-        {
-            _projects = new List<IVsSccProject2>();
-            _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
-           // _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
             _lastNewFileScan = DateTime.MinValue;
         }
 
@@ -115,6 +108,33 @@ namespace GitSccProvider
         //    return  vsItem;
         //}
 
+        #region Public Methods
+
+        public bool FileTracked(string filename)
+        {
+            if (string.IsNullOrWhiteSpace(filename))
+            {
+                return false;
+            }
+            return _fileProjectLookup.ContainsKey(filename);
+        }
+
+        public void AddFile(string filename, IVsSccProject2 project)
+        {
+            if (_projects.Contains(project))
+            {
+                AddFileToList(filename.ToLower(), project);
+            }
+        }
+        
+        public void InValidateCache()
+        {
+            _projects = new List<IVsSccProject2>();
+            _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
+            // _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
+            _lastNewFileScan = DateTime.MinValue;
+        }
+
         public bool StatusChanged(string filename, GitFileStatus status)
         {
 
@@ -135,9 +155,9 @@ namespace GitSccProvider
             return true;
         }
 
-        public async Task<List<IVsSccProject2>> GetProjectsSelectionForFile(string filename)
+        public List<IVsSccProject2> GetProjectsSelectionForFile(string filename)
         {
-           return await  GetProjectsSelectionForFile(filename,true);
+           return GetProjectsSelectionForFileInternal(filename);
         }
 
         private async Task<List<IVsSccProject2>> GetProjectsSelectionForFile(string filename, bool search)
@@ -164,7 +184,6 @@ namespace GitSccProvider
             return projects;
         }
 
-
         public async Task AddProject(IVsSccProject2 project)
         {
             if (!_projects.Contains(project) && project != null)
@@ -181,6 +200,23 @@ namespace GitSccProvider
         }
 
 
+        public async Task RegisterSolution()
+        {
+            await ScanSolution();
+        }
+
+        #endregion
+
+        private List<IVsSccProject2> GetProjectsSelectionForFileInternal(string filename)
+        {
+            List<IVsSccProject2> projects;
+            var filePath = filename.ToLower();
+            if (!_fileProjectLookup.TryGetValue(filePath, out projects))
+            {
+                return new List<IVsSccProject2>();
+            }
+            return projects;
+        }
 
         private async Task ScanSolution()
         {

@@ -80,9 +80,7 @@ namespace GitScc
                         (IVsRegisterScciProvider)_sccProvider.GetService(typeof(IVsRegisterScciProvider));
                     rscp.RegisterSourceControlProvider(GuidList.guidSccProvider);
                 }
-            }
-
-            MarkDirty(false);
+            }            
             return VSConstants.S_OK;
         }
 
@@ -149,7 +147,11 @@ namespace GitScc
                 // Debug.WriteLine(string.Format(CultureInfo.CurrentUICulture, "Project {0} is registering with source control - {1}", GetProjectFileName(pscp2Project)));
 
                 // Add the project to the list of controlled projects
-                _fileCache.AddProject(pscp2Project);
+                ThreadHelper.JoinableTaskFactory.Run(async delegate
+                {
+                    await _fileCache.AddProject(pscp2Project);
+                });
+
             }
         }
 
