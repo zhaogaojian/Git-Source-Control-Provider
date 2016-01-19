@@ -194,7 +194,12 @@ namespace GitScc
                 }
                 _fileRepoLookup.TryAdd(filename, repo);
             }
-           
+
+
+            if (repo == null)
+            {
+                return ActiveTracker;
+            }
 
             if (setActiveTracker)
             {
