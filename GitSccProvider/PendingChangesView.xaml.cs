@@ -355,6 +355,7 @@ namespace GitScc
                     label3.Content = "Changed files";
                     return;
                 }
+                ShowStatusMessage("Getting changed files ...");
                 var files = await GetFileList();
                 await UpdateFileListUI(files);
                 //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -364,10 +365,10 @@ namespace GitScc
 
         private async Task<List<GitFile>> GetFileList()
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            ShowStatusMessage("Getting changed files ...");
+            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            //ShowStatusMessage("Getting changed files ...");
             //await TaskScheduler.Default;
-            return CurrentTracker.ChangedFiles.ToList();
+            return await CurrentTracker.GetCurrentChangeSet();
         }
 
         private async Task UpdateFileListUI(List<GitFile> changedFiles)

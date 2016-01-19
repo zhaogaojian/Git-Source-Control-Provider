@@ -28,6 +28,16 @@ namespace GitScc
         }
     }
 
+    public class GitFilesStatusUpdateEventArgs : EventArgs
+    {
+        public List<GitFile> Files { get; set; }
+
+        public GitFilesStatusUpdateEventArgs(List<GitFile> files)
+        {
+            Files = files;
+        }
+    }
+
     public class GitRepositoryEvent : EventArgs
     {
         public GitRepository Repository { get; private set; }

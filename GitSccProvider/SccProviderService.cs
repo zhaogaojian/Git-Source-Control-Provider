@@ -54,6 +54,7 @@ namespace GitScc
         private SccProviderSolutionCache _fileCache;
         private object _glyphsLock = new object();
         private DateTime _lastRefresh = DateTime.MinValue;
+        private GitChangesetManager _fileChangesetManager;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -62,16 +63,18 @@ namespace GitScc
         {
             this._sccProvider = sccProvider;
             _fileCache = new SccProviderSolutionCache(_sccProvider);
+            _fileChangesetManager = new GitChangesetManager();
 
             RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
+            RepositoryManager.Instance.FileStatusUpdate += RepositoryManager_FileStatusUpdate;
             RepositoryManager.Instance.SolutionTrackerBranchChanged += RepositoryManager_SolutionTrackerBranchChanged;
             //this.trackers = trackers;
             SetupSolutionEvents();
             SetupDocumentEvents();
         }
 
-
+     
 
         public void Dispose()
         {
@@ -580,12 +583,26 @@ namespace GitScc
             }
         }
 
+        private async void RepositoryManager_FileStatusUpdate(object sender, GitFilesStatusUpdateEventArgs e)
+        {
+
+            try
+            {
+                await ProcessFileStatusUpdate((GitRepository)sender, e);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error in RepositoryManager_FileChanged: " + ex.Message);
+            }
+        }
+
         private async void RepositoryManager_FileChanged(object sender, GitFileUpdateEventArgs e)
         {
             //TODO update files change here
 
             try
             {
+                await TaskScheduler.Default;
                 await ProcessSingleFileSystemChange((GitRepository)sender, e);
             }
             catch (Exception ex)
@@ -601,6 +618,7 @@ namespace GitScc
         {
             try
             {
+                await TaskScheduler.Default;
                 await ProcessMultiFileChange((GitRepository) sender, e);
             }
             catch (Exception ex)
@@ -636,6 +654,34 @@ namespace GitScc
             await _fileCache.RegisterSolution();
         }
 
+
+        private async Task ProcessFileStatusUpdate(GitRepository repo, GitFilesStatusUpdateEventArgs e)
+        {
+            HashSet<IVsSccProject2> nodes = new HashSet<IVsSccProject2>();
+            var changeSet = _fileChangesetManager.LoadChangeSet(e.Files);
+
+            foreach (var file in changeSet)
+            {
+                ////if (_fileCache.StatusChanged(file.Key.t, file.Status))
+                ////{
+                    var items = _fileCache.GetProjectsSelectionForFile(file.Key.ToLower());
+                    if (items != null)
+                    {
+                        foreach (var vsitemselection in items)
+                        {
+
+                            nodes.Add(vsitemselection);
+                        }
+                    } 
+                //}
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                foreach (var project in nodes)
+                {
+                    project.SccGlyphChanged(0, null, null, null);
+                }
+            }
+        }
+
         private async Task ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
         {
             //lock (_glyphsLock)
@@ -643,24 +689,28 @@ namespace GitScc
             //await Task.Run(async delegate
             //{
             //    await Task.Run(() => 
-            await TaskScheduler.Default;
+            //await TaskScheduler.Default;
 
-            repo.Refresh();
+            //repo.Refresh();
 
-            if (_fileCache.StatusChanged(e.FullPath, repo.GetFileStatus(e.FullPath)))
-            {
-                IList<IVsSccProject2> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
-                if (nodes != null && nodes.Count > 0)
-                {
-                    foreach (var vsSccProject2 in nodes)
-                    {
-                        //await QuickRefreshNodesGlyphs(vsSccProject2, new List<string>() {e.FullPath});
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        vsSccProject2.SccGlyphChanged(0, null, null, null);
-                    }
-                    //RefreshNodesGlyphs(nodes);
-                }
-            }
+            //var files = await repo.GetCurrentChangeSet();
+            //var file = files.Find(x => x.FilePath == e.FullPath);
+            //var status = file != null ? file.Status : GitFileStatus.Unaltered;
+
+            //if (_fileCache.StatusChanged(e.FullPath, status))
+            //{
+            //    IList<IVsSccProject2> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
+            //    if (nodes != null && nodes.Count > 0)
+            //    {
+            //        foreach (var vsSccProject2 in nodes)
+            //        {
+            //            //await QuickRefreshNodesGlyphs(vsSccProject2, new List<string>() {e.FullPath});
+            //            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            //            vsSccProject2.SccGlyphChanged(0, null, null, null);
+            //        }
+            //        //RefreshNodesGlyphs(nodes);
+            //    }
+            //}
         }
 
         private async Task ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
@@ -693,7 +743,7 @@ namespace GitScc
 
                 //todo maybe move this
                 var caption = "Solution Explorer";
-                string branch = CurrentBranchName;
+                string branch = await GetCurrentBranchNameAsync();
                 if (!string.IsNullOrEmpty(branch))
                 {
                     caption += " (" + branch + ")";
@@ -850,6 +900,12 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             }
         }
 
+        public async Task<string> GetCurrentBranchNameAsync()
+        {
+            var tracker = await GetCurrentTrackerAsync();
+            return tracker != null ? tracker.CurrentBranchDisplayName : null;
+        }
+
         internal string CurrentWorkingDirectory
         {
             get
@@ -863,12 +919,18 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             get
             {
-                string filename = ThreadHelper.JoinableTaskFactory.Run(async delegate
+                var filename = ThreadHelper.JoinableTaskFactory.Run(async delegate
                 {
                     return await GetSelectFileName();
                 });
                 return RepositoryManager.Instance.GetTrackerForPath(filename);
             }
+        }
+
+        internal async  Task<GitFileStatusTracker> GetCurrentTrackerAsync()
+        {
+            var filename = await GetSelectFileName();
+            return await RepositoryManager.Instance.GetTrackerForPathAsync(filename);
         }
 
         internal async Task<GitFileStatusTracker> GetSolutionTracker()

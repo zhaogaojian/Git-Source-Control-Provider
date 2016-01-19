@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +20,23 @@ namespace GitScc
         }
 
         #region Public Methods
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newChangeSet"></param>
+        /// <returns>true if files have changed</returns>
+        public Dictionary<string, GitFileStatus> LoadChangeSet(List<GitFile> newChangeSet)
+        {
+           return CreateRepositoryUpdateChangeSet(newChangeSet);
+        }
+
+        public void Clear()
+        {
+            _changedFiles = new List<GitFile>();
+            _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
+        }
 
 
         /// <summary>
@@ -50,37 +68,58 @@ namespace GitScc
         #endregion
 
 
+
+
         /// <summary>
         /// Takes the new changeset and returns a list of files that have changed status
         /// </summary>
         /// <param name="newChangeSet"></param>
         /// <returns></returns>
-        private List<string> CreateRepositoryUpdateChangeSet(List<GitFile> newChangeSet)
+        private Dictionary<string, GitFileStatus> CreateRepositoryUpdateChangeSet(List<GitFile> newChangeSet)
         {
             var _lastChanged = _changedFiles;
 
+            var updatedFiles = new Dictionary<string, GitFileStatus>();
             //clean out the current _filestatus .. keeps the list small-ish and makes sure it's not out of date.. 
-            _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
+            //_fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
             foreach (var gitFile in newChangeSet)
             {
+                GitFileStatus fileStatus;
+                if (_fileStatus.TryGetValue(gitFile.FilePath, out fileStatus))
+                {
+                    if (fileStatus != gitFile.Status)
+                    {
+                        updatedFiles.Add(gitFile.FilePath, gitFile.Status);
+                        _fileStatus[gitFile.FilePath] = gitFile.Status;
+                    }
+                }
                 _fileStatus.TryAdd(gitFile.FilePath, gitFile.Status);
+                updatedFiles.Add(gitFile.FilePath, gitFile.Status);
             }
-            //we have no idea what changes happened before.. so update everthing 
             if (_lastChanged == null)
             {
-                return GetFullPathForGitFiles(newChangeSet);
+                foreach (var gitFile in _lastChanged)
+                {
+                        updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
+                }
             }
-            var changedFileCache = newChangeSet;
-            var currentChangeList = GetFullPathForGitFiles(changedFileCache);
-            var lastChangeList = GetFullPathForGitFiles(_lastChanged);
-            foreach (var path in lastChangeList.Where(path => !currentChangeList.Contains(path)))
+            else
             {
-                currentChangeList.Add(path);
-                _fileStatus.TryAdd(path, GitFileStatus.Unaltered);
+                foreach (var gitFile in _lastChanged)
+                {
+                    if (!newChangeSet.Exists(x => x.FilePath == gitFile.FilePath))
+                    {
+                        updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
+                    }
+                }
             }
-            _changedFiles = changedFileCache;
-            return currentChangeList;
+          
+           
+            _changedFiles = newChangeSet;
+            return updatedFiles;
         }
+
+
 
         private List<string> GetFullPathForGitFiles(List<GitFile> files)
         {

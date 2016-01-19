@@ -23,6 +23,7 @@ namespace GitScc.DataServices
         public RepositoryGraph(string repository)
         {
             this.workingDirectory = repository;
+
             _repository = RepositoryManager.Instance.GetTrackerForPath(workingDirectory);
         }
 

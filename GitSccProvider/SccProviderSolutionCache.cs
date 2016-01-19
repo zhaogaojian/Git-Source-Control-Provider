@@ -135,25 +135,25 @@ namespace GitSccProvider
             _lastNewFileScan = DateTime.MinValue;
         }
 
-        public bool StatusChanged(string filename, GitFileStatus status)
-        {
+        //public bool StatusChanged(string filename, GitFileStatus status)
+        //{
 
-            var file = filename.ToLower();
-            var fileStatus = GitFileStatus.NotControlled;
+        //    var file = filename.ToLower();
+        //    var fileStatus = GitFileStatus.NotControlled;
 
 
-            if (_fileStatus.TryGetValue(file, out fileStatus))
-            {
-                if (fileStatus == status)
-                {
-                    return false;
-                }
-                _fileStatus[file] = status;
-                return true;
-            }
-            _fileStatus.TryAdd(file, status);
-            return true;
-        }
+        //    if (_fileStatus.TryGetValue(file, out fileStatus))
+        //    {
+        //        if (fileStatus == status)
+        //        {
+        //            return false;
+        //        }
+        //        _fileStatus[file] = status;
+        //        return true;
+        //    }
+        //    _fileStatus.TryAdd(file, status);
+        //    return true;
+        //}
 
         public List<IVsSccProject2> GetProjectsSelectionForFile(string filename)
         {

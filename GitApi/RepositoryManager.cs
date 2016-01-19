@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using LibGit2Sharp;
 
 namespace GitScc
@@ -29,6 +30,7 @@ namespace GitScc
         private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
 
         private event GitRepositoryEventHandler _onActiveTrackerUpdateEventHandler;
+        private event GitFilesStatusUpdateEventHandler _onFilesStatusUpdateEventHandler;
 
         private event EventHandler<string> _onActiveTrackerBranchChanged;
 
@@ -132,6 +134,7 @@ namespace GitScc
             {
                 repo.FileChanged -= Repo_FileChanged;
                 repo.FilesChanged -= Repo_FilesChanged;
+                repo.FileStatusUpdate -= Repo_FileStatusUpdate;
             }
 
             if (_solutionTracker != null)
@@ -152,7 +155,7 @@ namespace GitScc
         }
 
 
-        public void SetSolutionTracker(string solutionFilePath)
+        public async Task SetSolutionTracker(string solutionFilePath)
         {
             if (!string.IsNullOrWhiteSpace(solutionFilePath))
             {
@@ -160,7 +163,7 @@ namespace GitScc
                 {
                     _solutionTracker.BranchChanged -= _solutionTracker_BranchChanged;
                 }
-                _solutionTracker = GetTrackerForPath(solutionFilePath, true, true);
+                _solutionTracker = await GetTrackerForPathAsync(solutionFilePath, true, true);
                 if (_solutionTracker != null)
                 {
                     _solutionTracker.BranchChanged += _solutionTracker_BranchChanged;
@@ -169,12 +172,12 @@ namespace GitScc
         }
 
 
-
-        public GitFileStatusTracker GetTrackerForPath(string filename,bool setActiveTracker = false ,bool createTracker = true)
+        public GitFileStatusTracker GetTrackerForPath(string filename, bool setActiveTracker = false, bool createTracker = true)
         {
             if (string.IsNullOrWhiteSpace(filename)) return null;
 
             GitFileStatusTracker repo = null;
+            filename = filename.ToLower();
 
             //check out quick list to see if we have he file first. 
             if (!_fileRepoLookup.TryGetValue(filename, out repo))
@@ -186,6 +189,7 @@ namespace GitScc
                     repo.EnableRepositoryWatcher();
                     repo.FileChanged += Repo_FileChanged;
                     repo.FilesChanged += Repo_FilesChanged;
+                    repo.FileStatusUpdate += Repo_FileStatusUpdate;
                     //repo.BranchChanged += Repo_BranchChanged;
 
                     //add our refrences so we can do a quick lookup later
@@ -208,6 +212,49 @@ namespace GitScc
 
             return repo;
         }
+
+        public async Task<GitFileStatusTracker> GetTrackerForPathAsync(string filename,bool setActiveTracker = false ,bool createTracker = true)
+        {
+            if (string.IsNullOrWhiteSpace(filename)) return null;
+
+            GitFileStatusTracker repo = null;
+            filename = filename.ToLower();
+
+            //check out quick list to see if we have he file first. 
+            if (!_fileRepoLookup.TryGetValue(filename, out repo))
+            {
+                var basePath = await GetGitRepositoryAsync(filename);
+                if (!string.IsNullOrWhiteSpace(basePath) && !_basePathRepoLookup.TryGetValue(basePath, out repo))
+                {
+                    repo = new GitFileStatusTracker(basePath);
+                    repo.EnableRepositoryWatcher();
+                    repo.FileChanged += Repo_FileChanged;
+                    repo.FilesChanged += Repo_FilesChanged;
+                    repo.FileStatusUpdate += Repo_FileStatusUpdate;
+                    //repo.BranchChanged += Repo_BranchChanged;
+
+                    //add our refrences so we can do a quick lookup later
+                    _repositories.Add(repo);
+                    _basePathRepoLookup.TryAdd(basePath, repo);
+                }
+                _fileRepoLookup.TryAdd(filename, repo);
+            }
+
+
+            if (repo == null)
+            {
+                return ActiveTracker;
+            }
+
+            if (setActiveTracker)
+            {
+                ActiveTracker = repo;
+            }
+
+            return repo;
+        }
+
+
 
         #region Public Events
 
@@ -235,6 +282,18 @@ namespace GitScc
             }
         }
 
+        public event GitFilesStatusUpdateEventHandler FileStatusUpdate
+        {
+            add
+            {
+                _onFilesStatusUpdateEventHandler += value;
+            }
+            remove
+            {
+                _onFilesStatusUpdateEventHandler -= value;
+            }
+        }
+
         public event GitRepositoryEventHandler ActiveTrackerChanged
         {
             add
@@ -259,6 +318,7 @@ namespace GitScc
             }
         }
 
+
         public event EventHandler<string> SolutionTrackerBranchChanged
         {
             add
@@ -278,6 +338,11 @@ namespace GitScc
         private void Repo_FileChanged(object sender, GitFileUpdateEventArgs e)
         {
             FireFileChangedEvent(sender, e);
+        }
+
+        private void Repo_FileStatusUpdate(object sender, GitFilesStatusUpdateEventArgs e)
+        {
+            FireFileStatusUpdateEvent(sender,e);
         }
 
         private void Repo_FilesChanged(object sender, GitFilesUpdateEventArgs e)
@@ -314,6 +379,10 @@ namespace GitScc
         {
             _onFilesUpdateEventHandler?.Invoke(sender, e);
         }
+        private void FireFileStatusUpdateEvent(object sender, GitFilesStatusUpdateEventArgs e)
+        {
+            _onFilesStatusUpdateEventHandler?.Invoke(sender, e);
+        }
 
         private void FireSolutionTrackerBranchChangedEvent(object sender, string name)
         {
@@ -337,6 +406,15 @@ namespace GitScc
         public static string GetGitRepository(string path)
         {
             return Repository.Discover(Path.GetFullPath(path));
+        }
+
+        public static async Task<string> GetGitRepositoryAsync(string path)
+        {
+            var gitPath = await Task.Run(() =>
+            {
+                return Repository.Discover(Path.GetFullPath(path));
+            });
+            return gitPath;
         }
         #endregion
 

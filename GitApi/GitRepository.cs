@@ -20,6 +20,7 @@ namespace GitScc
 {
     public delegate void GitFileUpdateEventHandler(object sender, GitFileUpdateEventArgs e);
     public delegate void GitFilesUpdateEventHandler(object sender, GitFilesUpdateEventArgs e);
+    public delegate void GitFilesStatusUpdateEventHandler(object sender, GitFilesStatusUpdateEventArgs e);
 
 
     public class GitRepository : IDisposable
@@ -31,9 +32,11 @@ namespace GitScc
         private readonly string _gitDirectory;
         private string _lastTipId;
         private List<GitFile> _changedFiles;
+        private List<GitFile> _changeFileStatus;
         private bool isGit;
         private string _branchDisplayName;
         private string _cachedBranchName;
+        private GitChangesetManager _changesetManager;
         private CurrentOperation _cachedBranchOperation;
         private string repositoryPath;
         private IEnumerable<string> remotes;
@@ -45,14 +48,21 @@ namespace GitScc
 
         private DateTime _lastFileEvent = DateTime.MinValue;
         private DateTime _lastGitEvent = DateTime.MinValue;
-        private static int _fileEventDelay = 2;
+        private static int _fileEventDelay = 1;
         private static int _gitEventDelay = 2;
+        private bool _fileStatusUpdating = false;
+
+        System.Timers.Timer _interfiletimer = new System.Timers.Timer();
+        System.Timers.Timer _timeoutfiletimer = new System.Timers.Timer();
+
 
         private DateTime _lastGetChanges = DateTime.MinValue;
 
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
         private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
+
+        private event GitFilesStatusUpdateEventHandler _onFilesStatusUpdateEventHandler;
 
         private event EventHandler<string> _onBranchChanged;
 
@@ -77,6 +87,17 @@ namespace GitScc
             remove
             {
                 _onFilesUpdateEventHandler -= value;
+            }
+        }
+        public event GitFilesStatusUpdateEventHandler FileStatusUpdate
+        {
+            add
+            {
+                _onFilesStatusUpdateEventHandler += value;
+            }
+            remove
+            {
+                _onFilesStatusUpdateEventHandler -= value;
             }
         }
 
@@ -107,9 +128,26 @@ namespace GitScc
                 repositoryPath = repository.Info.Path;
             }
             _cachedBranchOperation = CurrentOperation.None;
+            _changesetManager = new GitChangesetManager();
             //_lastTipId = repository.Head.Tip.sha;
             Refresh();
+            CreateTimers();
         }
+
+
+        private void CreateTimers()
+        {
+            _timeoutfiletimer = new System.Timers.Timer();
+            _timeoutfiletimer.Elapsed += _timeoutfiletimer_Elapsed;
+            _timeoutfiletimer.Interval = 1000;
+
+            _interfiletimer = new System.Timers.Timer();
+            _interfiletimer.Elapsed += _timeoutfiletimer_Elapsed;
+            _interfiletimer.Interval = 100;
+
+
+        }
+
 
         private Repository GetRepository()
         {
@@ -173,7 +211,7 @@ namespace GitScc
             {
                 if ((DateTime.UtcNow - _lastGitEvent).TotalSeconds > _gitEventDelay)
                 {
-                    HandleGitFileSystemChange();
+                    //HandleGitFileSystemChange();
                     _lastGitEvent = DateTime.UtcNow;
                 }
             }
@@ -187,9 +225,12 @@ namespace GitScc
                     }
                     else
                     {
+                        //StartFileTimer();
+                        HandleFileSystemChanged();
                         //if ((DateTime.UtcNow - _lastFileEvent).TotalSeconds > _fileEventDelay)
                         //
-                        FireFileChangedEvent(filename, fullPath);
+
+                        //FireFileChangedEvent(filename, fullPath);
                         //    _lastFileEvent = DateTime.UtcNow;
                         //}
                     }
@@ -198,6 +239,49 @@ namespace GitScc
             }
         }
 
+        private void StartFileTimer()
+        {
+            if (!_timeoutfiletimer.Enabled)
+            {
+                _timeoutfiletimer.Start();
+            }
+
+            _interfiletimer.Stop();
+            _interfiletimer.Start();
+        }
+
+
+        private void _timeoutfiletimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+           StopFileTimer();
+            HandleFileSystemChanged();
+        }
+
+        private void StopFileTimer()
+        {
+            _interfiletimer.Stop();
+            _timeoutfiletimer.Stop();
+
+        }
+
+        private void HandleFileSystemChanged()
+        {
+            //lock (_repoUpdateLock)
+            //{
+            if (!_fileStatusUpdating)
+            {
+                //I know.. i may let a few in here.. but hey.. thats ok
+                _fileStatusUpdating = true;
+                _changeFileStatus = GetCurrentChangedFilesList();
+                _fileStatusUpdating = false;
+            }
+
+            if (_changeFileStatus != null && _changeFileStatus.Count > 0)
+                {
+                    FireFileStatusUpdateEvent(_changeFileStatus);
+                }
+            //}
+        }
 
         /// <summary>
         /// Update status when some file change is detected in the .git dir
@@ -821,6 +905,7 @@ namespace GitScc
 
                 if (_changedFiles == null)
                 {
+                    //_changedFiles = new List<GitFile>();
                     try
                     {
 
@@ -835,6 +920,14 @@ namespace GitScc
                 return _changedFiles;
 
             }
+        }
+
+        private List<GitFile> GetCurrentChangedFilesList()
+        {
+            var changedFileCache = GetCurrentChangedFiles();
+            //var files = changedFileCache.ToDictionary(gitFile => gitFile.FilePath.ToLower(), gitFile => gitFile.Status);
+            _changedFiles = changedFileCache;
+            return changedFileCache;
         }
 
         private List<string> CreateRepositoryUpdateChangeSet()
@@ -857,8 +950,6 @@ namespace GitScc
             }
             _changedFiles = changedFileCache;
             return currentChangeList;
-
-
         }
 
         private List<string> GetFullPathForGitFiles(List<GitFile> files)
@@ -883,6 +974,7 @@ namespace GitScc
             }
             catch (Exception ex)
             {
+                Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
                 //if (retryAllowed)
                 //{
                 //    return Task.Run(() =>
@@ -897,6 +989,15 @@ namespace GitScc
                 //}
 
             }
+            return files;
+        }
+
+        public async Task<List<GitFile>> GetCurrentChangeSet()
+        {
+            var files = await Task.Run(() =>
+            {
+                return GetCurrentChangedFiles();
+            });
             return files;
         }
 
@@ -1045,6 +1146,11 @@ namespace GitScc
         private void FireFilesChangedEvent(List<string> files)
         {
             _onFilesUpdateEventHandler?.Invoke(this, new GitFilesUpdateEventArgs(files));
+        }
+
+        private void FireFileStatusUpdateEvent(List<GitFile> files)
+        {
+            _onFilesStatusUpdateEventHandler?.Invoke(this, new GitFilesStatusUpdateEventArgs(files));
         }
 
         private void FireFileChangedEvent(string filename, string fullpath)
