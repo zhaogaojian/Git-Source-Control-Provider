@@ -75,14 +75,17 @@ namespace GitScc
                     _tracker.FileChanged -= CurrentTracker_FileChanged;
                     CurrentTracker.FilesChanged -= CurrentTracker_FilesChanged;
                     CurrentTracker.BranchChanged -= CurrentTracker_BranchChanged;
+                    CurrentTracker.FileStatusUpdate -= CurrentTracker_FileStatusUpdate;
 
                 }
                 _tracker = tracker;
                 CurrentTracker.FileChanged += CurrentTracker_FileChanged;
                 CurrentTracker.FilesChanged += CurrentTracker_FilesChanged;
                 CurrentTracker.BranchChanged += CurrentTracker_BranchChanged;
+                CurrentTracker.FileStatusUpdate += CurrentTracker_FileStatusUpdate;
             }
         }
+
 
 
 
@@ -91,6 +94,12 @@ namespace GitScc
         private async void CurrentTracker_FileChanged(object sender, GitFileUpdateEventArgs e)
         {
             await Refresh();
+        }
+
+
+        private async void CurrentTracker_FileStatusUpdate(object sender, GitFilesStatusUpdateEventArgs e)
+        {
+            await Refresh(e.Files);
         }
 
         private async void Instance_ActiveTrackerChanged(object sender, GitRepositoryEvent e)
@@ -357,6 +366,27 @@ namespace GitScc
                 }
                 ShowStatusMessage("Getting changed files ...");
                 var files = await GetFileList();
+                await UpdateFileListUI(files);
+                //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _refreshing = false;
+            }
+        }
+
+        internal async Task Refresh(List<GitFile> files)
+        {
+            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (!_refreshing)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _refreshing = true;
+                label3.Content = "Changed files (Updating...)";
+
+                if (CurrentTracker == null)
+                {
+                    ClearUI();
+                    label3.Content = "Changed files";
+                    return;
+                }
                 await UpdateFileListUI(files);
                 //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = false;

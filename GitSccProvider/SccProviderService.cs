@@ -54,7 +54,7 @@ namespace GitScc
         private SccProviderSolutionCache _fileCache;
         private object _glyphsLock = new object();
         private DateTime _lastRefresh = DateTime.MinValue;
-        private GitChangesetManager _fileChangesetManager;
+        private Dictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -63,7 +63,7 @@ namespace GitScc
         {
             this._sccProvider = sccProvider;
             _fileCache = new SccProviderSolutionCache(_sccProvider);
-            _fileChangesetManager = new GitChangesetManager();
+            _fileChangesetManager = new Dictionary<GitRepository, GitChangesetManager>();
 
             RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
@@ -658,7 +658,7 @@ namespace GitScc
         private async Task ProcessFileStatusUpdate(GitRepository repo, GitFilesStatusUpdateEventArgs e)
         {
             HashSet<IVsSccProject2> nodes = new HashSet<IVsSccProject2>();
-            var changeSet = _fileChangesetManager.LoadChangeSet(e.Files);
+            var changeSet = GetChangesetManager(repo).LoadChangeSet(e.Files);
 
             foreach (var file in changeSet)
             {
@@ -973,14 +973,30 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         private GitFileStatus GetFileStatus(string fileName)
         {
             var tracker = GetTracker(fileName);
-            return tracker == null ? GitFileStatus.NotControlled :
-                tracker.GetFileStatus(fileName);
+            var status = GitFileStatus.NotControlled;
+            if (tracker != null)
+            {
+                var cm = GetChangesetManager(tracker);
+                status = cm?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
+            }
+            return status;
         }
 
         private async Task<GitFileStatus> GetFileStatus(IVsHierarchy phierHierarchy, uint itemidNode)
         {
             var fileName = await GetFileName(phierHierarchy, itemidNode);
             return GetFileStatus(fileName);
+        }
+
+        private GitChangesetManager GetChangesetManager(GitRepository repo)
+        {
+            if(!_fileChangesetManager.ContainsKey(repo))
+            {
+                //Get the inital state of the repo.. I guess :)
+                _fileChangesetManager.Add(repo, new GitChangesetManager(repo));
+            }
+
+            return _fileChangesetManager[repo];
         }
 
         #endregion
@@ -1352,11 +1368,11 @@ $tf*/"
         } 
         #endregion
 
-        private void RefreshToolWindows()
-        {
-            var window = this._sccProvider.FindToolWindow(typeof(PendingChangesToolWindow), 0, false) 
-                as PendingChangesToolWindow;
-            if (window != null) window.Refresh(this.CurrentTracker);
-        }
+        //private void RefreshToolWindows()
+        //{
+        //    var window = this._sccProvider.FindToolWindow(typeof(PendingChangesToolWindow), 0, false) 
+        //        as PendingChangesToolWindow;
+        //    if (window != null) window.Refresh(this.CurrentTracker);
+        //}
     }
 }

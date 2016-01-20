@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -10,12 +12,15 @@ namespace GitScc
 {
     public class GitChangesetManager
     {
-        private List<GitFile> _changedFiles;
+        private List<GitFile> _currentChangeset;
         private ConcurrentDictionary<string, GitFileStatus> _fileStatus;
+        private GitRepository _repostory;
 
 
-        public GitChangesetManager()
+        public GitChangesetManager(GitRepository repostory)
         {
+            _repostory = repostory;
+            _currentChangeset = _repostory.ChangedFiles.ToList();
             _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
         }
 
@@ -34,10 +39,34 @@ namespace GitScc
 
         public void Clear()
         {
-            _changedFiles = new List<GitFile>();
+            _currentChangeset = new List<GitFile>();
             _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
         }
 
+
+        public GitFileStatus GetFileStatus(string fileName)
+        {
+            try
+            {
+                fileName = Path.GetFullPath(fileName).ToLower();
+                var file = _currentChangeset.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
+                if (file != null) return file.Status;
+
+                if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
+                // did not check if the file is ignored for performance reason
+                return GitFileStatus.NotControlled;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error In File System Changed Event: " + ex.Message);
+                return GitFileStatus.NotControlled;
+            }
+        }
+
+        private bool FileExistsInRepo(string fileName)
+        {
+            return File.Exists(Path.Combine(_repostory.WorkingDirectory, fileName));
+        }
 
         /// <summary>
         /// Send filename and status, and returns true if file status is different than last known status
@@ -77,8 +106,7 @@ namespace GitScc
         /// <returns></returns>
         private Dictionary<string, GitFileStatus> CreateRepositoryUpdateChangeSet(List<GitFile> newChangeSet)
         {
-            var _lastChanged = _changedFiles;
-
+            var _lastChanged = _currentChangeset;
             var updatedFiles = new Dictionary<string, GitFileStatus>();
             //clean out the current _filestatus .. keeps the list small-ish and makes sure it's not out of date.. 
             //_fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
@@ -98,7 +126,7 @@ namespace GitScc
             }
             if (_lastChanged == null)
             {
-                foreach (var gitFile in _lastChanged)
+                foreach (var gitFile in newChangeSet)
                 {
                         updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
                 }
@@ -110,12 +138,11 @@ namespace GitScc
                     if (!newChangeSet.Exists(x => x.FilePath == gitFile.FilePath))
                     {
                         updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
+                        _fileStatus.TryAdd(gitFile.FilePath, GitFileStatus.Unaltered);
                     }
                 }
             }
-          
-           
-            _changedFiles = newChangeSet;
+            _currentChangeset = newChangeSet;
             return updatedFiles;
         }
 

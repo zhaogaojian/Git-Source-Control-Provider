@@ -36,7 +36,7 @@ namespace GitScc
         private bool isGit;
         private string _branchDisplayName;
         private string _cachedBranchName;
-        private GitChangesetManager _changesetManager;
+        //private GitChangesetManager _changesetManager;
         private CurrentOperation _cachedBranchOperation;
         private string repositoryPath;
         private IEnumerable<string> remotes;
@@ -128,7 +128,7 @@ namespace GitScc
                 repositoryPath = repository.Info.Path;
             }
             _cachedBranchOperation = CurrentOperation.None;
-            _changesetManager = new GitChangesetManager();
+            //_changesetManager = new GitChangesetManager();
             //_lastTipId = repository.Head.Tip.sha;
             Refresh();
             CreateTimers();
