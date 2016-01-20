@@ -44,24 +44,24 @@ namespace GitScc
         }
 
 
-        public GitFileStatus GetFileStatus(string fileName)
-        {
-            try
-            {
-                fileName = Path.GetFullPath(fileName).ToLower();
-                var file = _currentChangeset.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
-                if (file != null) return file.Status;
+        //public GitFileStatus GetFileStatus(string fileName)
+        //{
+        //    try
+        //    {
+        //        fileName = Path.GetFullPath(fileName).ToLower();
+        //        var file = _currentChangeset.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
+        //        if (file != null) return file.Status;
 
-                if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
-                // did not check if the file is ignored for performance reason
-                return GitFileStatus.NotControlled;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Error In File System Changed Event: " + ex.Message);
-                return GitFileStatus.NotControlled;
-            }
-        }
+        //        if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
+        //        // did not check if the file is ignored for performance reason
+        //        return GitFileStatus.NotControlled;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine("Error In File System Changed Event: " + ex.Message);
+        //        return GitFileStatus.NotControlled;
+        //    }
+        //}
 
         private bool FileExistsInRepo(string fileName)
         {
@@ -121,8 +121,12 @@ namespace GitScc
                         _fileStatus[gitFile.FilePath] = gitFile.Status;
                     }
                 }
-                _fileStatus.TryAdd(gitFile.FilePath, gitFile.Status);
-                updatedFiles.Add(gitFile.FilePath, gitFile.Status);
+                else
+                {
+                    _fileStatus.TryAdd(gitFile.FilePath, gitFile.Status);
+                    updatedFiles.Add(gitFile.FilePath, gitFile.Status);
+                }
+               
             }
             if (_lastChanged == null)
             {

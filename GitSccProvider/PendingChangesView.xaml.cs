@@ -105,7 +105,14 @@ namespace GitScc
         private async void Instance_ActiveTrackerChanged(object sender, GitRepositoryEvent e)
         {
             CurrentTracker = e.Repository;
-            await Refresh();
+            if (CurrentTracker == null)
+            {
+                ClearUI();
+            }
+            else
+            {
+                await Refresh();
+            }
         }
 
         private async void CurrentTracker_FilesChanged(object sender, GitFilesUpdateEventArgs e)
@@ -449,110 +456,7 @@ namespace GitScc
             //Debug.WriteLine("**** PendingChangesView Refresh: ");
         }
 
-        //internal async Task Refresh()
-        //{
-        //    if (!GitBash.Exists)
-        //    {
-        //         Settings.Show(); 
-        //        return;
-        //    }
-        //    else
-        //         Settings.Hide();
-
-        //    await Dispatcher.InvokeAsync(() =>
-        //    {
-        //        this.label3.Content = "Changed files";
-        //    });
-            
-        //    //this.gitConsole1.tracker = tracker;
-
-        //    if (CurrentTracker == null)
-        //    {
-        //        using (service.DisableRefresh())
-        //        {
-        //            ClearUI();
-        //        }
-
-        //        return;
-        //    }
-
-        //    Func<IEnumerable<GitFile>> getChangedFiles = () =>
-        //    {
-        //        Action action = () => ShowStatusMessage("Getting changed files ...");
-        //        Dispatcher.Invoke(action);
-        //        return CurrentTracker.ChangedFiles;
-        //    };
-
-        //    Action<IEnumerable<GitFile>> refreshAction = changedFiles =>
-        //    {
-        //        using (service.DisableRefresh())
-        //        {
-        //            Stopwatch stopwatch = new Stopwatch();
-        //            stopwatch.Start();
-
-        //            var selectedFile = GetSelectedFileName();
-        //            var selectedFiles = this.listView1.Items.Cast<GitFile>()
-        //                .Where(i => i.IsSelected)
-        //                .Select(i => i.FileName).ToList();
-
-        //            this.listView1.BeginInit();
-
-        //            try
-        //            {
-        //                this.listView1.ItemsSource = changedFiles;
-
-        //                SortCurrentColumn();
-
-        //                this.listView1.SelectedValue = selectedFile;
-        //                selectedFiles.ForEach(fn =>
-        //                {
-        //                    var item = this.listView1.Items.Cast<GitFile>()
-        //                        .Where(i => i.FileName == fn)
-        //                        .FirstOrDefault();
-        //                    if (item != null)
-        //                        item.IsSelected = true;
-        //                });
-
-        //                ShowStatusMessage("");
-
-        //                var changed = changedFiles;
-        //                this.label3.Content = string.Format("Changed files (+{0} ~{1} -{2} !{3})",
-        //                    changed.Where(f => f.Status == GitFileStatus.New || f.Status == GitFileStatus.Added).Count(),
-        //                    changed.Where(f => f.Status == GitFileStatus.Modified || f.Status == GitFileStatus.Staged).Count(),
-        //                    changed.Where(f => f.Status == GitFileStatus.Deleted || f.Status == GitFileStatus.Removed).Count(),
-        //                    changed.Where(f => f.Status == GitFileStatus.Conflict).Count());
-
-        //                if (!changedFiles.Any())
-        //                {
-        //                    this.ClearEditor();
-        //                }
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                ShowStatusMessage(ex.Message);
-        //            }
-        //            this.listView1.EndInit();
-
-        //            stopwatch.Stop();
-        //            Debug.WriteLine("**** PendingChangesView Refresh: " + stopwatch.ElapsedMilliseconds);
-
-        //            if (!GitSccOptions.Current.DisableAutoRefresh && stopwatch.ElapsedMilliseconds > 1000)
-        //                this.label4.Visibility = Visibility.Visible;
-        //            else
-        //                this.label4.Visibility = Visibility.Collapsed;
-        //        }
-        //    };
-
-        //    Action<Task<IEnumerable<GitFile>>> continuationAction = task =>
-        //    {
-        //        Dispatcher.Invoke(refreshAction, task.Result);
-        //    };
-
-        //    Task.Factory.StartNew(getChangedFiles, CancellationToken.None, TaskCreationOptions.LongRunning, SccProviderService.TaskScheduler)
-        //        .HandleNonCriticalExceptions()
-        //        .ContinueWith(continuationAction, TaskContinuationOptions.ExecuteSynchronously)
-        //        .HandleNonCriticalExceptions();
-        //}
+       
 
         internal void ClearUI()
         {
@@ -596,8 +500,8 @@ namespace GitScc
 
         internal void Commit()
         {
-            using (service.DisableRefresh())
-            {
+            //using (service.DisableRefresh())
+            //{
                 if (HasComments() && StageSelectedFiles(true))
                 {
                     string errorMessage = null;
@@ -618,9 +522,9 @@ namespace GitScc
                     if (!String.IsNullOrEmpty(errorMessage))
                         MessageBox.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
-            }
+           // }
 
-            service.MarkDirty(false);
+            //service.MarkDirty(false);
         }
 
         //Todo UPdate
@@ -646,8 +550,8 @@ Are you sure you want to continue?";
                 var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
                 if (dte.ItemOperations.PromptToSave == EnvDTE.vsPromptResult.vsPromptResultCancelled) return;
 
-                using (service.DisableRefresh())
-                {
+                //using (service.DisableRefresh())
+                //{
                     StageSelectedFiles(false);
 
                     try
@@ -662,9 +566,9 @@ Are you sure you want to continue?";
                         MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                         ShowStatusMessage(ex.Message);
                     }
-                }
+               // }
 
-                service.MarkDirty(false);
+               // service.MarkDirty(false);
             }
         }
 
@@ -840,52 +744,52 @@ Note: if the file is included project, you need to delete the file from project 
         }
         #endregion
 
-        private void DiffEditor_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            int start = 1, column = 1;
-            try
-            {
-                if (this.textView != null && diffLines != null && diffLines.Length > 0)
-                {
-                    int line;
-                    textView.GetCaretPos(out line, out column);
+        //private void DiffEditor_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        //{
+        //    int start = 1, column = 1;
+        //    try
+        //    {
+        //        if (this.textView != null && diffLines != null && diffLines.Length > 0)
+        //        {
+        //            int line;
+        //            textView.GetCaretPos(out line, out column);
 
-                    string text = diffLines[line];
-                    while (line >= 0)
-                    {
-                        var match = Regex.Match(text, "^@@(.+)@@");
-                        if (match.Success)
-                        {
-                            var s = match.Groups[1].Value;
-                            s = s.Substring(s.IndexOf('+') + 1);
-                            s = s.Substring(0, s.IndexOf(','));
-                            start += Convert.ToInt32(s) - 2;
-                            break;
-                        }
-                        else if (text.StartsWith("-"))
-                        {
-                            start--;
-                        }
+        //            string text = diffLines[line];
+        //            while (line >= 0)
+        //            {
+        //                var match = Regex.Match(text, "^@@(.+)@@");
+        //                if (match.Success)
+        //                {
+        //                    var s = match.Groups[1].Value;
+        //                    s = s.Substring(s.IndexOf('+') + 1);
+        //                    s = s.Substring(0, s.IndexOf(','));
+        //                    start += Convert.ToInt32(s) - 2;
+        //                    break;
+        //                }
+        //                else if (text.StartsWith("-"))
+        //                {
+        //                    start--;
+        //                }
 
-                        start++;
-                        --line;
-                        text = line >= 0 ? diffLines[line] : "";
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowStatusMessage(ex.Message);
-                Log.WriteLine("Pending Changes View - DiffEditor_MouseDoubleClick: {0}", ex.ToString());
-            }
-            GetSelectedFileFullName((fileName) =>
-            {
-                OpenFile(fileName);
-                var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
-                var selection = dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-                selection.MoveToLineAndOffset(start, column);
-            });
-        }
+        //                start++;
+        //                --line;
+        //                text = line >= 0 ? diffLines[line] : "";
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ShowStatusMessage(ex.Message);
+        //        Log.WriteLine("Pending Changes View - DiffEditor_MouseDoubleClick: {0}", ex.ToString());
+        //    }
+        //    GetSelectedFileFullName((fileName) =>
+        //    {
+        //        OpenFile(fileName);
+        //        var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
+        //        var selection = dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+        //        selection.MoveToLineAndOffset(start, column);
+        //    });
+        //}
 
         private void OpenFile(string fileName)
         {

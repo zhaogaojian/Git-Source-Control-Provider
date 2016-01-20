@@ -122,7 +122,8 @@ namespace GitScc
         private void OnRefreshCommand(object sender, EventArgs e)
         {
             hasFileSaved(); //just a reminder, refresh anyway
-            sccProviderService.Refresh();
+            //TODO
+            //sccProviderService.Refresh();
         }
 
         internal async Task Refresh(GitFileStatusTracker tracker)

@@ -89,7 +89,10 @@ namespace GitScc
                     }
                     
                     _activeTracker = value;
-                    _activeTracker.BranchChanged += _activeTracker_BranchChanged;
+                    if (_activeTracker != null)
+                    {
+                        _activeTracker.BranchChanged += _activeTracker_BranchChanged;
+                    }
                     FireActiveTrackerChangedEvent(value);
                 }
             }
@@ -142,12 +145,13 @@ namespace GitScc
                 _solutionTracker.BranchChanged -= _solutionTracker_BranchChanged;
                 _solutionTracker = null;
             }
+            ActiveTracker = null;
 
-            if (_activeTracker != null)
-            {
-                _activeTracker.BranchChanged -= _solutionTracker_BranchChanged;
-                _activeTracker = null;
-            }
+            //if (_activeTracker != null)
+            //{
+            //    _activeTracker.BranchChanged -= _solutionTracker_BranchChanged;
+            //    _activeTracker = null;
+            //}
 
             _repositories = new List<GitFileStatusTracker>();
             _fileRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();

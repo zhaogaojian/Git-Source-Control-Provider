@@ -42,18 +42,12 @@ namespace GitScc
         IVsTrackProjectDocumentsEvents2
         
     {
-        //private static readonly QueuedTaskScheduler _queuedTaskScheduler =
-        //    new QueuedTaskScheduler(1, threadName: "Git SCC Tasks", threadPriority: ThreadPriority.BelowNormal);
-        //private static readonly TaskScheduler _taskScheduler = _queuedTaskScheduler.ActivateNewQueue();
-
         private static readonly TimeSpan InitialRefreshDelay = TimeSpan.FromMilliseconds(500);
-        private static TimeSpan RefreshDelay = InitialRefreshDelay;
+        
 
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
         private SccProviderSolutionCache _fileCache;
-        private object _glyphsLock = new object();
-        private DateTime _lastRefresh = DateTime.MinValue;
         private Dictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
         //private List<GitFileStatusTracker> trackers;
 
@@ -83,13 +77,6 @@ namespace GitScc
         }
         #endregion
 
-        //public static TaskScheduler TaskScheduler
-        //{
-        //    get
-        //    {
-        //        return _taskScheduler;
-        //    }
-        //}
 
         #region IVsSccProvider interface functions
         /// <summary>
@@ -106,10 +93,14 @@ namespace GitScc
         {
             Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Git Source Control Provider set active"));
             _active = true;
-
             GlobalCommandHook hook = GlobalCommandHook.GetInstance(_sccProvider);
             hook.HookCommand(new CommandID(VSConstants.VSStd2K, (int)VSConstants.VSStd2KCmdID.SLNREFRESH), HandleSolutionRefresh);
 
+            ThreadHelper.JoinableTaskFactory.Run(async delegate
+            {
+                await OpenTracker();
+                 await EnableSccForSolution();
+            });
             //MarkDirty(false);
             return VSConstants.S_OK;
         }
@@ -120,12 +111,9 @@ namespace GitScc
         {
             Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Git Source Control Provider set inactive"));
             _active = false;
-
+            DisableSccForSolution();
             GlobalCommandHook hook = GlobalCommandHook.GetInstance(_sccProvider);
             hook.UnhookCommand(new CommandID(VSConstants.VSStd2K, (int)VSConstants.VSStd2KCmdID.SLNREFRESH), HandleSolutionRefresh);
-
-            CloseTracker();
-            MarkDirty(false);
             return VSConstants.S_OK;
         }
 
@@ -136,169 +124,25 @@ namespace GitScc
         }
         #endregion
 
+        //TODO : FIX!!!!!
         private void HandleSolutionRefresh(object sender, EventArgs e)
         {
-            Refresh();
+            //Refresh();
         }
 
-        #region IVsSccManager2 interface functions
-
-        public int BrowseForProject(out string pbstrDirectory, out int pfOK)
+        private async Task EnableSccForSolution()
         {
-            // Obsolete method
-            pbstrDirectory = null;
-            pfOK = 0;
-            return VSConstants.E_NOTIMPL;
+            await RegisterEntireSolution();
+            await SetSolutionExplorerTitle();
         }
 
-        public int CancelAfterBrowseForProject()
+        private void DisableSccForSolution()
         {
-            // Obsolete method
-            return VSConstants.E_NOTIMPL;
+            CloseTracker();
+            _fileCache = null;
+            _fileChangesetManager = null;
         }
 
-        /// <summary>
-        /// Returns whether the source control provider is fully installed
-        /// </summary>
-        public int IsInstalled(out int pbInstalled)
-        {
-            // All source control packages should always return S_OK and set pbInstalled to nonzero
-            pbInstalled = 1;
-            return VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// Provide source control icons for the specified files and returns scc status of files
-        /// </summary>
-        /// <returns>The method returns S_OK if at least one of the files is controlled, S_FALSE if none of them are</returns>
-        public int GetSccGlyph([InAttribute] int cFiles, [InAttribute] string[] rgpszFullPaths, [OutAttribute] VsStateIcon[] rgsiGlyphs, [OutAttribute] uint[] rgdwSccStatus)
-        {
-            for (int i = 0; i < cFiles; i++)
-            {
-                GitFileStatus status = _active ? GetFileStatus(rgpszFullPaths[i]) : GitFileStatus.NotControlled;
-                __SccStatus sccStatus;
-
-                switch (status)
-                {
-                    case GitFileStatus.Tracked:
-                        rgsiGlyphs[i] = SccGlyphsHelper.Tracked;
-                        sccStatus = __SccStatus.SCC_STATUS_CONTROLLED;
-                        break;
-
-                    case GitFileStatus.Modified:
-                        rgsiGlyphs[i] = SccGlyphsHelper.Modified;
-                        sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER;
-                        break;
-
-                    case GitFileStatus.New:
-                        rgsiGlyphs[i] = SccGlyphsHelper.New;
-                        sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER;
-                        break;
-
-                    case GitFileStatus.Added:
-                    case GitFileStatus.Staged:
-                        rgsiGlyphs[i] = status == GitFileStatus.Added ? SccGlyphsHelper.Added : SccGlyphsHelper.Staged;
-                        sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER;
-                        break;
-
-                    case GitFileStatus.NotControlled:
-                        rgsiGlyphs[i] = SccGlyphsHelper.NotControlled;
-                        sccStatus = __SccStatus.SCC_STATUS_NOTCONTROLLED;
-                        break;
-
-                    case GitFileStatus.Ignored:
-                        rgsiGlyphs[i] = SccGlyphsHelper.Ignored;
-                        sccStatus = __SccStatus.SCC_STATUS_NOTCONTROLLED;
-                        break;
-
-                    case GitFileStatus.Conflict:
-                        rgsiGlyphs[i] = SccGlyphsHelper.Conflict;
-                        sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER | __SccStatus.SCC_STATUS_MERGED;
-                        break;
-
-                    case GitFileStatus.Merged:
-                        rgsiGlyphs[i] = SccGlyphsHelper.Merged;
-                        sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER;
-                        break;
-
-                    default:
-                        sccStatus = __SccStatus.SCC_STATUS_INVALID;
-                        break;
-                }
-
-                if (rgdwSccStatus != null)
-                    rgdwSccStatus[i] = (uint)sccStatus;
-            }
-            return VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// Determines the corresponding scc status glyph to display, given a combination of scc status flags
-        /// </summary>
-        public int GetSccGlyphFromStatus([InAttribute] uint dwSccStatus, [OutAttribute] VsStateIcon[] psiGlyph)
-        {
-            // This method is called when some user (e.g. like classview) wants to combine icons
-            // (Unfortunately classview uses a hardcoded mapping)
-            psiGlyph[0] = VsStateIcon.STATEICON_BLANK;
-            return VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// One of the most important methods in a source control provider, is called by projects that are under source control when they are first opened to register project settings
-        /// </summary>
-        public int RegisterSccProject([InAttribute] IVsSccProject2 pscp2Project, [InAttribute] string pszSccProjectName, [InAttribute] string pszSccAuxPath, [InAttribute] string pszSccLocalPath, [InAttribute] string pszProvider)
-        {
-            return VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// Called by projects registered with the source control portion of the environment before they are closed. 
-        /// </summary>
-        public int UnregisterSccProject([InAttribute] IVsSccProject2 pscp2Project)
-        {
-            return VSConstants.S_OK;
-        }
-
-        #endregion
-
-        #region IVsSccManager3 Members
-
-        public bool IsBSLSupported()
-        {
-            return true;
-        }
-
-        #endregion
-
-        #region IVsSccManagerTooltip interface functions
-
-        /// <summary>
-        /// Called by solution explorer to provide tooltips for items. Returns a text describing the source control status of the item.
-        /// </summary>
-        public int GetGlyphTipText([InAttribute] IVsHierarchy phierHierarchy, [InAttribute] uint itemidNode, out string pbstrTooltipText)
-        {
-            pbstrTooltipText = "";
-            GitFileStatus status = ThreadHelper.JoinableTaskFactory.Run(async delegate
-            {
-                GitFileStatus fileStatus = await GetFileStatus(phierHierarchy, itemidNode);
-                return fileStatus;
-            });
-            pbstrTooltipText = status.ToString(); //TODO: use resources
-            return VSConstants.S_OK;
-        }
-        #endregion
-
-     
-
-        #region IVsSccGlyphs Members
-
-        public int GetCustomGlyphList(uint BaseIndex, out uint pdwImageListHandle)
-        {
-            pdwImageListHandle = SccGlyphsHelper.GetCustomGlyphList(BaseIndex);
-            return VSConstants.S_OK;
-        }
-
-        #endregion
 
         #region File Names
 
@@ -557,16 +401,13 @@ namespace GitScc
         #endregion
 
         #region open and close tracker
-        FileSystemWatcher _watcher;
-        string lastMonitorFolder = string.Empty;
-        string monitorFolder;
 
         internal async Task OpenTracker()
         {
             Debug.WriteLine("==== Open Tracker");
             RepositoryManager.Instance.Clear();
             _fileCache = new SccProviderSolutionCache(_sccProvider);
-            
+            _fileChangesetManager = new Dictionary<GitRepository, GitChangesetManager>();
 
             var solutionFileName = await GetSolutionFileName();
             RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
@@ -752,41 +593,10 @@ namespace GitScc
            // }
         }
 
-
-        //private void ProcessFileSystemChange(FileSystemEventArgs e)
-        //{
-        //    if (GitSccOptions.Current.DisableAutoRefresh)
-        //        return;
-
-        //    if (e.ChangeType == WatcherChangeTypes.Changed && Directory.Exists(e.FullPath))
-        //        return;
-
-        //    if (string.Equals(Path.GetExtension(e.Name), ".lock", StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        if (e.FullPath.Contains(Constants.DOT_GIT + Path.DirectorySeparatorChar))
-        //            return;
-        //    }
-
-        //    MarkDirty(false);
-        //}
-
         private void CloseTracker()
         {
             Debug.WriteLine("==== Close Tracker");
             RepositoryManager.Instance.Clear();
-            RemoveFolderMonitor();
-            MarkDirty(false);
-        }
-
-        private void RemoveFolderMonitor()
-        {
-            if (_watcher != null)
-            {
-                _watcher.Dispose();
-                Debug.WriteLine("==== Stop Monitoring");
-                _watcher = null;
-                lastMonitorFolder = "";
-            }
         }
 
         #endregion
@@ -860,7 +670,6 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                     {
                         CurrentTracker.UnStageFile(fileName);
                     }
-                    MarkDirty(true);
                     //CurrentTracker.CheckOutFile(fileName);
                 }
             }
@@ -953,32 +762,17 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
             return fileInfo.StartsWith(directoryPath, StringComparison.OrdinalIgnoreCase);
         }
-
-        private bool IsParentFolder(string folder, string fileName)
-        {
-            if (string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(fileName) ||
-               !Directory.Exists(folder)) return false;
-
-            bool b = false;
-            var dir = new DirectoryInfo(Path.GetDirectoryName(Path.GetFullPath(fileName)));
-            while (!b && dir != null)
-            {
-                b = string.Compare(dir.FullName, folder, true) == 0;
-                dir = dir.Parent;
-            }
-            return b;
-        }
-
-        //TODO.. think about changing this to no go to repo
+        
         private GitFileStatus GetFileStatus(string fileName)
         {
             var tracker = GetTracker(fileName);
             var status = GitFileStatus.NotControlled;
-            if (tracker != null)
-            {
-                var cm = GetChangesetManager(tracker);
-                status = cm?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
-            }
+            //if (tracker != null)
+            //{
+            //    var cm = GetChangesetManager(tracker);
+            //    status = cm?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
+            //}
+            status = tracker?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
             return status;
         }
 
@@ -1001,184 +795,73 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         #endregion
 
-        #region new Refresh methods
+        //#region new Refresh methods
 
-        internal DateTime nextTimeRefresh = DateTime.Now;
+        //internal DateTime nextTimeRefresh = DateTime.Now;
 
-        private int _nodesGlyphsDirty;
-        private int _explicitRefreshRequested;
-        private int _disableRefresh;
+        //private int _nodesGlyphsDirty;
+        //private int _explicitRefreshRequested;
+        //private int _disableRefresh;
 
-        private bool NoRefresh
-        {
-            get
-            {
-                return Thread.VolatileRead(ref _disableRefresh) != 0;
-            }
-        }
-
-        internal void MarkDirty(bool defer)
-        {
-            if (defer)
-                nextTimeRefresh = DateTime.Now;
-
-            // this doesn't need to be a volatile write since it's fine if the write is delayed
-            _nodesGlyphsDirty = 1;
-        }
-
-        internal IDisposable DisableRefresh()
-        {
-            return new DisableRefreshHandle(this);
-        }
-
-        private sealed class DisableRefreshHandle : IDisposable
-        {
-            private readonly SccProviderService _service;
-            private bool _disposed;
-
-            public DisableRefreshHandle(SccProviderService service)
-            {
-                _service = service;
-                Interlocked.Increment(ref _service._disableRefresh);
-            }
-
-            public void Dispose()
-            {
-                if (_disposed)
-                    return;
-
-                _disposed = true;
-                Interlocked.Decrement(ref _service._disableRefresh);
-            }
-        }
-
-        internal void Refresh()
-        {
-            // this doesn't need to be a volatile write since it's fine if the write is delayed
-            _explicitRefreshRequested = 1;
-        }
-
-        //public void UpdateNodesGlyphs()
+        //private bool NoRefresh
         //{
-        //    if (NoRefresh)
-        //        return;
-
-        //    bool refresh = Interlocked.Exchange(ref _explicitRefreshRequested, 0) != 0;
-        //    if (!refresh && Thread.VolatileRead(ref _nodesGlyphsDirty) != 0)
+        //    get
         //    {
-        //        refresh = DateTime.Now - nextTimeRefresh >= RefreshDelay;
-        //    }
-
-        //    if (refresh)
-        //    {
-        //        IDisposable disableRefresh = DisableRefresh();
-
-        //        Debug.WriteLine("==== UpdateNodesGlyphs");
-
-        //        // this comes before the actual refresh, since a change on the file system during
-        //        // the refresh may or may not appear in the refresh results
-        //        Thread.VolatileWrite(ref _nodesGlyphsDirty, 0);
-
-        //        // used for progressive backoff of the update interval for large projects
-        //        Stopwatch timer = new Stopwatch();
-
-        //        Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
-        //        Action openTrackerAction = () =>
-        //        {
-        //            timer.Start();
-
-        //            OpenTracker();
-        //            foreach (GitFileStatusTracker tracker in RepositoryManager.Instance.GetRepositories())
-        //                tracker.Refresh();
-
-        //            timer.Stop();
-        //        };
-
-        //        Action<Task> continuationAction = (task) =>
-        //        {
-        //            if (task.Exception != null)
-        //            {
-        //                disableRefresh.Dispose();
-        //                return;
-        //            }
-
-        //            Action applyUpdatesAction = () =>
-        //            {
-        //                try
-        //                {
-        //                    using (disableRefresh)
-        //                    {
-        //                        timer.Start();
-
-        //                        //TODO right here... Split this 
-        //                        RefreshNodesGlyphs();
-        //                        RefreshToolWindows();
-        //                        // make sure to defer next refresh
-        //                        nextTimeRefresh = DateTime.Now;
-        //                        timer.Stop();
-
-        //                        TimeSpan totalTime = timer.Elapsed;
-        //                        TimeSpan minimumRefreshInterval = new TimeSpan(totalTime.Ticks * 2);
-        //                        if (minimumRefreshInterval > RefreshDelay)
-        //                            RefreshDelay = minimumRefreshInterval;
-        //                    }
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    if (ErrorHandler.IsCriticalException(ex))
-        //                        throw;
-        //                }
-        //            };
-
-        //            dispatcher.BeginInvoke(applyUpdatesAction);
-        //        };
-
-        //        Task.Factory.StartNew(openTrackerAction, CancellationToken.None, TaskCreationOptions.LongRunning, SccProviderService.TaskScheduler)
-        //            .HandleNonCriticalExceptions()
-        //            .ContinueWith(continuationAction, TaskContinuationOptions.ExecuteSynchronously)
-        //            .HandleNonCriticalExceptions();
+        //        return Thread.VolatileRead(ref _disableRefresh) != 0;
         //    }
         //}
 
-
-        //TODO MOVE 
-        //public void RefreshNodesGlyphs()
+        //internal void MarkDirty(bool defer)
         //{
-        //  //var solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
-        //    var projectList = GetLoadedControllableProjects();
+        //    if (defer)
+        //        nextTimeRefresh = DateTime.Now;
 
-        //    // We'll also need to refresh the solution folders glyphs
-        //    // to reflect the controlled state
-        //    IList<VSITEMSELECTION> nodes = new List<VSITEMSELECTION>();
-
-        //    // add project node items
-        //    foreach (IVsHierarchy hr in projectList)
-        //    {
-        //        VSITEMSELECTION vsItem;
-        //        vsItem.itemid = VSConstants.VSITEMID_ROOT;
-        //        vsItem.pHier = hr;
-        //        nodes.Add(vsItem);
-        //    }
-
-        //    RefreshNodesGlyphs(nodes);
-
-        //    //var caption = "Solution Explorer";
-        //    //string branch = CurrentBranchName;
-        //    //if (!string.IsNullOrEmpty(branch))
-        //    //{
-        //    //    caption += " (" + branch + ")";
-        //    //    SetSolutionExplorerTitle(caption);
-        //    //}
+        //    // this doesn't need to be a volatile write since it's fine if the write is delayed
+        //    _nodesGlyphsDirty = 1;
         //}
 
-        /// <summary>
-        /// Returns a list of controllable projects in the solution
-        /// </summary>
+        //internal IDisposable DisableRefresh()
+        //{
+        //    return new DisableRefreshHandle(this);
+        //}
+
+        //private sealed class DisableRefreshHandle : IDisposable
+        //{
+        //    private readonly SccProviderService _service;
+        //    private bool _disposed;
+
+        //    public DisableRefreshHandle(SccProviderService service)
+        //    {
+        //        _service = service;
+        //        Interlocked.Increment(ref _service._disableRefresh);
+        //    }
+
+        //    public void Dispose()
+        //    {
+        //        if (_disposed)
+        //            return;
+
+        //        _disposed = true;
+        //        Interlocked.Decrement(ref _service._disableRefresh);
+        //    }
+        //}
+
+        //internal void Refresh()
+        //{
+        //    // this doesn't need to be a volatile write since it's fine if the write is delayed
+        //    _explicitRefreshRequested = 1;
+        //}
+
+
+
+        ///// <summary>
+        ///// Returns a list of controllable projects in the solution
+        ///// </summary>
         public async Task<List<IVsSccProject2>> GetLoadedControllableProjects()
         {
             var list = new List<IVsSccProject2>();
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            IVsSolution sol = (IVsSolution) _sccProvider.GetService(typeof(SVsSolution));
+            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
             list.Add(sol as IVsSccProject2);
 
             Guid rguidEnumOnlyThisType = new Guid();
@@ -1245,7 +928,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                     project.SccGlyphChanged(files.Count, rguiAffectedNodes, rgsiGlyphs, rgdwSccStatus);
                 }
             }
-            catch (Exception ex )
+            catch (Exception ex)
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 IVsActivityLog log = _sccProvider.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
@@ -1288,7 +971,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                         GetSccGlyph(1, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
 
                         // Set the solution's glyph directly in the hierarchy
-                        IVsHierarchy solHier = (IVsHierarchy) _sccProvider.GetService(typeof(SVsSolution));
+                        IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
                         solHier.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_StateIconIndex, rgsiGlyphs[0]);
                     }
                     else
@@ -1321,7 +1004,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                 }
             }
         }
-        #endregion
+//#endregion
 
         #region git
         public bool IsSolutionGitControlled
@@ -1367,12 +1050,5 @@ $tf*/"
             File.WriteAllText(Path.Combine(solutionPath, ".tfignore"), @"\.git");
         } 
         #endregion
-
-        //private void RefreshToolWindows()
-        //{
-        //    var window = this._sccProvider.FindToolWindow(typeof(PendingChangesToolWindow), 0, false) 
-        //        as PendingChangesToolWindow;
-        //    if (window != null) window.Refresh(this.CurrentTracker);
-        //}
     }
 }

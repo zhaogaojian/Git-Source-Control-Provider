@@ -87,8 +87,7 @@ namespace GitScc
 
         public int OnAfterCloseSolution([In] Object pUnkReserved)
         {
-            CloseTracker();
-            _fileCache = new SccProviderSolutionCache(_sccProvider);
+            DisableSccForSolution();
             return VSConstants.S_OK;
         }
 
@@ -221,13 +220,13 @@ namespace GitScc
         {
             Debug.WriteLine("Git Source Control Provider: suppress refresh before build...");
             //_fileCache = new SccProviderSolutionCache(_sccProvider);
-            IDisposable disableRefresh = DisableRefresh();
-            disableRefresh = Interlocked.Exchange(ref _updateSolutionDisableRefresh, disableRefresh);
-            if (disableRefresh != null)
-            {
-                // this is unexpected, but if we did overwrite a handle make sure it gets disposed
-                disableRefresh.Dispose();
-            }
+            //IDisposable disableRefresh = DisableRefresh();
+            //disableRefresh = Interlocked.Exchange(ref _updateSolutionDisableRefresh, disableRefresh);
+            //if (disableRefresh != null)
+            //{
+            //    // this is unexpected, but if we did overwrite a handle make sure it gets disposed
+            //    disableRefresh.Dispose();
+            //}
 
             return VSConstants.S_OK;
         }

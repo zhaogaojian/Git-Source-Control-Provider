@@ -54,8 +54,7 @@ namespace GitScc
 
         private async void _solutionEvents_Opened()
         {
-            await RegisterEntireSolution();
-            await SetSolutionExplorerTitle();
+            await EnableSccForSolution();
         }
 
         private async void _windowEvents_WindowActivated(Window GotFocus, Window LostFocus)

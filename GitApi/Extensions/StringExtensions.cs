@@ -26,6 +26,17 @@ namespace GitScc.Extensions
             return normalizedPath.StartsWith(normalizedBaseDirPath, StringComparison.OrdinalIgnoreCase);
         }
 
+        public static bool ArePathsEqual(this string path, string baseDirPath)
+        {
+            string normalizedPath = Path.GetFullPath(path.Replace('/', '\\')
+                .WithEnding("\\"));
+
+            string normalizedBaseDirPath = Path.GetFullPath(baseDirPath.Replace('/', '\\')
+                .WithEnding("\\"));
+
+            return String.Equals(normalizedPath,normalizedBaseDirPath, StringComparison.OrdinalIgnoreCase);
+        }
+
         /// <summary>
         /// Returns <paramref name="str"/> with the minimal concatenation of <paramref name="ending"/> (starting from end) that
         /// results in satisfying .EndsWith(ending).

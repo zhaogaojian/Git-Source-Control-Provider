@@ -376,10 +376,12 @@ namespace GitScc
             Marshal.WriteInt32(pCwActual, maxChars + 1);
         }
 
+
         private void OnRefreshCommand(object sender, EventArgs e)
         {
+            //TODO
             // explicit user refresh
-            sccService.Refresh();
+            //sccService.Refresh();
         }
 
         private async void OnCompareCommand(object sender, EventArgs e)

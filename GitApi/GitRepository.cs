@@ -30,7 +30,6 @@ namespace GitScc
 
         private string workingDirectory;
         private readonly string _gitDirectory;
-        private string _lastTipId;
         private List<GitFile> _changedFiles;
         private List<GitFile> _changeFileStatus;
         private bool isGit;
@@ -55,8 +54,9 @@ namespace GitScc
         System.Timers.Timer _interfiletimer = new System.Timers.Timer();
         System.Timers.Timer _timeoutfiletimer = new System.Timers.Timer();
 
+        private GitHeadState _savedState;
 
-        private DateTime _lastGetChanges = DateTime.MinValue;
+        private DateTime _lastGitChanges = DateTime.MinValue;
 
         private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
 
@@ -122,6 +122,7 @@ namespace GitScc
         public GitRepository(string directory)
         {
             _gitDirectory = Repository.Discover(directory);
+            _savedState  = new GitHeadState();
             using (var repository = GetRepository())
             {
                 this.workingDirectory = repository.Info.WorkingDirectory;
@@ -131,21 +132,6 @@ namespace GitScc
             //_changesetManager = new GitChangesetManager();
             //_lastTipId = repository.Head.Tip.sha;
             Refresh();
-            CreateTimers();
-        }
-
-
-        private void CreateTimers()
-        {
-            _timeoutfiletimer = new System.Timers.Timer();
-            _timeoutfiletimer.Elapsed += _timeoutfiletimer_Elapsed;
-            _timeoutfiletimer.Interval = 1000;
-
-            _interfiletimer = new System.Timers.Timer();
-            _interfiletimer.Elapsed += _timeoutfiletimer_Elapsed;
-            _interfiletimer.Interval = 100;
-
-
         }
 
 
@@ -209,11 +195,13 @@ namespace GitScc
 
             if (fullPath.IsSubPathOf(repositoryPath))
             {
-                if ((DateTime.UtcNow - _lastGitEvent).TotalSeconds > _gitEventDelay)
-                {
-                    //HandleGitFileSystemChange();
-                    _lastGitEvent = DateTime.UtcNow;
-                }
+                DecodeGitEvents(fullPath);
+                //if ((DateTime.UtcNow - _lastGitEvent).TotalSeconds > _gitEventDelay)
+                //{
+
+                //    //HandleGitFileSystemChange();
+                //    _lastGitEvent = DateTime.UtcNow;
+                //}
             }
             else
             {
@@ -239,30 +227,30 @@ namespace GitScc
             }
         }
 
-        private void StartFileTimer()
+        private void DecodeGitEvents(string fullPath)
         {
-            if (!_timeoutfiletimer.Enabled)
+            if (fullPath.ArePathsEqual(repositoryPath))
             {
-                _timeoutfiletimer.Start();
+                //Do nothing here.. 
+                return;
+            }
+            string filename = Path.GetFileName(fullPath);
+            //I THINK.. thing is switching a branch :) 
+            if (string.Equals(filename, "HEAD", StringComparison.OrdinalIgnoreCase))
+            {
+                using (var repository = GetRepository())
+                {
+                    if (!string.Equals(_savedState.BranchName, repository.Head.CanonicalName) 
+                        ||  (_savedState.Operation != repository.Info.CurrentOperation))
+                    {
+                        SetBranchName();
+                    }
+                }
+                
             }
 
-            _interfiletimer.Stop();
-            _interfiletimer.Start();
         }
 
-
-        private void _timeoutfiletimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-           StopFileTimer();
-            HandleFileSystemChanged();
-        }
-
-        private void StopFileTimer()
-        {
-            _interfiletimer.Stop();
-            _timeoutfiletimer.Stop();
-
-        }
 
         private void HandleFileSystemChanged()
         {
@@ -318,6 +306,17 @@ namespace GitScc
             this.configs = null;
             _branchInfoList = null;
             SetBranchName();
+            LoadHeadState();
+        }
+
+        private void LoadHeadState()
+        {
+            using (var repository = GetRepository())
+            {
+                _savedState.Sha = repository.Head.Tip.Sha;
+                _savedState.BranchName = repository.Head.CanonicalName;
+                _savedState.Operation = repository.Info.CurrentOperation;
+            } 
         }
         #region Checkout Functions
 
@@ -1018,7 +1017,7 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                //logic getting complicated time to breka it out
+                //logic getting complicated time to break it out
                 if (_cachedBranchOperation != repository.Info.CurrentOperation)
                 {
                     _cachedBranchOperation = repository.Info.CurrentOperation;
