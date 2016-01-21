@@ -122,6 +122,7 @@ namespace GitScc
         private void OnRefreshCommand(object sender, EventArgs e)
         {
             hasFileSaved(); //just a reminder, refresh anyway
+            control.Refresh();
             //TODO
             //sccProviderService.Refresh();
         }
@@ -133,6 +134,7 @@ namespace GitScc
                 var repository = (tracker == null || !tracker.IsGit) ? "" :
                     string.Format(" ({0})", tracker.CurrentBranchDisplayName, tracker.WorkingDirectory);
 
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 UpdateRepositoryName(repository);
                 //this.Caption = Resources.ResourceManager.GetString("PendingChangesToolWindowCaption") + repository;
 

@@ -12,17 +12,23 @@ namespace GitScc
 {
     public class GitChangesetManager
     {
-        private List<GitFile> _currentChangeset;
+        //private List<GitFile> _currentChangeset;
         private ConcurrentDictionary<string, GitFileStatus> _fileStatus;
-        private GitRepository _repostory;
+        //private GitRepository _repostory;
 
 
-        public GitChangesetManager(GitRepository repostory)
+        public GitChangesetManager()
         {
-            _repostory = repostory;
-            _currentChangeset = _repostory.ChangedFiles.ToList();
+            //_repostory = repostory;
+            //_currentChangeset = _repostory.ChangedFiles.ToList();
             _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
+            //_repostory.BranchChanged += _repostory_BranchChanged;
         }
+
+        //private void _repostory_BranchChanged(object sender, string e)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         #region Public Methods
 
@@ -34,14 +40,14 @@ namespace GitScc
         /// <returns>true if files have changed</returns>
         public Dictionary<string, GitFileStatus> LoadChangeSet(List<GitFile> newChangeSet)
         {
-           return CreateRepositoryUpdateChangeSet(newChangeSet);
+            return CreateRepositoryUpdateChangeSet(newChangeSet);
         }
 
-        public void Clear()
-        {
-            _currentChangeset = new List<GitFile>();
-            _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
-        }
+        //public void Clear()
+        //{
+        //    _currentChangeset = new List<GitFile>();
+        //    _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
+        //}
 
 
         //public GitFileStatus GetFileStatus(string fileName)
@@ -63,10 +69,10 @@ namespace GitScc
         //    }
         //}
 
-        private bool FileExistsInRepo(string fileName)
-        {
-            return File.Exists(Path.Combine(_repostory.WorkingDirectory, fileName));
-        }
+        //private bool FileExistsInRepo(string fileName)
+        //{
+        //    return File.Exists(Path.Combine(_repostory.WorkingDirectory, fileName));
+        //}
 
         /// <summary>
         /// Send filename and status, and returns true if file status is different than last known status
@@ -90,9 +96,20 @@ namespace GitScc
                 _fileStatus[file] = status;
                 return true;
             }
+
             _fileStatus.TryAdd(file, status);
             return true;
         }
+
+        //public void SetStatus(string filename, GitFileStatus status)
+        //{
+
+        //    if (StatusChanged(filename, status))
+        //    {
+        //        //do something
+        //    }
+        //}
+
 
         #endregion
 
@@ -106,10 +123,17 @@ namespace GitScc
         /// <returns></returns>
         private Dictionary<string, GitFileStatus> CreateRepositoryUpdateChangeSet(List<GitFile> newChangeSet)
         {
-            var _lastChanged = _currentChangeset;
             var updatedFiles = new Dictionary<string, GitFileStatus>();
-            //clean out the current _filestatus .. keeps the list small-ish and makes sure it's not out of date.. 
-            //_fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
+            var lastChangeList = _fileStatus.Where(x => x.Value != GitFileStatus.Unaltered).Select(x => x.Key).ToList();
+            foreach (var file in lastChangeList)
+            {
+                if (!newChangeSet.Exists(x => x.FilePath.ToLower() == file.ToLower()))
+                {
+                    updatedFiles.Add(file.ToLower(), GitFileStatus.Unaltered);
+                    _fileStatus.AddOrUpdate(file, GitFileStatus.Unaltered, (key, value) => GitFileStatus.Unaltered);
+                }
+            }
+
             foreach (var gitFile in newChangeSet)
             {
                 GitFileStatus fileStatus;
@@ -117,37 +141,59 @@ namespace GitScc
                 {
                     if (fileStatus != gitFile.Status)
                     {
-                        updatedFiles.Add(gitFile.FilePath, gitFile.Status);
-                        _fileStatus[gitFile.FilePath] = gitFile.Status;
+                        updatedFiles.Add(gitFile.FilePath.ToLower(), gitFile.Status);
+                        _fileStatus.AddOrUpdate(gitFile.FilePath.ToLower(), gitFile.Status, (key, value) => gitFile.Status);
                     }
                 }
                 else
                 {
-                    _fileStatus.TryAdd(gitFile.FilePath, gitFile.Status);
-                    updatedFiles.Add(gitFile.FilePath, gitFile.Status);
-                }
-               
-            }
-            if (_lastChanged == null)
-            {
-                foreach (var gitFile in newChangeSet)
-                {
-                        updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
+                    updatedFiles.Add(gitFile.FilePath.ToLower(), gitFile.Status);
+                    _fileStatus.AddOrUpdate(gitFile.FilePath.ToLower(), gitFile.Status, (key, value) => gitFile.Status);
                 }
             }
-            else
-            {
-                foreach (var gitFile in _lastChanged)
-                {
-                    if (!newChangeSet.Exists(x => x.FilePath == gitFile.FilePath))
-                    {
-                        updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
-                        _fileStatus.TryAdd(gitFile.FilePath, GitFileStatus.Unaltered);
-                    }
-                }
-            }
-            _currentChangeset = newChangeSet;
             return updatedFiles;
+            //var _lastChanged = _currentChangeset;
+            //var updatedFiles = new Dictionary<string, GitFileStatus>();
+            ////clean out the current _filestatus .. keeps the list small-ish and makes sure it's not out of date.. 
+            ////_fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
+            //foreach (var gitFile in newChangeSet)
+            //{
+            //    GitFileStatus fileStatus;
+            //    if (_fileStatus.TryGetValue(gitFile.FilePath, out fileStatus))
+            //    {
+            //        if (fileStatus != gitFile.Status)
+            //        {
+            //            updatedFiles.Add(gitFile.FilePath, gitFile.Status);
+            //            _fileStatus[gitFile.FilePath] = gitFile.Status;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        _fileStatus.TryAdd(gitFile.FilePath, gitFile.Status);
+            //        updatedFiles.Add(gitFile.FilePath, gitFile.Status);
+            //    }
+
+            //}
+            //if (_lastChanged == null)
+            //{
+            //    foreach (var gitFile in newChangeSet)
+            //    {
+            //        updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
+            //    }
+            //}
+            //else
+            //{
+            //    foreach (var gitFile in _lastChanged)
+            //    {
+            //        if (!newChangeSet.Exists(x => x.FilePath == gitFile.FilePath))
+            //        {
+            //            updatedFiles.Add(gitFile.FilePath, GitFileStatus.Unaltered);
+            //            _fileStatus.TryAdd(gitFile.FilePath, GitFileStatus.Unaltered);
+            //        }
+            //    }
+            //}
+            //_currentChangeset = newChangeSet;
+            //return updatedFiles;
         }
 
 

@@ -79,10 +79,13 @@ namespace GitScc
 
                 }
                 _tracker = tracker;
-                CurrentTracker.FileChanged += CurrentTracker_FileChanged;
-                CurrentTracker.FilesChanged += CurrentTracker_FilesChanged;
-                CurrentTracker.BranchChanged += CurrentTracker_BranchChanged;
-                CurrentTracker.FileStatusUpdate += CurrentTracker_FileStatusUpdate;
+                if (CurrentTracker != null)
+                {
+                    CurrentTracker.FileChanged += CurrentTracker_FileChanged;
+                    CurrentTracker.FilesChanged += CurrentTracker_FilesChanged;
+                    CurrentTracker.BranchChanged += CurrentTracker_BranchChanged;
+                    CurrentTracker.FileStatusUpdate += CurrentTracker_FileStatusUpdate;
+                }
             }
         }
 
@@ -111,8 +114,11 @@ namespace GitScc
             }
             else
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
                 await Refresh();
             }
+          
         }
 
         private async void CurrentTracker_FilesChanged(object sender, GitFilesUpdateEventArgs e)
@@ -120,9 +126,10 @@ namespace GitScc
             await Refresh();
         }
 
-        private void CurrentTracker_BranchChanged(object sender, string e)
+        private async void CurrentTracker_BranchChanged(object sender, string e)
         {
-             _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
         }
 
 

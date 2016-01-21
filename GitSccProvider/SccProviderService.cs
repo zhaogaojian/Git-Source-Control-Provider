@@ -127,7 +127,8 @@ namespace GitScc
         //TODO : FIX!!!!!
         private async void HandleSolutionRefresh(object sender, EventArgs e)
         {
-            await ReloadAllGlyphs();
+            _fileChangesetManager = new Dictionary<GitRepository, GitChangesetManager>();
+            //await ReloadAllGlyphs();
         }
 
         private async Task ReloadAllGlyphs()
@@ -780,12 +781,13 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             var tracker = GetTracker(fileName);
             var status = GitFileStatus.NotControlled;
-            //if (tracker != null)
-            //{
-            //    var cm = GetChangesetManager(tracker);
-            //    status = cm?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
-            //}
-            status = tracker?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
+            if (tracker != null)
+            {
+                status = tracker.GetFileStatus(fileName);
+                var cm = GetChangesetManager(tracker);
+                //cm.SetStatus(fileName, status);
+                //status = cm?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
+            }
             return status;
         }
 
@@ -800,7 +802,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             if(!_fileChangesetManager.ContainsKey(repo))
             {
                 //Get the inital state of the repo.. I guess :)
-                _fileChangesetManager.Add(repo, new GitChangesetManager(repo));
+                _fileChangesetManager.Add(repo, new GitChangesetManager());
             }
 
             return _fileChangesetManager[repo];

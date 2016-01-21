@@ -185,6 +185,7 @@ namespace GitScc
 
         public int OnQueryUnloadProject([In] IVsHierarchy pRealHierarchy, [In] ref int pfCancel)
         {
+            _fileCache.InValidateCache();
             return VSConstants.S_OK;
         }
 
