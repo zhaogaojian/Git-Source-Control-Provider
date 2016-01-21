@@ -125,11 +125,24 @@ namespace GitScc
         #endregion
 
         //TODO : FIX!!!!!
-        private void HandleSolutionRefresh(object sender, EventArgs e)
+        private async void HandleSolutionRefresh(object sender, EventArgs e)
         {
-            //Refresh();
+            await ReloadAllGlyphs();
         }
 
+        private async Task ReloadAllGlyphs()
+        {
+            await EnableSccForSolution();
+            var projects = await GetLoadedControllableProjects();
+            foreach (var project in projects)
+            {
+                if (project != null)
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    project.SccGlyphChanged(0, null, null, null);
+                }
+            }
+        }
         private async Task EnableSccForSolution()
         {
             await RegisterEntireSolution();
