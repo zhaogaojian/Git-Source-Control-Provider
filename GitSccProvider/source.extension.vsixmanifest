@@ -6,6 +6,7 @@
     <Description xml:space="preserve">Git Source Control Provider is a plug-in that integrates git with Visual Studio.</Description>
     <MoreInfo>https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d</MoreInfo>
     <License>License.txt</License>
+    <Icon>Resources\git.png</Icon>
     <PreviewImage>solution explorer.png</PreviewImage>
   </Metadata>
   <Installation>

@@ -75,6 +75,7 @@ namespace GitScc
         private IObservable<EventPattern<object>> _gitEventObservable;
 
         private readonly AsyncLock _statusMutex = new AsyncLock();
+        private readonly AsyncLock _gitStatusMutex = new AsyncLock();
 
         public event GitFileUpdateEventHandler FileChanged
         {
@@ -127,8 +128,8 @@ namespace GitScc
             //_lastTipId = repository.Head.Tip.sha;
             Refresh();
             _gitEventObservable = Observable.FromEventPattern(ev => _gitfileEvent += ev, ev => _gitfileEvent -= ev)
-                .Throttle(TimeSpan.FromMilliseconds(200));
-            _gitEventObservable.Subscribe(x => DecodeGitEvents());
+                .Throttle(TimeSpan.FromMilliseconds(500));
+            _gitEventObservable.Subscribe(x => Task.Run(async () => await DecodeGitEvents()));
 
         }
 
@@ -259,13 +260,80 @@ namespace GitScc
 
         private async Task DecodeGitEvents()
         {
+            await GitFileEventUpdate();
             //cheap :)
-            SetBranchName();
-            await HandleFileSystemChanged();
+            //SetBranchName();
+            //await HandleFileSystemChanged();
+        }
+
+        /// <summary>
+        /// This is not very dry.. but It seems to cause a bunch of issues opening repos so fast. 
+        /// </summary>
+        private async Task GitFileEventUpdate()
+        {
+            using (await _gitStatusMutex.LockAsync())
+            {
+                bool supressBranchEvent = false;
+                var files = new List<GitFile>();
+                Repository repository = null;
+                try
+                {
+                    repository = GetRepository();
+                    //get changed files
+                    var repoFiles = repository.RetrieveStatus(new StatusOptions()
+                    {
+                        IncludeUnaltered = false,
+                        RecurseIgnoredDirs = false
+                    });
+                    files.AddRange(
+                        repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
+                            .Select(item => new GitFile(repository, item)));
+
+
+                    //logic getting complicated time to break it out
+                    if (_cachedBranchOperation != repository.Info.CurrentOperation)
+                    {
+                        _cachedBranchOperation = repository.Info.CurrentOperation;
+                        _cachedBranchName = null;
+                    }
+                    if (string.IsNullOrWhiteSpace(_cachedBranchName) ||
+                        !string.Equals(_cachedBranchName, repository.Head.FriendlyName))
+                    {
+                        var newBranchName = string.IsNullOrWhiteSpace(repository.Head.FriendlyName)
+                            ? "master"
+                            : repository.Head.FriendlyName;
+                        if (string.Equals(_cachedBranchName, newBranchName))
+                        {
+                            supressBranchEvent = true;
+                        }
+                        else
+                        {
+                            _cachedBranchName = newBranchName;
+                            _branchDisplayName = null;
+                        }
+
+                        if (!supressBranchEvent)
+                        {
+                            FireBranchChangedEvent(_cachedBranchName);
+                        }
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
+                }
+                finally
+                {
+                    repository?.Dispose();
+                }
+                 _changedFiles = files;
+                 FireFileStatusUpdateEvent(files);
+            }
         }
 
 
-    private async Task HandleFileSystemChanged()
+        private async Task HandleFileSystemChanged()
         {
                 var changeFileStatus = await GetCurrentChangeSet();
                 //}
@@ -967,19 +1035,18 @@ namespace GitScc
         private List<GitFile> GetCurrentChangedFiles(bool retryAllowed = true)
         {
             var files = new List<GitFile>();
+            Repository repository = null;
             try
             {
-                using (var repository = GetRepository())
+                repository = GetRepository();
+                var repoFiles = repository.RetrieveStatus(new StatusOptions()
                 {
-                    var repoFiles = repository.RetrieveStatus(new StatusOptions()
-                    {
-                        IncludeUnaltered = false,
-                        RecurseIgnoredDirs = false
-                    });
-                    files.AddRange(
-                        repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
-                            .Select(item => new GitFile(repository, item)));
-                }
+                    IncludeUnaltered = false,
+                    RecurseIgnoredDirs = false
+                });
+                files.AddRange(
+                    repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
+                        .Select(item => new GitFile(repository, item)));
             }
             catch (Exception ex)
             {
@@ -997,6 +1064,10 @@ namespace GitScc
                 //    Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
                 //}
 
+            }
+            finally
+            {
+                repository?.Dispose();
             }
             return files;
         }
