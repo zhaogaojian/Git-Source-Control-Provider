@@ -67,11 +67,10 @@ namespace GitScc
 
         private event GitFilesStatusUpdateEventHandler _onFilesStatusUpdateEventHandler;
         private event EventHandler<string> _onBranchChanged;
-
-
         private event EventHandler _gitfileEvent;
 
         private event EventHandler _fileEvent;
+
 
         private IObservable<EventPattern<object>> _gitEventObservable;
         private IObservable<EventPattern<object>> _fileChangedEventObservable;
@@ -284,7 +283,6 @@ namespace GitScc
         private async Task FileChangedEvent()
         {
             await HandleFileSystemChanged();
-            _instantUpdating = false;
             //cheap :)
             //SetBranchName();
             //await HandleFileSystemChanged();
@@ -347,6 +345,7 @@ namespace GitScc
                 catch (Exception ex)
                 {
                     Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
+                    Thread.Sleep(2000);
                 }
                 finally
                 {
@@ -360,6 +359,9 @@ namespace GitScc
 
         private async Task HandleFileSystemChanged()
         {
+            using (await _statusMutex.LockAsync())
+            {
+
                 var changeFileStatus = await GetCurrentChangeSet();
                 //}
 
@@ -368,8 +370,8 @@ namespace GitScc
                     _changedFiles = changeFileStatus;
                     FireFileStatusUpdateEvent(changeFileStatus);
                 }
-            
-            //}
+            }
+
         }
 
         /// <summary>
@@ -1076,6 +1078,7 @@ namespace GitScc
             catch (Exception ex)
             {
                 Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
+                Thread.Sleep(2000);
                 _statusRepository?.Dispose();
                 _statusRepository = GetRepository();
                 //if (retryAllowed)
@@ -1107,10 +1110,8 @@ namespace GitScc
         public async Task<List<GitFile>> GetCurrentChangeSet()
         {
             List<GitFile> changedFileCache;
-            using (await _statusMutex.LockAsync())
-            {
-                changedFileCache = GetCurrentChangedFiles();
-            }
+
+            changedFileCache = GetCurrentChangedFiles();
             return changedFileCache;
         }
 

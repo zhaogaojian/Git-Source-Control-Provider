@@ -47,6 +47,8 @@ namespace GitScc
 
         private bool _active = false;
         private BasicSccProvider _sccProvider = null;
+        private bool _solutionUpdating = false;
+        private bool _updateQueued = false;
         private SccProviderSolutionCache _fileCache;
         private Dictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
         //private List<GitFileStatusTracker> trackers;
@@ -446,7 +448,9 @@ namespace GitScc
 
             try
             {
-                await ProcessFileStatusUpdate((GitRepository)sender, e);
+                ThreadHelper.JoinableTaskFactory.Run(async delegate {
+                    await ProcessFileStatusUpdate((GitRepository)sender, e);
+                });
             }
             catch (Exception ex)
             {
@@ -515,28 +519,51 @@ namespace GitScc
 
         private async Task ProcessFileStatusUpdate(GitRepository repo, GitFilesStatusUpdateEventArgs e)
         {
+            //await UpdateSolutionFiles(repo, e.Files);
+            await UpdateSolutionFileStatus(repo, e.Files);
+        }
+
+        private async Task UpdateSolutionFiles(GitRepository repo, List<GitFile> files, bool force = false)
+        {
+            if (!_solutionUpdating || force)
+            {
+                _solutionUpdating = true;
+                await UpdateSolutionFileStatus(repo, files);
+                if (_updateQueued)
+                {
+                    _updateQueued = false;
+                    await UpdateSolutionFiles(repo, repo.ChangedFiles.ToList(),true);
+                }
+                _solutionUpdating = false;
+            }
+            else
+            {
+                _updateQueued = true;
+            }
+        }
+
+        private async Task UpdateSolutionFileStatus(GitRepository repo, List<GitFile> files)
+        {
             HashSet<IVsSccProject2> nodes = new HashSet<IVsSccProject2>();
-            var changeSet = GetChangesetManager(repo).LoadChangeSet(e.Files);
-
-
+            var changeSet = GetChangesetManager(repo).LoadChangeSet(files);
             foreach (var file in changeSet)
             {
                 ////if (_fileCache.StatusChanged(file.Key.t, file.Status))
                 ////{
 
                 var items = _fileCache.GetProjectsSelectionForFile(file.Key.ToLower());
-                    if (items != null)
+                if (items != null)
+                {
+                    foreach (var vsitemselection in items)
                     {
-                        foreach (var vsitemselection in items)
-                        {
 
-                            nodes.Add(vsitemselection);
-                        }
-                    } 
+                        nodes.Add(vsitemselection);
+                    }
+                }
                 //}
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 foreach (var project in nodes)
                 {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     project.SccGlyphChanged(0, null, null, null);
                 }
             }
@@ -789,7 +816,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             if (tracker != null)
             {
                 status = tracker.GetFileStatus(fileName);
-                var cm = GetChangesetManager(tracker);
+                //var cm = GetChangesetManager(tracker);
                 //cm.SetStatus(fileName, status);
                 //status = cm?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
             }
