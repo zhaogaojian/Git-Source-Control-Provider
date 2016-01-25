@@ -123,7 +123,12 @@ namespace GitScc
                     vsItem.itemid = VSConstants.VSITEMID_ROOT;
                     vsItem.pHier = pHierarchy;
                     nodes.Add(vsItem);
-                    RefreshNodesGlyphs(nodes);
+
+                ThreadHelper.JoinableTaskFactory.Run(async delegate
+                {
+                    await RefreshNodesGlyphs(nodes);
+                });
+                
                 //}
             }
 

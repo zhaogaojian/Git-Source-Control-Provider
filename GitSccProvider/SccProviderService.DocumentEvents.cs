@@ -55,6 +55,7 @@ namespace GitScc
         private async void _solutionEvents_Opened()
         {
             await EnableSccForSolution();
+            await ReloadAllGlyphs();
         }
 
         private async void _windowEvents_WindowActivated(Window GotFocus, Window LostFocus)

@@ -99,7 +99,8 @@ namespace GitScc
             ThreadHelper.JoinableTaskFactory.Run(async delegate
             {
                 await OpenTracker();
-                 await EnableSccForSolution();
+                await EnableSccForSolution();
+                await ReloadAllGlyphs();
             });
             //MarkDirty(false);
             return VSConstants.S_OK;
@@ -127,13 +128,15 @@ namespace GitScc
         //TODO : FIX!!!!!
         private async void HandleSolutionRefresh(object sender, EventArgs e)
         {
-            _fileChangesetManager = new Dictionary<GitRepository, GitChangesetManager>();
+
             //await ReloadAllGlyphs();
+            await EnableSccForSolution();
+            await ReloadAllGlyphs();
+
         }
 
         private async Task ReloadAllGlyphs()
         {
-            await EnableSccForSolution();
             var projects = await GetLoadedControllableProjects();
             foreach (var project in projects)
             {
@@ -515,11 +518,13 @@ namespace GitScc
             HashSet<IVsSccProject2> nodes = new HashSet<IVsSccProject2>();
             var changeSet = GetChangesetManager(repo).LoadChangeSet(e.Files);
 
+
             foreach (var file in changeSet)
             {
                 ////if (_fileCache.StatusChanged(file.Key.t, file.Status))
                 ////{
-                    var items = _fileCache.GetProjectsSelectionForFile(file.Key.ToLower());
+
+                var items = _fileCache.GetProjectsSelectionForFile(file.Key.ToLower());
                     if (items != null)
                     {
                         foreach (var vsitemselection in items)

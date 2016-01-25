@@ -40,19 +40,19 @@ namespace GitScc
         private string _cachedBranchName;
         //private GitChangesetManager _changesetManager;
         private CurrentOperation _cachedBranchOperation;
-        private string repositoryPath;
+        private readonly string _repositoryPath;
+        private readonly string _objectPath;
         private IEnumerable<string> remotes;
         private IDictionary<string, string> configs;
         FileSystemWatcher _watcher;
         private MemoryCache _fileCache;
-        private object _repoUpdateLock = new object();
         private List<GitBranchInfo> _branchInfoList;
 
         private DateTime _lastFileEvent = DateTime.MinValue;
         private DateTime _lastGitEvent = DateTime.MinValue;
         private static int _fileEventDelay = 1;
         private static int _gitEventDelay = 2;
-        private bool _fileStatusUpdating = false;
+        private bool _instantUpdating = false;
 
         System.Timers.Timer _interfiletimer = new System.Timers.Timer();
         System.Timers.Timer _timeoutfiletimer = new System.Timers.Timer();
@@ -66,13 +66,15 @@ namespace GitScc
         private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
 
         private event GitFilesStatusUpdateEventHandler _onFilesStatusUpdateEventHandler;
-
-
         private event EventHandler<string> _onBranchChanged;
+
 
         private event EventHandler _gitfileEvent;
 
+        private event EventHandler _fileEvent;
+
         private IObservable<EventPattern<object>> _gitEventObservable;
+        private IObservable<EventPattern<object>> _fileChangedEventObservable;
 
         private readonly AsyncLock _statusMutex = new AsyncLock();
         private readonly AsyncLock _gitStatusMutex = new AsyncLock();
@@ -101,7 +103,7 @@ namespace GitScc
             remove { _onBranchChanged -= value; }
         }
 
-        //private Repository repository;
+        private Repository _statusRepository;
 
 
         public string WorkingDirectory
@@ -118,18 +120,27 @@ namespace GitScc
         {
             _gitDirectory = Repository.Discover(directory);
             _savedState = new GitHeadState();
-            using (var repository = GetRepository())
-            {
-                this.workingDirectory = repository.Info.WorkingDirectory;
-                repositoryPath = repository.Info.Path;
-            }
+            _statusRepository = GetRepository();
+            this.workingDirectory = _statusRepository.Info.WorkingDirectory;
+            _repositoryPath = _statusRepository.Info.Path;
+            _objectPath = _repositoryPath + "objects\\";
+            //using (var repository = GetRepository())
+            //{
+            //    this.workingDirectory = repository.Info.WorkingDirectory;
+            //    repositoryPath = repository.Info.Path;
+            //}
+
             _cachedBranchOperation = CurrentOperation.None;
             //_changesetManager = new GitChangesetManager();
             //_lastTipId = repository.Head.Tip.sha;
             Refresh();
             _gitEventObservable = Observable.FromEventPattern(ev => _gitfileEvent += ev, ev => _gitfileEvent -= ev)
-                .Throttle(TimeSpan.FromMilliseconds(500));
+                .Throttle(TimeSpan.FromMilliseconds(2000));
             _gitEventObservable.Subscribe(x => Task.Run(async () => await DecodeGitEvents()));
+
+            _fileChangedEventObservable = Observable.FromEventPattern(ev => _fileEvent += ev, ev => _fileEvent -= ev)
+    .Throttle(TimeSpan.FromMilliseconds(250));
+            _fileChangedEventObservable.Subscribe(x => Task.Run(async () => await FileChangedEvent()));
 
         }
 
@@ -179,16 +190,9 @@ namespace GitScc
             {
                 return;
             }
-            if (fullPath.IsSubPathOf(repositoryPath))
+            if (fullPath.IsSubPathOf(_repositoryPath))
             {
                 _gitfileEvent?.Invoke(this,new EventArgs());
-                //await DecodeGitEvents(fullPath, e.ChangeType);
-                //if ((DateTime.UtcNow - _lastGitEvent).TotalSeconds > _gitEventDelay)
-                //{
-
-                //    //HandleGitFileSystemChange();
-                //    _lastGitEvent = DateTime.UtcNow;
-                //}
             }
             else
             {
@@ -200,14 +204,8 @@ namespace GitScc
                     }
                     else
                     {
-                        //StartFileTimer();
-                        await HandleFileSystemChanged();
-                        //if ((DateTime.UtcNow - _lastFileEvent).TotalSeconds > _fileEventDelay)
-                        //
-
-                        //FireFileChangedEvent(filename, fullPath);
-                        //    _lastFileEvent = DateTime.UtcNow;
-                        //}
+                        //queue the event for later. 
+                        _fileEvent?.Invoke(this, new EventArgs());
                     }
                 }
 
@@ -230,6 +228,23 @@ namespace GitScc
                     return true;
                 }
             }
+
+            //Ignore directory changes that we don't care about 
+            if (filepath.ArePathsEqual(_repositoryPath) || filepath.ArePathsEqual(_objectPath))
+            {
+                //Do nothing here.. 
+                return true;
+            }
+
+            //ignore all files inside of git directory we don't want to trigger an event
+            if (filepath.Contains(_repositoryPath))
+            {
+                if (filepath.Contains("tmp_object_git2") || filepath.Contains("streamed_git2"))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -266,6 +281,15 @@ namespace GitScc
             //await HandleFileSystemChanged();
         }
 
+        private async Task FileChangedEvent()
+        {
+            await HandleFileSystemChanged();
+            _instantUpdating = false;
+            //cheap :)
+            //SetBranchName();
+            //await HandleFileSystemChanged();
+        }
+
         /// <summary>
         /// This is not very dry.. but It seems to cause a bunch of issues opening repos so fast. 
         /// </summary>
@@ -273,6 +297,7 @@ namespace GitScc
         {
             using (await _gitStatusMutex.LockAsync())
             {
+                Debug.WriteLine("Git File Event Update");
                 bool supressBranchEvent = false;
                 var files = new List<GitFile>();
                 Repository repository = null;
@@ -314,7 +339,7 @@ namespace GitScc
 
                         if (!supressBranchEvent)
                         {
-                            FireBranchChangedEvent(_cachedBranchName);
+                            //FireBranchChangedEvent(_cachedBranchName);
                         }
 
                     }
@@ -389,8 +414,8 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                _savedState.Sha = repository.Head.Tip.Sha;
-                _savedState.BranchName = repository.Head.CanonicalName;
+                _savedState.Sha = repository.Head?.Tip?.Sha;
+                _savedState.BranchName = repository.Head?.CanonicalName;
                 _savedState.Operation = repository.Info.CurrentOperation;
             } 
         }
@@ -1038,7 +1063,7 @@ namespace GitScc
             Repository repository = null;
             try
             {
-                repository = GetRepository();
+                repository = _statusRepository;
                 var repoFiles = repository.RetrieveStatus(new StatusOptions()
                 {
                     IncludeUnaltered = false,
@@ -1051,6 +1076,13 @@ namespace GitScc
             catch (Exception ex)
             {
                 Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
+                _statusRepository?.Dispose();
+                _statusRepository = GetRepository();
+                //if (retryAllowed)
+                //{
+                //    return GetCurrentFilesStatus(false);
+                //}
+
                 //if (retryAllowed)
                 //{
                 //    return Task.Run(() =>
@@ -1065,10 +1097,10 @@ namespace GitScc
                 //}
 
             }
-            finally
-            {
-                repository?.Dispose();
-            }
+            //finally
+            //{
+            //    repository?.Dispose();
+            //}
             return files;
         }
 
@@ -1458,6 +1490,7 @@ namespace GitScc
         public void Dispose()
         {
             DisableRepositoryWatcher();
+            _statusRepository?.Dispose();
             //repository.Dispose();
             //repository = null;
         }
