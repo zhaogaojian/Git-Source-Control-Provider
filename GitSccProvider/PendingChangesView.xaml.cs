@@ -918,24 +918,25 @@ Note: if the file is included project, you need to delete the file from project 
 
             fileName = fileName.Replace("/", "\\");
             var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
-            bool opened = false;
-            Array projects = (Array)dte.ActiveSolutionProjects;
-            foreach (dynamic project in projects)
-            {
-                foreach (dynamic item in project.ProjectItems)
-                {
-                    if (string.Compare(item.FileNames[0], fileName, true) == 0)
-                    {
-                        dynamic wnd = item.Open(EnvDTE.Constants.vsViewKindPrimary);
-                        wnd.Activate();
-                        opened = true;
-                        break;
-                    }
-                }
-                if (opened) break;
-            }
+            dte.ExecuteCommand("File.OpenFile", fileName);
+            //bool opened = false;
+            //Array projects = (Array)dte.ActiveSolutionProjects;
+            //foreach (dynamic project in projects)
+            //{
+            //    foreach (dynamic item in project.ProjectItems)
+            //    {
+            //        if (string.Compare(item.FileNames[0], fileName, true) == 0)
+            //        {
+            //            dynamic wnd = item.Open(EnvDTE.Constants.vsViewKindPrimary);
+            //            wnd.Activate();
+            //            opened = true;
+            //            break;
+            //        }
+            //    }
+            //    if (opened) break;
+            //}
 
-            if (!opened) dte.ItemOperations.OpenFile(fileName);
+            //if (!opened) dte.ItemOperations.OpenFile(fileName);
         }
 
         private void UserControl_KeyDown(object sender, KeyEventArgs e)
