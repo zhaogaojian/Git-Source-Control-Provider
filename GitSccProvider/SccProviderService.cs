@@ -1087,7 +1087,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         }
         public bool FileTracked(string filename)
         {
-            return _fileCache.FileTracked(filename);
+            return _fileCache.FileTracked(filename.ToLower());
         }
 
         internal async Task InitRepo()
