@@ -140,14 +140,10 @@ namespace GitScc
         private async Task ReloadAllGlyphs()
         {
             var projects = await GetLoadedControllableProjects();
-            foreach (var project in projects)
+            await Task.Run(async delegate
             {
-                if (project != null)
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    project.SccGlyphChanged(0, null, null, null);
-                }
-            }
+                await RefreshProjectGlyphs(projects);
+            });
         }
         private async Task EnableSccForSolution()
         {
@@ -560,12 +556,10 @@ namespace GitScc
                         nodes.Add(vsitemselection);
                     }
                 }
-                //}
-                foreach (var project in nodes)
+                await Task.Run(async delegate
                 {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    project.SccGlyphChanged(0, null, null, null);
-                }
+                    await RefreshProjectGlyphs(nodes.ToList());
+                });
             }
         }
 
@@ -989,6 +983,29 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         }
 
+
+        public async Task RefreshProjectGlyphs(List<IVsSccProject2> projects)
+        {
+
+            await ThreadHelper.JoinableTaskFactory.RunAsync(VsTaskRunContext.UIThreadBackgroundPriority,
+                async delegate
+            {
+              // On caller's thread. Switch to main thread (if we're not already there).
+              await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+              // Now on UI thread via background priority.
+              await Task.Yield();
+              foreach (var project in projects)
+              {
+                  if (project != null)
+                  {
+                      project.SccGlyphChanged(0, null, null, null);
+                  }
+                  await Task.Yield();
+              }
+              // Resumed on UI thread, also via background priority.
+                });
+        }
 
         //TODO Move TO Provider
         /// <summary>
