@@ -337,7 +337,7 @@ namespace GitScc
 
                         if (!supressBranchEvent)
                         {
-                            //FireBranchChangedEvent(_cachedBranchName);
+                            FireBranchChangedEvent(_cachedBranchName);
                         }
 
                     }

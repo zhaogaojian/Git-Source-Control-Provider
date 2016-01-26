@@ -42,7 +42,8 @@ namespace GitScc
         private IVsTextView textView;
         private string[] diffLines;
         private bool _diffHightlighted = false;
-        private bool _refreshing = false; 
+        private bool _refreshing = false;
+        private bool _showOnlySolutionFiles = false;
 
         private GridViewColumnHeader _currentSortedColumn;
         private ListSortDirection _lastSortDirection;
@@ -404,9 +405,23 @@ namespace GitScc
 
         internal async Task Refresh(List<GitFile> files)
         {
+            var updatedFiles = files;
             //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (!_refreshing)
             {
+                if (_showOnlySolutionFiles)
+                {
+                    var filteredFiles = new List<GitFile>();
+                    foreach (var gitFile in files)
+                    {
+                        if (service.FileTracked(gitFile.FilePath))
+                        {
+                            filteredFiles.Add(gitFile);
+                        }
+                    }
+                    updatedFiles = filteredFiles;
+                }
+
                 _refreshing = true;
                 await ThreadHelper.JoinableTaskFactory.RunAsync(
                     VsTaskRunContext.UIThreadBackgroundPriority,
@@ -416,7 +431,7 @@ namespace GitScc
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                         // Now on UI thread via background priority.
                         await Task.Yield();
-                        await RefreshInternal(files);
+                        await RefreshInternal(updatedFiles);
                     });
                 //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = false;
@@ -991,6 +1006,18 @@ Note: if the file is included project, you need to delete the file from project 
         public void Dispose()
         {
             VSColorTheme.ThemeChanged -= VSColorTheme_ThemeChanged;
+        }
+
+        private async void _cbShowOnlySolutionFiles_Checked(object sender, RoutedEventArgs e)
+        {
+            _showOnlySolutionFiles = true;
+            await Refresh();
+        }
+
+        private async void _cbShowOnlySolutionFiles_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _showOnlySolutionFiles = false;
+            await Refresh();
         }
     }
 
