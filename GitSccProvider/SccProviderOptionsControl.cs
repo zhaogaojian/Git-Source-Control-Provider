@@ -130,7 +130,7 @@ namespace GitScc
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(3, 5);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(162, 13);
+            this.label1.Size = new System.Drawing.Size(215, 17);
             this.label1.TabIndex = 11;
             this.label1.Text = "Path to Git for Windows (git.exe):";
             // 
@@ -138,7 +138,7 @@ namespace GitScc
             // 
             this.textBox1.Location = new System.Drawing.Point(6, 21);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(283, 20);
+            this.textBox1.Size = new System.Drawing.Size(364, 22);
             this.textBox1.TabIndex = 12;
             // 
             // label2
@@ -146,7 +146,7 @@ namespace GitScc
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(3, 44);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(114, 13);
+            this.label2.Size = new System.Drawing.Size(151, 17);
             this.label2.TabIndex = 13;
             this.label2.Text = "Path to Git Extensions:";
             // 
@@ -154,20 +154,20 @@ namespace GitScc
             // 
             this.textBox2.Location = new System.Drawing.Point(6, 60);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(283, 20);
+            this.textBox2.Size = new System.Drawing.Size(364, 22);
             this.textBox2.TabIndex = 14;
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(6, 207);
+            this.textBox3.Location = new System.Drawing.Point(6, 229);
             this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(283, 20);
+            this.textBox3.Size = new System.Drawing.Size(364, 22);
             this.textBox3.TabIndex = 16;
             this.textBox3.Visible = false;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(295, 19);
+            this.button1.Location = new System.Drawing.Point(379, 20);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 17;
@@ -177,7 +177,7 @@ namespace GitScc
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(295, 58);
+            this.button2.Location = new System.Drawing.Point(379, 59);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 18;
@@ -187,7 +187,7 @@ namespace GitScc
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(295, 205);
+            this.button3.Location = new System.Drawing.Point(379, 227);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 19;
@@ -201,7 +201,7 @@ namespace GitScc
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(3, 106);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(98, 13);
+            this.label4.Size = new System.Drawing.Size(131, 17);
             this.label4.TabIndex = 20;
             this.label4.Text = "Path to TortoiseGit:";
             // 
@@ -209,12 +209,12 @@ namespace GitScc
             // 
             this.textBox4.Location = new System.Drawing.Point(6, 122);
             this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(283, 20);
+            this.textBox4.Size = new System.Drawing.Size(364, 22);
             this.textBox4.TabIndex = 21;
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(295, 120);
+            this.button4.Location = new System.Drawing.Point(379, 122);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(75, 23);
             this.button4.TabIndex = 22;
@@ -227,7 +227,7 @@ namespace GitScc
             this.checkBox1.AutoSize = true;
             this.checkBox1.Location = new System.Drawing.Point(66, 86);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(220, 17);
+            this.checkBox1.Size = new System.Drawing.Size(288, 21);
             this.checkBox1.TabIndex = 23;
             this.checkBox1.Text = "Do not expand Git Extensions commands";
             this.checkBox1.UseVisualStyleBackColor = true;
@@ -237,7 +237,7 @@ namespace GitScc
             this.checkBox2.AutoSize = true;
             this.checkBox2.Location = new System.Drawing.Point(66, 148);
             this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(204, 17);
+            this.checkBox2.Size = new System.Drawing.Size(268, 21);
             this.checkBox2.TabIndex = 24;
             this.checkBox2.Text = "Do not expand TortoiseGit commands";
             this.checkBox2.UseVisualStyleBackColor = true;
@@ -246,9 +246,9 @@ namespace GitScc
             // 
             this.checkBox3.AutoSize = true;
             this.checkBox3.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox3.Location = new System.Drawing.Point(6, 233);
+            this.checkBox3.Location = new System.Drawing.Point(6, 266);
             this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(163, 17);
+            this.checkBox3.Size = new System.Drawing.Size(215, 21);
             this.checkBox3.TabIndex = 25;
             this.checkBox3.Text = "Use TortoiseGit style icon set";
             this.checkBox3.UseVisualStyleBackColor = true;
@@ -257,9 +257,9 @@ namespace GitScc
             // 
             this.checkBox5.AutoSize = true;
             this.checkBox5.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox5.Location = new System.Drawing.Point(6, 271);
+            this.checkBox5.Location = new System.Drawing.Point(6, 309);
             this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(303, 17);
+            this.checkBox5.Size = new System.Drawing.Size(403, 21);
             this.checkBox5.TabIndex = 27;
             this.checkBox5.Text = "Disable auto switch to this plug-in for Git controlled projects";
             this.checkBox5.UseVisualStyleBackColor = true;
@@ -268,9 +268,9 @@ namespace GitScc
             // 
             this.checkBox6.AutoSize = true;
             this.checkBox6.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox6.Location = new System.Drawing.Point(6, 290);
+            this.checkBox6.Location = new System.Drawing.Point(6, 333);
             this.checkBox6.Name = "checkBox6";
-            this.checkBox6.Size = new System.Drawing.Size(205, 17);
+            this.checkBox6.Size = new System.Drawing.Size(273, 21);
             this.checkBox6.TabIndex = 28;
             this.checkBox6.Text = "Disable UTF-8 file names (Git 1.7.10+)";
             this.checkBox6.UseVisualStyleBackColor = true;
@@ -279,9 +279,9 @@ namespace GitScc
             // 
             this.cbDiffTool.DisplayMember = "Content";
             this.cbDiffTool.FormattingEnabled = true;
-            this.cbDiffTool.Location = new System.Drawing.Point(98, 167);
+            this.cbDiffTool.Location = new System.Drawing.Point(113, 170);
             this.cbDiffTool.Name = "cbDiffTool";
-            this.cbDiffTool.Size = new System.Drawing.Size(272, 21);
+            this.cbDiffTool.Size = new System.Drawing.Size(341, 24);
             this.cbDiffTool.TabIndex = 30;
             this.cbDiffTool.Tag = "Tag";
             this.cbDiffTool.SelectedIndexChanged += new System.EventHandler(this.cbDiffTool_SelectedIndexChanged);
@@ -289,9 +289,9 @@ namespace GitScc
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 191);
+            this.label3.Location = new System.Drawing.Point(3, 207);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(321, 13);
+            this.label3.Size = new System.Drawing.Size(433, 17);
             this.label3.TabIndex = 15;
             this.label3.Text = "Path to external diff tool (optional, by default diffmerge.exe is used):";
             this.label3.Visible = false;
@@ -299,9 +299,9 @@ namespace GitScc
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(3, 170);
+            this.label5.Location = new System.Drawing.Point(3, 173);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(80, 13);
+            this.label5.Size = new System.Drawing.Size(104, 17);
             this.label5.TabIndex = 31;
             this.label5.Text = "Select Diff Tool";
             // 
@@ -309,9 +309,9 @@ namespace GitScc
             // 
             this._cbrepoTrack.AutoSize = true;
             this._cbrepoTrack.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this._cbrepoTrack.Location = new System.Drawing.Point(6, 253);
+            this._cbrepoTrack.Location = new System.Drawing.Point(6, 286);
             this._cbrepoTrack.Name = "_cbrepoTrack";
-            this._cbrepoTrack.Size = new System.Drawing.Size(116, 17);
+            this._cbrepoTrack.Size = new System.Drawing.Size(146, 21);
             this._cbrepoTrack.TabIndex = 32;
             this._cbrepoTrack.Text = "Track Active Repo";
             this._cbrepoTrack.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
@@ -344,7 +344,7 @@ namespace GitScc
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label1);
             this.Name = "SccProviderOptionsControl";
-            this.Size = new System.Drawing.Size(435, 340);
+            this.Size = new System.Drawing.Size(517, 400);
             this.Load += new System.EventHandler(this.SccProviderOptionsControl_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
