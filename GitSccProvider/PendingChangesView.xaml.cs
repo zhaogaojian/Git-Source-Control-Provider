@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 using Microsoft.VisualStudio.Shell;
+using Task = System.Threading.Tasks.Task;
 
 namespace GitScc
 {
@@ -115,9 +116,18 @@ namespace GitScc
             }
             else
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
-                await Refresh();
+                await ThreadHelper.JoinableTaskFactory.RunAsync(
+                    VsTaskRunContext.UIThreadBackgroundPriority,
+                    async delegate
+                    {
+                        // On caller's thread. Switch to main thread (if we're not already there).
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        // Now on UI thread via background priority.
+                        await Task.Yield();
+                        _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
+                        await Refresh();
+                    });
+                
             }
           
         }
@@ -248,6 +258,21 @@ namespace GitScc
 
         private async void listView1_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            await ThreadHelper.JoinableTaskFactory.RunAsync(
+                 VsTaskRunContext.UIThreadBackgroundPriority,
+                 async delegate
+                 {
+                     // On caller's thread. Switch to main thread (if we're not already there).
+                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                     // Now on UI thread via background priority.
+                     await SetDiffEditorText();
+                     // Resumed on UI thread, also via background priority.
+                 });
+        }
+
+        private async Task SetDiffEditorText()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var fileName = GetSelectedFileName();
             if (fileName == null)
             {
@@ -255,23 +280,26 @@ namespace GitScc
                 diffLines = new string[0];
                 return;
             }
-                if(!_refreshing)
+            if (!_refreshing)
+            {
+                try
                 {
-                    try
+                    var tmpFileName = ThreadHelper.JoinableTaskFactory.Run(async delegate
                     {
+                        await TaskScheduler.Default;
+                        return CurrentTracker.Diff(fileName);
+                    });
 
-                        var tmpFileName = CurrentTracker.Diff(fileName);
+                    //var tmpFileName = CurrentTracker.Diff(fileName);
+                    SetEditorText(tmpFileName);
 
-                        Action action = () => SetEditorText(tmpFileName);
-                        Dispatcher.Invoke(action);
-                     
-                    }
-                    catch (Exception ex)
-                    {
-                        string message = ex.Message;
-                        Action action = () => ShowStatusMessage(message);
-                        Dispatcher.Invoke(action);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    string message = ex.Message;
+                    Action action = () => ShowStatusMessage(message);
+                    Dispatcher.Invoke(action);
+                }
             };
         }
 
@@ -364,65 +392,51 @@ namespace GitScc
         #region Git functions
 
 
-        internal async System.Threading.Tasks.Task Refresh()
+        internal async Task Refresh()
+        {
+            var files = await Task.Run(async delegate
+            {
+                return await GetFileList();
+            });
+            await Refresh(files);
+        }
+
+        internal async Task Refresh(List<GitFile> files)
         {
             //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (!_refreshing)
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = true;
-                label3.Content = "Changed files (Updating...)";
-
-                if (CurrentTracker == null)
-                {
-                    ClearUI();
-                    label3.Content = "Changed files";
-                    return;
-                }
-                ShowStatusMessage("Getting changed files ...");
-                var files = await System.Threading.Tasks.Task.Run(async delegate
-                {
-                    return await GetFileList();
-                });
-                //var files = await GetFileList();
-                await UpdateFileListUI(files);
+                await ThreadHelper.JoinableTaskFactory.RunAsync(
+                    VsTaskRunContext.UIThreadBackgroundPriority,
+                    async delegate
+                    {
+                        // On caller's thread. Switch to main thread (if we're not already there).
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        // Now on UI thread via background priority.
+                        await Task.Yield();
+                        await RefreshInternal(files);
+                    });
                 //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = false;
             }
         }
 
-        internal async System.Threading.Tasks.Task Refresh(List<GitFile> files)
+        private async Task RefreshInternal(List<GitFile> files)
         {
-            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            if (!_refreshing)
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            label3.Content = "Changed files (Updating...)";
+
+            if (CurrentTracker == null)
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                _refreshing = true;
-                label3.Content = "Changed files (Updating...)";
-
-                if (CurrentTracker == null)
-                {
-                    ClearUI();
-                    label3.Content = "Changed files";
-                }
-                else
-                {
-                    await ThreadHelper.JoinableTaskFactory.RunAsync(VsTaskRunContext.UIThreadBackgroundPriority,
-                    async delegate
-                    {
-                    // On caller's thread. Switch to main thread (if we're not already there).
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    // Now on UI thread via background priority.
-                    await System.Threading.Tasks.Task.Yield();
-                        await UpdateFileListUI(files);
-                    // Resumed on UI thread, also via background priority.
-                });
-                }
-
-                
-                //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                _refreshing = false;
+                ClearUI();
+                label3.Content = "Changed files";
+            }
+            else
+            {
+                ShowStatusMessage("Getting changed files ...");;
+                await UpdateFileListUI(files);
             }
         }
 

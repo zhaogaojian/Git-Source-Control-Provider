@@ -163,9 +163,19 @@ namespace GitScc
 
         private async Task SetSolutionExplorerTitle(string message)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var dte = (DTE)_sccProvider.GetService(typeof(DTE));
-            dte.Windows.Item(EnvDTE.Constants.vsWindowKindSolutionExplorer).Caption = message;
+
+            await ThreadHelper.JoinableTaskFactory.RunAsync(
+                VsTaskRunContext.UIThreadBackgroundPriority,
+                async delegate
+                {
+                    // On caller's thread. Switch to main thread (if we're not already there).
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    // Now on UI thread via background priority.
+                    await Task.Yield();
+                    // Resumed on UI thread, also via background priority.
+                    var dte = (DTE)_sccProvider.GetService(typeof(DTE));
+                    dte.Windows.Item(EnvDTE.Constants.vsWindowKindSolutionExplorer).Caption = message;
+                });
         }
 
         /// <summary>
