@@ -429,7 +429,7 @@ namespace GitScc
         }
 
 
-        private GitActionResult<GitBranchInfo> Checkout(GitBranchInfo info, bool force = false)
+        public GitActionResult<GitBranchInfo> Checkout(GitBranchInfo info, bool force = false)
         {
             using (var repository = GetRepository())
             {

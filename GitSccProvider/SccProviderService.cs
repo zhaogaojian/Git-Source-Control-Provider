@@ -1085,6 +1085,10 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             get { return RepositoryManager.Instance.GetRepositories().Count > 0; }
         }
+        public bool FileTracked(string filename)
+        {
+            return _fileCache.FileTracked(filename);
+        }
 
         internal async Task InitRepo()
         {

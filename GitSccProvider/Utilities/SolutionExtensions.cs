@@ -316,6 +316,34 @@ namespace GitSccProvider.Utilities
             }
             return list;
         }
+
+        public static void WriteMessageToOutputPane(string message,string title = "Source Control")
+        {
+            DTE2 dte = GetActiveIDE();
+            OutputWindowPanes panes =
+                dte.ToolWindows.OutputWindow.OutputWindowPanes;
+
+            try
+            {
+                // If the pane exists already, write to it.
+                panes.Item(title);
+            }
+            catch (ArgumentException)
+            {
+                // Create a new pane and write to it.
+                panes.Add(title);
+            }
+
+            foreach (EnvDTE.OutputWindowPane pane in panes)
+            {
+                if (pane.Name.Contains(title))
+                {
+                    pane.OutputString(message + "\n");
+                    pane.Activate();
+                    return;
+                }
+            }
+        }
     }
 }
 

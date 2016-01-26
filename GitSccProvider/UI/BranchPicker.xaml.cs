@@ -18,6 +18,21 @@ using GitScc.DataServices;
 
 namespace GitScc.UI
 {
+
+
+    public class BranchPickerResult
+    {
+        public GitBranchInfo BranchInfo { get; set; }
+
+        public string BranchName { get; set; }
+
+        public bool CreateBranch { get; set; }
+
+        public bool Switch { get; set; }
+
+        public GitRepository Repository { get; set; }
+    }
+
     /// <summary>
     /// Interaction logic for BranchPicker.xaml
     /// </summary>
@@ -31,17 +46,19 @@ namespace GitScc.UI
         public bool CreateNew { get; set; }
 
         public ObservableCollection<GitBranchInfo> _branches { get; set; }
+        BranchPickerResult _pickerResult;
 
         public BranchPicker(GitRepository repository)
         {
             InitializeComponent();
             this.repository = repository;
             _branches = new ObservableCollection<GitBranchInfo>();
+            
             comboBranches.ItemsSource = _branches;
             //this.list = list;
         }
 
-        internal bool? Show()
+        internal BranchPickerResult Show()
         {
             window = new Window
             {
@@ -64,7 +81,18 @@ namespace GitScc.UI
             comboBranches.DisplayMemberPath = "FullName";
             comboBranches.SelectedValuePath = "CanonicalName";
             comboBranches.SelectedValue = repository.CurrentBranchInfo.CanonicalName;
-            return window.ShowDialog(); 
+            _pickerResult = new BranchPickerResult();
+            _pickerResult.Repository = repository;
+
+
+            if (window.ShowDialog() == true)
+            {
+                return _pickerResult;
+            }
+            else
+            {
+                return new BranchPickerResult();
+            }
         }
 
         private void comboBranches_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -88,46 +116,52 @@ namespace GitScc.UI
         {
             try
             {
+                window.DialogResult = true;
                 if (radioButton1.IsChecked == true)
                 {
-                   var results = await repository.CheckoutAsync((GitBranchInfo) comboBranches.SelectedItem);
-                    if (!results.Succeeded)
-                    {
-                        MessageBox.Show(results.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                    }
-                    else
-                    {
-                        window.DialogResult = true;
-                    }
-                    
+                    _pickerResult.BranchInfo = (GitBranchInfo) comboBranches.SelectedItem;
+                    _pickerResult.Switch = true;
+                    //var results = await repository.CheckoutAsync((GitBranchInfo)comboBranches.SelectedItem);
+                    //if (!results.Succeeded)
+                    //{
+                    //    MessageBox.Show(results.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    //}
+                    //else
+                    //{
+                    //    window.DialogResult = true;
+                    //}
+
                 }
                 else if (radioButton2.IsChecked == true && !string.IsNullOrWhiteSpace(txtNewBranch.Text))
                 {
-                    var branchResult = repository.CreateBranch(txtNewBranch.Text);
-                    if (branchResult.Succeeded) 
-                    {
-                        if (cbSwitch.IsChecked == true)
-                        {
-                            var switchResult = await repository.CheckoutAsync(branchResult.Item);
-                            if (!switchResult.Succeeded)
-                            {
-                                MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK,
-                                    MessageBoxImage.Exclamation);
-                            }
-                            else
-                            {
-                                window.DialogResult = true;
-                            } 
-                        }
-                        else
-                        {
-                            window.DialogResult = true;
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show(branchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                    }
+                    _pickerResult.CreateBranch = true;
+                    _pickerResult.Switch = cbSwitch.IsChecked.HasValue ? cbSwitch.IsChecked.Value : false;
+                    _pickerResult.BranchName = txtNewBranch.Text;
+                    //var branchResult = repository.CreateBranch(txtNewBranch.Text);
+                    //if (branchResult.Succeeded) 
+                    //{
+                    //    if (cbSwitch.IsChecked == true)
+                    //    {
+                    //        var switchResult = await repository.CheckoutAsync(branchResult.Item);
+                    //        if (!switchResult.Succeeded)
+                    //        {
+                    //            MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK,
+                    //                MessageBoxImage.Exclamation);
+                    //        }
+                    //        else
+                    //        {
+                    //            window.DialogResult = true;
+                    //        } 
+                    //    }
+                    //    else
+                    //    {
+                    //        window.DialogResult = true;
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    MessageBox.Show(branchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    //}
                 }
             }
             catch (Exception ex)

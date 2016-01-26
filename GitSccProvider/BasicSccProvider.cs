@@ -34,7 +34,7 @@ namespace GitScc
     [MsVsShell.ProvideLoadKey("Standard", "0.1", "Git Source Control Provider 2015", "Jon.Zoss@gmail.com", 15261)]
     [MsVsShell.DefaultRegistryRoot("Software\\Microsoft\\VisualStudio\\10.0Exp")]
     // Register the package to have information displayed in Help/About dialog box
-    [MsVsShell.InstalledProductRegistration("#100", "#101", "1.0.0.0", IconResourceID = CommandId.iiconProductIcon)]
+    [MsVsShell.InstalledProductRegistration("#100", "#101", "1.5.0.0", IconResourceID = CommandId.iiconProductIcon)]
     // Declare that resources for the package are to be found in the managed assembly resources, and not in a satellite dll
     [MsVsShell.PackageRegistration(UseManagedResourcesOnly = true)]
     // Register the resource ID of the CTMENU section (generated from compiling the VSCT file), so the IDE will know how to merge this package's menus with the rest of the IDE when "devenv /setup" is run
@@ -651,7 +651,13 @@ namespace GitScc
             if (sccService.CurrentTracker == null || !sccService.CurrentTracker.IsGit) return;
             //TODO
             var branchPicker = new BranchPicker(sccService.CurrentTracker);
-            branchPicker.Show();
+            var results = branchPicker.Show();
+
+            ThreadHelper.JoinableTaskFactory.Run(async delegate
+            {
+                await GetToolWindowPane<PendingChangesToolWindow>().OnSwitchCommand(results);
+            });
+            
         }
 
         private void OnCommitCommand(object sender, EventArgs e)

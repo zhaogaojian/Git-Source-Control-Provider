@@ -95,6 +95,9 @@
     <Compile Include="SccProviderService.SolutionEvents.cs" />
     <Compile Include="SccProviderSolutionCache.cs" />
     <Compile Include="Schedulers\QueuedTaskScheduler.cs" />
+    <Compile Include="UI\StatusBox.xaml.cs">
+      <DependentUpon>StatusBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\SolutionExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="ToolWindowWithEditor.cs" />
@@ -368,6 +371,10 @@
     <Page Include="UI\Settings.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\StatusBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

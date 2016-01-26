@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using Gitscc;
+using GitScc.UI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
@@ -117,6 +118,11 @@ namespace GitScc
         {
             if (!hasFileSaved()) return;
             control.AmendCommit();
+        }
+
+        internal async Task OnSwitchCommand(BranchPickerResult result)
+        {
+           await control.SwitchCommand(result);
         }
 
         private void OnRefreshCommand(object sender, EventArgs e)

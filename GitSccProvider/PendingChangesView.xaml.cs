@@ -17,6 +17,7 @@ using System.Windows.Threading;
 using System.Xml;
 using Gitscc;
 using GitScc.UI;
+using GitSccProvider.UI;
 using GitSccProvider.Utilities;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
@@ -445,7 +446,11 @@ namespace GitScc
             //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             //ShowStatusMessage("Getting changed files ...");
             //await TaskScheduler.Default;
-            return await CurrentTracker.GetCurrentChangeSet();
+            if (CurrentTracker != null)
+            {
+                return await CurrentTracker.GetCurrentChangeSet();
+            }
+            return new List<GitFile>();
         }
 
         private async System.Threading.Tasks.Task UpdateFileListUI(List<GitFile> changedFiles)
@@ -609,6 +614,62 @@ Are you sure you want to continue?";
                // }
 
                // service.MarkDirty(false);
+            }
+        }
+
+        //TODO.. Move this and Commit. I sorta hate it all! 
+        internal async Task SwitchCommand(BranchPickerResult result)
+        {
+            bool inError = false;
+            var branch = result.BranchInfo;
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            SolutionExtensions.WriteMessageToOutputPane("Branch Operation Started");
+            if (result.CreateBranch)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                SolutionExtensions.WriteMessageToOutputPane("Creating Branch");
+                //await status.SetMessage("Creating Branch");
+              await TaskScheduler.Default;
+              var branchResult = result.Repository.CreateBranch(result.BranchName);
+                if (branchResult.Succeeded)
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    SolutionExtensions.WriteMessageToOutputPane("Branch: ' "+ branchResult.Item.Name + "' Created" );
+                    branch = branchResult.Item;
+                }
+                else
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    inError = true;
+                    //status.Hide();
+                    SolutionExtensions.WriteMessageToOutputPane(branchResult.ErrorMessage);
+                    MessageBox.Show(branchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+            if (result.Switch && ! inError)
+            {
+                if (branch != null)
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    SolutionExtensions.WriteMessageToOutputPane("Switching Branch");
+                    await TaskScheduler.Default;
+                    var switchResult = result.Repository.Checkout(branch);
+                    if (!switchResult.Succeeded)
+                    {
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        inError = true;
+                        SolutionExtensions.WriteMessageToOutputPane(switchResult.ErrorMessage);
+                        MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK,
+                            MessageBoxImage.Exclamation);
+                    }
+                }
+            }
+
+            if (!inError)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                SolutionExtensions.WriteMessageToOutputPane("Branch Operation Complete");
+                _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
             }
         }
 
