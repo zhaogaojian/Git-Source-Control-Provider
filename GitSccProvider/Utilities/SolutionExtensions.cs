@@ -317,7 +317,7 @@ namespace GitSccProvider.Utilities
             return list;
         }
 
-        public static void WriteMessageToOutputPane(string message,string title = "Source Control")
+        public static void WriteMessageToOutputPane(string message,string title = "GIT Source Control")
         {
             DTE2 dte = GetActiveIDE();
             OutputWindowPanes panes =
