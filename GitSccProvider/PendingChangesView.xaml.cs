@@ -635,6 +635,11 @@ Are you sure you want to continue?";
         //TODO.. Move this and Commit. I sorta hate it all! 
         internal async Task SwitchCommand(BranchPickerResult result)
         {
+            if (!result.CreateBranch && !result.Switch)
+            {
+                return;
+            }
+
             bool inError = false;
             var branch = result.BranchInfo;
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();

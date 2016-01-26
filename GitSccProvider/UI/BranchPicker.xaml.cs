@@ -70,7 +70,7 @@ namespace GitScc.UI
                 Height = 200
             };
             _branches.Clear();
-            var branches = repository.GetBranchInfo();
+            var branches = repository.GetBranchInfo(forceReload:true);
             branches = branches.OrderBy(x => x.IsRemote).ThenBy(x => x.FullName).ToList();//.Select(r => r.FullName); ;
             foreach (var gitBranchInfo in branches)
             {

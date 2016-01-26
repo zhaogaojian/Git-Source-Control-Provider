@@ -691,11 +691,11 @@ namespace GitScc
             }
         }
 
-        public List<GitBranchInfo> GetBranchInfo(bool includeRemote = true, bool includeLocal = true)
+        public List<GitBranchInfo> GetBranchInfo(bool includeRemote = true, bool includeLocal = true, bool forceReload = false)
         {
             using (var repository = GetRepository())
             {
-                if (_branchInfoList == null || _branchInfoList.Count <= 0)
+                if (forceReload || _branchInfoList == null || _branchInfoList.Count <= 0)
                 {
                     _branchInfoList = new List<GitBranchInfo>();
 
