@@ -60,19 +60,13 @@ namespace GitSccProvider.Utilities
             var project = objProj as EnvDTE.Project;
             if (project != null && project.Kind != ProjectKinds.vsProjectKindSolutionFolder)
             {
-                foreach (ProjectItem projectItem in project.ProjectItems)
+                try
                 {
-                    try
-                    {
-                        if (projectItem.Kind != ProjectKinds.vsProjectKindSolutionFolder)
-                        {
-                            projectFiles.Add(projectItem.get_FileNames(0));
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Debug.WriteLine("==== Error With : "  + project.Name + " Type : " + project.Kind);
-                    }
+                    FindFilesInProject(project.ProjectItems, projectFiles);
+                }
+                catch (Exception)
+                {
+                    Debug.WriteLine("==== Error With : " + project.Name + " Type : " + project.Kind);
                 }
             }
 
@@ -92,70 +86,120 @@ namespace GitSccProvider.Utilities
             return projectFiles;
         }
 
+        public static IList<string> GetProjectFiles(EnvDTE.Project project)
+        {
+            IList<string> projectFiles = new List<string>();
 
-        //private static IList<string> GetNodeFiles(IVsSccProject2 pscp2, uint itemid)
+            if (project != null && project.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+            {
+                try
+                {
+                    FindFilesInProject(project.ProjectItems, projectFiles);
+                }
+                catch (Exception)
+                    {
+                    Debug.WriteLine("==== Error With : " + project.Name + " Type : " + project.Kind);
+                }
+            }
+            return projectFiles;
+        }
+
+        private static void FindFilesInProject(ProjectItems items, IList<string> projectFiles)
+        {
+            foreach (ProjectItem projectItem in items)
+            {
+                //try
+                //{
+
+                if (projectItem.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+                {
+                    projectFiles.Add(projectItem.FileNames[0]);
+                }
+
+                if (projectItem.ProjectItems != null || projectItem.ProjectItems.Count > 0)
+                {
+                    FindFilesInProject(projectItem.ProjectItems, projectFiles);
+                }
+                //}
+                //catch (Exception)
+                //{
+
+                //}
+            }
+        }
+
+
+
+        //private ProjectItem GetProjectItems(ProjectItem item)
         //{
-        //    // NOTE: the function returns only a list of files, containing both regular files and special files
-        //    // If you want to hide the special files (similar with solution explorer), you may need to return 
-        //    // the special files in a hastable (key=master_file, values=special_file_list)
+        //    if (item.ProjectItems == null)
+        //        return item;
 
-        //    // Initialize output parameters
-        //    IList<string> sccFiles = new List<string>();
-        //    if (pscp2 != null)
-        //    {
-        //        CALPOLESTR[] pathStr = new CALPOLESTR[1];
-        //        CADWORD[] flags = new CADWORD[1];
+            //}
 
-        //        if (pscp2.GetSccFiles(itemid, pathStr, flags) == VSConstants.S_OK)
-        //        {
-        //            for (int elemIndex = 0; elemIndex < pathStr[0].cElems; elemIndex++)
-        //            {
-        //                IntPtr pathIntPtr = Marshal.ReadIntPtr(pathStr[0].pElems, elemIndex * IntPtr.Size);
-        //                String path = Marshal.PtrToStringAuto(pathIntPtr);
+            //private static IList<string> GetNodeFiles(IVsSccProject2 pscp2, uint itemid)
+            //{
+            //    // NOTE: the function returns only a list of files, containing both regular files and special files
+            //    // If you want to hide the special files (similar with solution explorer), you may need to return 
+            //    // the special files in a hastable (key=master_file, values=special_file_list)
 
-        //                sccFiles.Add(path);
+            //    // Initialize output parameters
+            //    IList<string> sccFiles = new List<string>();
+            //    if (pscp2 != null)
+            //    {
+            //        CALPOLESTR[] pathStr = new CALPOLESTR[1];
+            //        CADWORD[] flags = new CADWORD[1];
 
-        //                // See if there are special files
-        //                if (flags.Length > 0 && flags[0].cElems > 0)
-        //                {
-        //                    int flag = Marshal.ReadInt32(flags[0].pElems, elemIndex * IntPtr.Size);
+            //        if (pscp2.GetSccFiles(itemid, pathStr, flags) == VSConstants.S_OK)
+            //        {
+            //            for (int elemIndex = 0; elemIndex < pathStr[0].cElems; elemIndex++)
+            //            {
+            //                IntPtr pathIntPtr = Marshal.ReadIntPtr(pathStr[0].pElems, elemIndex * IntPtr.Size);
+            //                String path = Marshal.PtrToStringAuto(pathIntPtr);
 
-        //                    if (flag != 0)
-        //                    {
-        //                        // We have special files
-        //                        CALPOLESTR[] specialFiles = new CALPOLESTR[1];
-        //                        CADWORD[] specialFlags = new CADWORD[1];
+            //                sccFiles.Add(path);
 
-        //                        if (pscp2.GetSccSpecialFiles(itemid, path, specialFiles, specialFlags) == VSConstants.S_OK)
-        //                        {
-        //                            for (int i = 0; i < specialFiles[0].cElems; i++)
-        //                            {
-        //                                IntPtr specialPathIntPtr = Marshal.ReadIntPtr(specialFiles[0].pElems, i * IntPtr.Size);
-        //                                String specialPath = Marshal.PtrToStringAuto(specialPathIntPtr);
+            //                // See if there are special files
+            //                if (flags.Length > 0 && flags[0].cElems > 0)
+            //                {
+            //                    int flag = Marshal.ReadInt32(flags[0].pElems, elemIndex * IntPtr.Size);
 
-        //                                sccFiles.Add(specialPath);
-        //                                Marshal.FreeCoTaskMem(specialPathIntPtr);
-        //                            }
+            //                    if (flag != 0)
+            //                    {
+            //                        // We have special files
+            //                        CALPOLESTR[] specialFiles = new CALPOLESTR[1];
+            //                        CADWORD[] specialFlags = new CADWORD[1];
 
-        //                            if (specialFiles[0].cElems > 0)
-        //                            {
-        //                                Marshal.FreeCoTaskMem(specialFiles[0].pElems);
-        //                            }
-        //                        }
-        //                    }
-        //                }
+            //                        if (pscp2.GetSccSpecialFiles(itemid, path, specialFiles, specialFlags) == VSConstants.S_OK)
+            //                        {
+            //                            for (int i = 0; i < specialFiles[0].cElems; i++)
+            //                            {
+            //                                IntPtr specialPathIntPtr = Marshal.ReadIntPtr(specialFiles[0].pElems, i * IntPtr.Size);
+            //                                String specialPath = Marshal.PtrToStringAuto(specialPathIntPtr);
 
-        //                Marshal.FreeCoTaskMem(pathIntPtr);
-        //            }
-        //            if (pathStr[0].cElems > 0)
-        //            {
-        //                Marshal.FreeCoTaskMem(pathStr[0].pElems);
-        //            }
-        //        }
-        //    }
+            //                                sccFiles.Add(specialPath);
+            //                                Marshal.FreeCoTaskMem(specialPathIntPtr);
+            //                            }
 
-        //    return sccFiles;
-        //}
+            //                            if (specialFiles[0].cElems > 0)
+            //                            {
+            //                                Marshal.FreeCoTaskMem(specialFiles[0].pElems);
+            //                            }
+            //                        }
+            //                    }
+            //                }
+
+            //                Marshal.FreeCoTaskMem(pathIntPtr);
+            //            }
+            //            if (pathStr[0].cElems > 0)
+            //            {
+            //                Marshal.FreeCoTaskMem(pathStr[0].pElems);
+            //            }
+            //        }
+            //    }
+
+            //    return sccFiles;
+            //}
 
         public static async Task<IList<uint>> GetProjectItems(IVsHierarchy pHier, uint startItemid)
         {
@@ -254,10 +298,10 @@ namespace GitSccProvider.Utilities
         }
 
 
-        public static async Task<IList<Project>> GetProjectsAsync()
-        {
-             return await Task.Run(() => Projects());
-        }
+        //public static async Task<IList<Project>> GetProjectsAsync()
+        //{
+        //     return await Task.Run(() => Projects());
+        //}
 
 
         public static DTE2 GetActiveIDE()
@@ -267,8 +311,9 @@ namespace GitSccProvider.Utilities
             return dte2;
         }
 
-        public static IList<Project> Projects()
+        public static async Task<List<Project>> GetProjects()
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             Projects projects = GetActiveIDE().Solution.Projects;
             List<Project> list = new List<Project>();
             var item = projects.GetEnumerator();

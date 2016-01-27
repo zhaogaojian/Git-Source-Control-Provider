@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using GitScc;
 using GitSccProvider.Utilities;
@@ -199,6 +200,34 @@ namespace GitSccProvider
             }
         }
 
+        public async Task AddProject(EnvDTE.Project envProject)
+        {
+            IVsHierarchy projectHierarchy = null;
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
+
+            if (sol.GetProjectOfUniqueName(envProject.UniqueName, out projectHierarchy) == 0)
+            {
+                var project = projectHierarchy as IVsSccProject2;
+                if (project != null)
+                {
+                    await AddProject(project);
+
+                    if (!_projects.Contains(project) && project != null)
+                    {
+                        _projects.Add(project);
+                    }
+
+                    var files = SolutionExtensions.GetProjectFiles(envProject).ToList();
+
+                    foreach (var file in files)
+                    {
+                        AddFileToList(file.ToLower(), project);
+                    }
+                }
+            }
+        }
+
 
         public async Task RegisterSolution()
         {
@@ -229,6 +258,19 @@ namespace GitSccProvider
             }
 
         }
+
+        //private async Task ScanSolution()
+        //{
+        //    //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        //    var projects = await SolutionExtensions.GetProjects();
+        //    //TODO MAke sure I want to do this
+        //    _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
+        //    foreach (var project in projects)
+        //    {
+        //        await AddProject(project);
+        //    }
+
+        //}
 
         //TODo Temp
         private async Task<List<IVsSccProject2>> GetLoadedControllableProjects()

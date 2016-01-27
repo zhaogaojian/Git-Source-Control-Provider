@@ -11,6 +11,7 @@ using System.Threading.Tasks.Schedulers;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using EnvDTE;
+using GitExtension;
 using GitSccProvider;
 using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
@@ -1093,38 +1094,8 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         internal async Task InitRepo()
         {
             var solutionPath = Path.GetDirectoryName(await GetSolutionFileName());
-            GitFileStatusTracker.Init(solutionPath);
-            File.WriteAllText(Path.Combine(solutionPath, ".gitignore"),
-@"Thumbs.db
-*.obj
-*.exe
-*.pdb
-*.user
-*.aps
-*.pch
-*.vspscc
-*_i.c
-*_p.c
-*.ncb
-*.suo
-*.sln.docstates
-*.tlb
-*.tlh
-*.bak
-*.cache
-*.ilk
-*.log
-[Bb]in
-[Dd]ebug*/
-*.lib
-*.sbr
-obj/
-[Rr]elease*/
-_ReSharper*/
-[Tt]est[Rr]esult*
-*.vssscc
-$tf*/"
-            );
+            GitRepository.Init(solutionPath);
+            await IgnoreFileManager.UpdateGitIgnore(solutionPath);
             File.WriteAllText(Path.Combine(solutionPath, ".tfignore"), @"\.git");
         } 
         #endregion
