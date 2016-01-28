@@ -1,5 +1,21 @@
 ## Change Logs -- Visual Studio 2015
 
+**V1.5**
+
+#####---New Features---
+*   Added ability to update your .gitingore file to latest version from github
+*   Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  
+*   Added ability Filter Pending Changes To Only Show Solution Files
+
+
+#####---Fixes---
+*   Fixed issue where plugin could periodically crash Visual Studio.
+*   Theme now switches with the need to resart.
+*   Double clicking on files in Pending Changes now opens/switches to the file. 
+*   No longer slows down when used with Resharper
+*   Fixed issue #15, #21 where sometimes the plugin caused Visual Studio to crash. 
+*   Fixed issue #16, Solution Explorer glyphs not updating. 
+
 **V1.4.3**
 
 *   Fixed Issues #14 -- Theme for Diff window now switches properly 

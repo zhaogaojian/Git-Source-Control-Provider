@@ -7,7 +7,6 @@ Introduction
 
 
 
-
 ![solution explorer](http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874)
 
 Features
@@ -29,17 +28,33 @@ How to use
 ----------
 * Install [Git for Windows](http://code.google.com/p/msysgit), or [Git Extensions](http://code.google.com/p/gitextensions), or [TortoiseGit](http://code.google.com/p/tortoisegit).
 * Run Visual Studio. 
-* Go to Tools | Extension Manager, search online gallery for Git Source Control Provider and install. 
+* Go to Tools | Extension Manager, search online gallery for Git Source Control Provider and install. Or Install From [Visual Studio Gallery](https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d) 
 * Go to Tools | Options, Select Source Control.
 * Select Git Source Control Provider from the drop down list, and click OK.
 * Open your solution controlled by Git to see the file's status.
 * Right click within solution explorer and select "Git". If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.
 
 
+How to contribute 
+----------
+If you like this plugin there is a few way you can help out.
+
+* Review It! - I'm not asking for donations or anything, but if you do use this and like it.. Please head over to the [Visual Studio Gallery](https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d) and review it.  Good reviews refill my nerd powers that power all those late night programming sessions. They also make me feel all warm and fuzzy! 
+* Suggest Features / Point out bugs. 
+* Test It - Check out the [Releases](https://github.com/jzoss/Git-Source-Control-Provider/releases). If there is a early release try it out and let me know if you find any bugs!
+* Code - Check out the code, play with it. maybe fix a bug while you are there.. It fun and educational. It also makes you super cool, better looking and possibly give you superpowers.
+
+
+#### Building
+
+All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibility Tools installed. It's **THAT** easy!
+
 
 ## Change Logs -- Visual Studio 2015
 
-**V1.5** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
+**V-Next** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
+
+**V1.5**
 
 #####---New Features---
 *   Added ability to update your .gitingore file to latest version from github
@@ -56,22 +71,17 @@ How to use
 *   Fixed issue #16, Solution Explorer glyphs not updating. 
 
 
-
 **V1.4.2**
 
 *   Fixed Issues #1, #7, #8, #9, #10, #11 and #12
 *   Fixed Switch command
 *   Added dark theme form diff window
 
-
-
 **V1.4.1**
 
 *   Fixed Settings Error
 *   Fix bugs #5 + #6. -Thanks 
 *   Thanks To  teebee76 (You Rock) for his help, mnadel, PureKrome + NightOwl888, you guys are also super cool. Keep finidng bugs and I will fix them as fast as I can.  
-
-
 
 **V1.4**
 
