@@ -76,7 +76,6 @@ namespace GitScc
             {
                 if (_tracker != null)
                 {
-                    _tracker.FileChanged -= CurrentTracker_FileChanged;
                     CurrentTracker.FilesChanged -= CurrentTracker_FilesChanged;
                     CurrentTracker.BranchChanged -= CurrentTracker_BranchChanged;
                     CurrentTracker.FileStatusUpdate -= CurrentTracker_FileStatusUpdate;
@@ -85,7 +84,6 @@ namespace GitScc
                 _tracker = tracker;
                 if (CurrentTracker != null)
                 {
-                    CurrentTracker.FileChanged += CurrentTracker_FileChanged;
                     CurrentTracker.FilesChanged += CurrentTracker_FilesChanged;
                     CurrentTracker.BranchChanged += CurrentTracker_BranchChanged;
                     CurrentTracker.FileStatusUpdate += CurrentTracker_FileStatusUpdate;
@@ -98,11 +96,6 @@ namespace GitScc
 
 
         #region Git Tracker Event Handlers
-        private async void CurrentTracker_FileChanged(object sender, GitFileUpdateEventArgs e)
-        {
-            await Refresh();
-        }
-
 
         private async void CurrentTracker_FileStatusUpdate(object sender, GitFilesStatusUpdateEventArgs e)
         {
@@ -118,18 +111,7 @@ namespace GitScc
             }
             else
             {
-                await ThreadHelper.JoinableTaskFactory.RunAsync(
-                    VsTaskRunContext.UIThreadBackgroundPriority,
-                    async delegate
-                    {
-                        // On caller's thread. Switch to main thread (if we're not already there).
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        // Now on UI thread via background priority.
-                        await Task.Yield();
-                        _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
-                        await Refresh();
-                    });
-                
+                await UpdateRepositoryName();
             }
           
         }
@@ -141,10 +123,24 @@ namespace GitScc
 
         private async void CurrentTracker_BranchChanged(object sender, string e)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
+            await UpdateRepositoryName();
         }
 
+        private async Task UpdateRepositoryName()
+        {
+            await ThreadHelper.JoinableTaskFactory.RunAsync(
+                   VsTaskRunContext.UIThreadBackgroundPriority,
+                   async delegate
+                   {
+                        // On caller's thread. Switch to main thread (if we're not already there).
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        // Now on UI thread via background priority.
+                        await Task.Yield();
+                       var displayName = " (" + CurrentTracker.CurrentBranchDisplayName + ")";
+                       _toolWindow.UpdateRepositoryName(displayName);
+                       await Refresh();
+                   });
+        }
 
         #endregion
 
@@ -689,7 +685,7 @@ Are you sure you want to continue?";
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 SolutionExtensions.WriteMessageToOutputPane("Branch Operation Complete");
-                _toolWindow.UpdateRepositoryName(CurrentTracker.CurrentBranchDisplayName);
+                await UpdateRepositoryName();
             }
         }
 

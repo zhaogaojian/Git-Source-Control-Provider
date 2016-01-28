@@ -11,15 +11,6 @@ This Visual Studio Extensions integrates Git with Visual Studio solution explore
 *   This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post any issues https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
 *   I'm not asking for donataions or anything, but if you want to fuel my nerd happy-ness please rate the plugin and tell me how you like it.  
 
-### Future Version
-
-*   Performance - I want it to be the faster git provider out there. 
-*   Keep fixing bugs people find. 
-*   Fix the hundreds of Warnings.
-*   Add new test project to replace the test project that had to be removed.
-*   Remove all the dead code.
-*   Finish move to libgit2sharp.
-
 
 
 ## Notice : Initial Visual Studio 2015 Upgrade
@@ -33,6 +24,7 @@ This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery
 Features
 --------
 * Display file status in solution explorer and solution navigator
+* Multiple repository support.  
 * Display repository status e.g. in the middle of merging, patching, rebase and bisecting
 * Enable/disable plug-in through visual studio's source control plug-in selection
 * No source code control information stored in solution or project file
@@ -58,11 +50,12 @@ How to use
 
 ## Change Logs -- Visual Studio 2015
 
-**C.I Build - Pre-V1.5** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
+**V1.5** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
 
     ---New Features---
 *   Added ability to update your .gitingore file to latest version from github
 *   Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  
+*   Added ability Filter Pending Changes To Only Show Solution Files
 
 
     ---Fixes---

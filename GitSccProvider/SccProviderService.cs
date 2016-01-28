@@ -62,7 +62,6 @@ namespace GitScc
             _fileCache = new SccProviderSolutionCache(_sccProvider);
             _fileChangesetManager = new Dictionary<GitRepository, GitChangesetManager>();
 
-            RepositoryManager.Instance.FileChanged += RepositoryManager_FileChanged;
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
             RepositoryManager.Instance.FileStatusUpdate += RepositoryManager_FileStatusUpdate;
             RepositoryManager.Instance.SolutionTrackerBranchChanged += RepositoryManager_SolutionTrackerBranchChanged;
@@ -140,7 +139,7 @@ namespace GitScc
 
         private async Task ReloadAllGlyphs()
         {
-            var projects = await GetLoadedControllableProjects();
+            var projects = await SolutionExtensions.GetLoadedControllableProjects();
             await Task.Run(async delegate
             {
                 await RefreshProjectGlyphs(projects);
@@ -179,6 +178,9 @@ namespace GitScc
                 });
         }
 
+        #region Remove 
+
+
         /// <summary>
         /// Returns the filename of the solution
         /// </summary>
@@ -213,51 +215,6 @@ namespace GitScc
             }
             return fileName;
         }
-
-        private async Task<string> GetFileName(IVsHierarchy hierHierarchy, uint itemidNode)
-        {
-            if (itemidNode == VSConstants.VSITEMID_ROOT)
-            {
-                if (hierHierarchy == null)
-                    return await GetSolutionFileName();
-                else
-                    return await GetProjectFileName(hierHierarchy);
-            }
-            else
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                string fileName = null;
-                if (hierHierarchy.GetCanonicalName(itemidNode, out fileName) != VSConstants.S_OK) return null;
-                return GetCaseSensitiveFileName(fileName);
-            }
-        }
-
-        private static string GetCaseSensitiveFileName(string fileName)
-        {
-            if (fileName == null) return fileName;
-
-            if (Directory.Exists(fileName) || File.Exists(fileName))
-            {
-                try
-                {
-                    StringBuilder sb = new StringBuilder(1024);
-                    GetShortPathName(fileName.ToUpper(), sb, 1024);
-                    GetLongPathName(sb.ToString(), sb, 1024);
-                    var fn = sb.ToString();
-                    return string.IsNullOrWhiteSpace(fn) ? fileName : fn;
-                }
-                catch { }
-            }
-
-            return fileName;
-        }
-
-        [DllImport("kernel32.dll")]
-        static extern uint GetShortPathName(string longpath, StringBuilder sb, int buffer);
-
-        [DllImport("kernel32.dll")]
-        static extern uint GetLongPathName(string shortpath, StringBuilder sb, int buffer);
-
 
         /// <summary>
         /// Returns a list of source controllable files associated with the specified node
@@ -329,6 +286,57 @@ namespace GitScc
 
             return sccFiles;
         }
+
+        private static string GetCaseSensitiveFileName(string fileName)
+        {
+            if (fileName == null) return fileName;
+
+            if (Directory.Exists(fileName) || File.Exists(fileName))
+            {
+                try
+                {
+                    StringBuilder sb = new StringBuilder(1024);
+                    GetShortPathName(fileName.ToUpper(), sb, 1024);
+                    GetLongPathName(sb.ToString(), sb, 1024);
+                    var fn = sb.ToString();
+                    return string.IsNullOrWhiteSpace(fn) ? fileName : fn;
+                }
+                catch { }
+            }
+
+            return fileName;
+        }
+
+        #endregion
+
+        private async Task<string> GetFileName(IVsHierarchy hierHierarchy, uint itemidNode)
+        {
+            if (itemidNode == VSConstants.VSITEMID_ROOT)
+            {
+                if (hierHierarchy == null)
+                    return await GetSolutionFileName();
+                else
+                    return await GetProjectFileName(hierHierarchy);
+            }
+            else
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                string fileName = null;
+                if (hierHierarchy.GetCanonicalName(itemidNode, out fileName) != VSConstants.S_OK) return null;
+                return GetCaseSensitiveFileName(fileName);
+            }
+        }
+
+
+
+        [DllImport("kernel32.dll")]
+        static extern uint GetShortPathName(string longpath, StringBuilder sb, int buffer);
+
+        [DllImport("kernel32.dll")]
+        static extern uint GetLongPathName(string shortpath, StringBuilder sb, int buffer);
+
+
+       
 
 
         /// <summary>
@@ -442,7 +450,7 @@ namespace GitScc
             if (!string.IsNullOrEmpty(solutionFileName))
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var projects = await GetLoadedControllableProjects();
+                var projects = await SolutionExtensions.GetLoadedControllableProjects();
                 foreach (var vsSccProject2 in projects)
                 {
                     await AddProject(vsSccProject2 as IVsHierarchy);
@@ -463,24 +471,6 @@ namespace GitScc
             {
                 Debug.WriteLine("Error in RepositoryManager_FileChanged: " + ex.Message);
             }
-        }
-
-        private async void RepositoryManager_FileChanged(object sender, GitFileUpdateEventArgs e)
-        {
-            //TODO update files change here
-
-            try
-            {
-                await TaskScheduler.Default;
-                await ProcessSingleFileSystemChange((GitRepository)sender, e);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Error in RepositoryManager_FileChanged: " + ex.Message);
-            }
-            //Action action = () => ProcessSingleFileSystemChange((GitRepository)sender, e);
-            //Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, SccProviderService.TaskScheduler)
-            //    .HandleNonCriticalExceptions();
         }
 
         private async void RepositoryManager_FilesChanged(object sender, GitFilesUpdateEventArgs e)
@@ -572,37 +562,6 @@ namespace GitScc
                     await RefreshProjectGlyphs(nodes.ToList());
                 });
             }
-        }
-
-        private async Task ProcessSingleFileSystemChange(GitRepository repo, GitFileUpdateEventArgs e)
-        {
-            //lock (_glyphsLock)
-            //{
-            //await Task.Run(async delegate
-            //{
-            //    await Task.Run(() => 
-            //await TaskScheduler.Default;
-
-            //repo.Refresh();
-
-            //var files = await repo.GetCurrentChangeSet();
-            //var file = files.Find(x => x.FilePath == e.FullPath);
-            //var status = file != null ? file.Status : GitFileStatus.Unaltered;
-
-            //if (_fileCache.StatusChanged(e.FullPath, status))
-            //{
-            //    IList<IVsSccProject2> nodes = _fileCache.GetProjectsSelectionForFile(e.FullPath);
-            //    if (nodes != null && nodes.Count > 0)
-            //    {
-            //        foreach (var vsSccProject2 in nodes)
-            //        {
-            //            //await QuickRefreshNodesGlyphs(vsSccProject2, new List<string>() {e.FullPath});
-            //            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //            vsSccProject2.SccGlyphChanged(0, null, null, null);
-            //        }
-            //        //RefreshNodesGlyphs(nodes);
-            //    }
-            //}
         }
 
         private async Task ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
@@ -846,95 +805,6 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         }
 
         #endregion
-
-        //#region new Refresh methods
-
-        //internal DateTime nextTimeRefresh = DateTime.Now;
-
-        //private int _nodesGlyphsDirty;
-        //private int _explicitRefreshRequested;
-        //private int _disableRefresh;
-
-        //private bool NoRefresh
-        //{
-        //    get
-        //    {
-        //        return Thread.VolatileRead(ref _disableRefresh) != 0;
-        //    }
-        //}
-
-        //internal void MarkDirty(bool defer)
-        //{
-        //    if (defer)
-        //        nextTimeRefresh = DateTime.Now;
-
-        //    // this doesn't need to be a volatile write since it's fine if the write is delayed
-        //    _nodesGlyphsDirty = 1;
-        //}
-
-        //internal IDisposable DisableRefresh()
-        //{
-        //    return new DisableRefreshHandle(this);
-        //}
-
-        //private sealed class DisableRefreshHandle : IDisposable
-        //{
-        //    private readonly SccProviderService _service;
-        //    private bool _disposed;
-
-        //    public DisableRefreshHandle(SccProviderService service)
-        //    {
-        //        _service = service;
-        //        Interlocked.Increment(ref _service._disableRefresh);
-        //    }
-
-        //    public void Dispose()
-        //    {
-        //        if (_disposed)
-        //            return;
-
-        //        _disposed = true;
-        //        Interlocked.Decrement(ref _service._disableRefresh);
-        //    }
-        //}
-
-        //internal void Refresh()
-        //{
-        //    // this doesn't need to be a volatile write since it's fine if the write is delayed
-        //    _explicitRefreshRequested = 1;
-        //}
-
-
-
-        ///// <summary>
-        ///// Returns a list of controllable projects in the solution
-        ///// </summary>
-        public async Task<List<IVsSccProject2>> GetLoadedControllableProjects()
-        {
-            var list = new List<IVsSccProject2>();
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
-            list.Add(sol as IVsSccProject2);
-
-            Guid rguidEnumOnlyThisType = new Guid();
-            IEnumHierarchies ppenum = null;
-            ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
-
-            IVsHierarchy[] rgelt = new IVsHierarchy[1];
-            uint pceltFetched = 0;
-            while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
-                   pceltFetched == 1)
-            {
-                IVsSccProject2 sccProject2 = rgelt[0] as IVsSccProject2;
-                if (sccProject2 != null)
-                {
-                    list.Add(sccProject2);
-                }
-            }
-
-            return list;
-        }
-
 
         public async Task QuickRefreshNodesGlyphs(IVsSccProject2 project, List<string> files)
         {

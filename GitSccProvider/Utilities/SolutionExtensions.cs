@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
+using GitScc;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -21,6 +24,44 @@ namespace GitSccProvider.Utilities
 
         #region File Lists
 
+
+        public static async Task<List<IVsSccProject2>> GetLoadedControllableProjects()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var list = new List<IVsSccProject2>();
+
+            IVsSolution sol = await GetActiveSolution();
+            list.Add(sol as IVsSccProject2);
+
+            Guid rguidEnumOnlyThisType = new Guid();
+            IEnumHierarchies ppenum = null;
+            ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
+
+            IVsHierarchy[] rgelt = new IVsHierarchy[1];
+            uint pceltFetched = 0;
+            while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
+                   pceltFetched == 1)
+            {
+                IVsSccProject2 sccProject2 = rgelt[0] as IVsSccProject2;
+                if (sccProject2 != null && await IsProjectInGitRepoitory(sccProject2))
+                {
+                    list.Add(sccProject2);
+                }
+            }
+
+            return list;
+        }
+
+        public static async Task<bool> IsProjectInGitRepoitory(IVsSccProject2 project)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var filename = await GetProjectFileName(project as IVsHierarchy);
+            if (!string.IsNullOrWhiteSpace(filename))
+            {
+                return RepositoryManager.Instance.IsProjectInGitRepoitory(filename);
+            }
+            return false;
+        }
 
         /// <summary>
         /// Gets the list of source controllable files in the specified project
@@ -43,17 +84,6 @@ namespace GitSccProvider.Utilities
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             IVsHierarchy hierProject = (IVsHierarchy)pscp2Project;
             
-
-
-            //if (solutionService.GetProjectOfUniqueName(project.UniqueName, out projectHierarchy) == S_OK)
-            //{
-            //    if (projectHierarchy != null)
-            //    {
-
-            //    }
-            //}
-            
-
             var itemid = VSConstants.VSITEMID_ROOT;
             object objProj;
             hierProject.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
@@ -69,20 +99,6 @@ namespace GitSccProvider.Utilities
                     Debug.WriteLine("==== Error With : " + project.Name + " Type : " + project.Kind);
                 }
             }
-
-
-            //IVsHierarchy hierProject = (IVsHierarchy)pscp2Project;
-            //IList<uint> projectItems = GetProjectItems(hierProject, startItemId);
-
-            //foreach (uint itemid in projectItems)
-            //{
-            //    IList<string> sccFiles = GetNodeFiles(pscp2Project, itemid);
-            //    foreach (string file in sccFiles)
-            //    {
-            //        projectFiles.Add(file);
-            //    }
-            //}
-
             return projectFiles;
         }
 
@@ -108,9 +124,6 @@ namespace GitSccProvider.Utilities
         {
             foreach (ProjectItem projectItem in items)
             {
-                //try
-                //{
-
                 if (projectItem.Kind != ProjectKinds.vsProjectKindSolutionFolder)
                 {
                     projectFiles.Add(projectItem.FileNames[0]);
@@ -120,86 +133,9 @@ namespace GitSccProvider.Utilities
                 {
                     FindFilesInProject(projectItem.ProjectItems, projectFiles);
                 }
-                //}
-                //catch (Exception)
-                //{
-
-                //}
             }
         }
 
-
-
-        //private ProjectItem GetProjectItems(ProjectItem item)
-        //{
-        //    if (item.ProjectItems == null)
-        //        return item;
-
-            //}
-
-            //private static IList<string> GetNodeFiles(IVsSccProject2 pscp2, uint itemid)
-            //{
-            //    // NOTE: the function returns only a list of files, containing both regular files and special files
-            //    // If you want to hide the special files (similar with solution explorer), you may need to return 
-            //    // the special files in a hastable (key=master_file, values=special_file_list)
-
-            //    // Initialize output parameters
-            //    IList<string> sccFiles = new List<string>();
-            //    if (pscp2 != null)
-            //    {
-            //        CALPOLESTR[] pathStr = new CALPOLESTR[1];
-            //        CADWORD[] flags = new CADWORD[1];
-
-            //        if (pscp2.GetSccFiles(itemid, pathStr, flags) == VSConstants.S_OK)
-            //        {
-            //            for (int elemIndex = 0; elemIndex < pathStr[0].cElems; elemIndex++)
-            //            {
-            //                IntPtr pathIntPtr = Marshal.ReadIntPtr(pathStr[0].pElems, elemIndex * IntPtr.Size);
-            //                String path = Marshal.PtrToStringAuto(pathIntPtr);
-
-            //                sccFiles.Add(path);
-
-            //                // See if there are special files
-            //                if (flags.Length > 0 && flags[0].cElems > 0)
-            //                {
-            //                    int flag = Marshal.ReadInt32(flags[0].pElems, elemIndex * IntPtr.Size);
-
-            //                    if (flag != 0)
-            //                    {
-            //                        // We have special files
-            //                        CALPOLESTR[] specialFiles = new CALPOLESTR[1];
-            //                        CADWORD[] specialFlags = new CADWORD[1];
-
-            //                        if (pscp2.GetSccSpecialFiles(itemid, path, specialFiles, specialFlags) == VSConstants.S_OK)
-            //                        {
-            //                            for (int i = 0; i < specialFiles[0].cElems; i++)
-            //                            {
-            //                                IntPtr specialPathIntPtr = Marshal.ReadIntPtr(specialFiles[0].pElems, i * IntPtr.Size);
-            //                                String specialPath = Marshal.PtrToStringAuto(specialPathIntPtr);
-
-            //                                sccFiles.Add(specialPath);
-            //                                Marshal.FreeCoTaskMem(specialPathIntPtr);
-            //                            }
-
-            //                            if (specialFiles[0].cElems > 0)
-            //                            {
-            //                                Marshal.FreeCoTaskMem(specialFiles[0].pElems);
-            //                            }
-            //                        }
-            //                    }
-            //                }
-
-            //                Marshal.FreeCoTaskMem(pathIntPtr);
-            //            }
-            //            if (pathStr[0].cElems > 0)
-            //            {
-            //                Marshal.FreeCoTaskMem(pathStr[0].pElems);
-            //            }
-            //        }
-            //    }
-
-            //    return sccFiles;
-            //}
 
         public static async Task<IList<uint>> GetProjectItems(IVsHierarchy pHier, uint startItemid)
         {
@@ -310,33 +246,174 @@ namespace GitSccProvider.Utilities
             DTE2 dte2 = Package.GetGlobalService(typeof(DTE)) as DTE2;
             return dte2;
         }
-
-        public static async Task<List<Project>> GetProjects()
+        public static async Task<IVsSolution> GetActiveSolution()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            Projects projects = GetActiveIDE().Solution.Projects;
-            List<Project> list = new List<Project>();
-            var item = projects.GetEnumerator();
-            while (item.MoveNext())
-            {
-                var project = item.Current as Project;
-                if (project == null)
-                {
-                    continue;
-                }
+            IVsSolution sol = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+            return sol;
+        }
 
-                if (project.Kind == ProjectKinds.vsProjectKindSolutionFolder)
+        public static async Task<string> GetSolutionFileName()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            IVsSolution sol = await GetActiveSolution();
+            string solutionDirectory, solutionFile, solutionUserOptions;
+            if (sol.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionUserOptions) == VSConstants.S_OK)
+            {
+                return solutionFile;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static async Task<string> GetProjectFileName(IVsHierarchy hierHierarchy)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (!(hierHierarchy is IVsSccProject2)) return await GetSolutionFileName();
+
+            var files = await GetNodeFiles(hierHierarchy as IVsSccProject2, VSConstants.VSITEMID_ROOT);
+            string fileName = files.Count <= 0 ? null : files[0];
+
+            //try hierHierarchy.GetCanonicalName to get project name for web site
+            if (fileName == null)
+            {
+                if (hierHierarchy.GetCanonicalName(VSConstants.VSITEMID_ROOT, out fileName) != VSConstants.S_OK) return null;
+                return GetCaseSensitiveFileName(fileName);
+            }
+            return fileName;
+        }
+
+
+        /// <summary>
+        /// Returns a list of source controllable files associated with the specified node
+        /// </summary>
+        private static async Task<IList<string>> GetNodeFiles(IVsSccProject2 pscp2, uint itemid)
+        {
+            // NOTE: the function returns only a list of files, containing both regular files and special files
+            // If you want to hide the special files (similar with solution explorer), you may need to return 
+            // the special files in a hastable (key=master_file, values=special_file_list)
+
+            // Initialize output parameters
+            IList<string> sccFiles = new List<string>();
+            if (pscp2 != null)
+            {
+                CALPOLESTR[] pathStr = new CALPOLESTR[1];
+                CADWORD[] flags = new CADWORD[1];
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                if (pscp2.GetSccFiles(itemid, pathStr, flags) == 0)
                 {
-                    list.AddRange(GetSolutionFolderProjects(project));
-                }
-                else
-                {
-                    list.Add(project);
+                    for (int elemIndex = 0; elemIndex < pathStr[0].cElems; elemIndex++)
+                    {
+                        IntPtr pathIntPtr = Marshal.ReadIntPtr(pathStr[0].pElems, elemIndex);
+
+
+                        String path = Marshal.PtrToStringAuto(pathIntPtr);
+                        sccFiles.Add(path);
+
+                        // See if there are special files
+                        if (flags.Length > 0 && flags[0].cElems > 0)
+                        {
+                            int flag = Marshal.ReadInt32(flags[0].pElems, elemIndex);
+
+                            if (flag != 0)
+                            {
+                                // We have special files
+                                CALPOLESTR[] specialFiles = new CALPOLESTR[1];
+                                CADWORD[] specialFlags = new CADWORD[1];
+
+                                pscp2.GetSccSpecialFiles(itemid, path, specialFiles, specialFlags);
+                                for (int i = 0; i < specialFiles[0].cElems; i++)
+                                {
+                                    IntPtr specialPathIntPtr = Marshal.ReadIntPtr(specialFiles[0].pElems, i * IntPtr.Size);
+                                    String specialPath = Marshal.PtrToStringAuto(specialPathIntPtr);
+
+                                    sccFiles.Add(specialPath);
+                                    Marshal.FreeCoTaskMem(specialPathIntPtr);
+                                }
+
+                                if (specialFiles[0].cElems > 0)
+                                {
+                                    Marshal.FreeCoTaskMem(specialFiles[0].pElems);
+                                }
+                            }
+                        }
+
+                        Marshal.FreeCoTaskMem(pathIntPtr);
+
+                    }
+                    if (pathStr[0].cElems > 0)
+                    {
+                        Marshal.FreeCoTaskMem(pathStr[0].pElems);
+                    }
                 }
             }
+            else if (itemid == VSConstants.VSITEMID_ROOT)
+            {
+                sccFiles.Add(await GetSolutionFileName());
+            }
 
-            return list;
+            return sccFiles;
         }
+
+        private static string GetCaseSensitiveFileName(string fileName)
+        {
+            if (fileName == null) return fileName;
+
+            if (Directory.Exists(fileName) || File.Exists(fileName))
+            {
+                try
+                {
+                    StringBuilder sb = new StringBuilder(1024);
+                    GetShortPathName(fileName.ToUpper(), sb, 1024);
+                    GetLongPathName(sb.ToString(), sb, 1024);
+                    var fn = sb.ToString();
+                    return string.IsNullOrWhiteSpace(fn) ? fileName : fn;
+                }
+                catch { }
+            }
+
+            return fileName;
+        }
+
+
+        //TODO remove these2.. replace with https://github.com/alphaleonis/AlphaFS/
+        [DllImport("kernel32.dll")]
+        static extern uint GetShortPathName(string longpath, StringBuilder sb, int buffer);
+
+        [DllImport("kernel32.dll")]
+        static extern uint GetLongPathName(string shortpath, StringBuilder sb, int buffer);
+
+
+      
+
+        //public static async Task<List<Project>> GetProjects()
+        //{
+        //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        //    Projects projects = GetActiveIDE().Solution.Projects;
+        //    List<Project> list = new List<Project>();
+        //    var item = projects.GetEnumerator();
+        //    while (item.MoveNext())
+        //    {
+        //        var project = item.Current as Project;
+        //        if (project == null)
+        //        {
+        //            continue;
+        //        }
+
+        //        if (project.Kind == ProjectKinds.vsProjectKindSolutionFolder)
+        //        {
+        //            list.AddRange(GetSolutionFolderProjects(project));
+        //        }
+        //        else
+        //        {
+        //            list.Add(project);
+        //        }
+        //    }
+
+        //    return list;
+        //}
 
         private static IEnumerable<Project> GetSolutionFolderProjects(Project solutionFolder)
         {

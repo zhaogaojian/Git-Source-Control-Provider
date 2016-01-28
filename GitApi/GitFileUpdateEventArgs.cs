@@ -6,17 +6,7 @@ using System.Threading.Tasks;
 
 namespace GitScc
 {
-    public class GitFileUpdateEventArgs : EventArgs
-    {
-        public string FullPath { get; set; }
-        public string Name { get; set; }
-
-        public GitFileUpdateEventArgs(string fullPath, string name)
-        {
-            FullPath = fullPath;
-            Name = name;
-        }
-    }
+   
 
     public class GitFilesUpdateEventArgs : EventArgs
     {

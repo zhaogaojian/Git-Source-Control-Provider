@@ -25,8 +25,6 @@ namespace GitScc
 
         private ConcurrentDictionary<string, GitFileStatusTracker> _basePathRepoLookup; //= new ConcurrentDictionary<string, GitFileStatusTracker>();
 
-        private event GitFileUpdateEventHandler _onFileUpdateEventHandler;
-
         private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
 
         private event GitRepositoryEventHandler _onActiveTrackerUpdateEventHandler;
@@ -135,7 +133,6 @@ namespace GitScc
         {
             foreach (var repo in _repositories)
             {
-                repo.FileChanged -= Repo_FileChanged;
                 repo.FilesChanged -= Repo_FilesChanged;
                 repo.FileStatusUpdate -= Repo_FileStatusUpdate;
             }
@@ -187,11 +184,11 @@ namespace GitScc
             if (!_fileRepoLookup.TryGetValue(filename, out repo))
             {
                 var basePath = GetGitRepository(filename);
-                if (!string.IsNullOrWhiteSpace(basePath) && !_basePathRepoLookup.TryGetValue(basePath, out repo))
+                if (createTracker && 
+                    !string.IsNullOrWhiteSpace(basePath) && !_basePathRepoLookup.TryGetValue(basePath, out repo))
                 {
                     repo = new GitFileStatusTracker(basePath);
                     repo.EnableRepositoryWatcher();
-                    repo.FileChanged += Repo_FileChanged;
                     repo.FilesChanged += Repo_FilesChanged;
                     repo.FileStatusUpdate += Repo_FileStatusUpdate;
                     //repo.BranchChanged += Repo_BranchChanged;
@@ -204,12 +201,12 @@ namespace GitScc
             }
 
 
-            if (repo == null)
-            {
-                return ActiveTracker;
-            }
+            //if (repo == null)
+            //{
+            //    return ActiveTracker;
+            //}
 
-            if (setActiveTracker)
+            if (setActiveTracker && repo != null)
             {
                 ActiveTracker = repo;
             }
@@ -232,7 +229,6 @@ namespace GitScc
                 {
                     repo = new GitFileStatusTracker(basePath);
                     repo.EnableRepositoryWatcher();
-                    repo.FileChanged += Repo_FileChanged;
                     repo.FilesChanged += Repo_FilesChanged;
                     repo.FileStatusUpdate += Repo_FileStatusUpdate;
                     //repo.BranchChanged += Repo_BranchChanged;
@@ -259,20 +255,18 @@ namespace GitScc
         }
 
 
+        public bool IsProjectInGitRepoitory(string filename)
+        {
+            if (string.IsNullOrWhiteSpace(filename))
+            {
+                return false;
+            }
+            var tracker = GetTrackerForPath(filename);
+            return tracker != null;
+        }
+
 
         #region Public Events
-
-        public event GitFileUpdateEventHandler FileChanged
-        {
-            add
-            {
-                _onFileUpdateEventHandler += value;
-            }
-            remove
-            {
-                _onFileUpdateEventHandler -= value;
-            }
-        }
 
         public event GitFilesUpdateEventHandler FilesChanged
         {
@@ -339,11 +333,6 @@ namespace GitScc
 
         #region Event Handlers
 
-        private void Repo_FileChanged(object sender, GitFileUpdateEventArgs e)
-        {
-            FireFileChangedEvent(sender, e);
-        }
-
         private void Repo_FileStatusUpdate(object sender, GitFilesStatusUpdateEventArgs e)
         {
             FireFileStatusUpdateEvent(sender,e);
@@ -368,11 +357,6 @@ namespace GitScc
         #endregion
 
         #region Event Triggers
-
-        private void FireFileChangedEvent(object sender, GitFileUpdateEventArgs e)
-        {
-            _onFileUpdateEventHandler?.Invoke(sender, e);
-        }
 
         private void FireActiveTrackerChangedEvent(GitFileStatusTracker repository)
         {
@@ -409,7 +393,14 @@ namespace GitScc
         /// <inheritdoc/>
         public static string GetGitRepository(string path)
         {
-            return Repository.Discover(Path.GetFullPath(path));
+            try
+            {
+                return Repository.Discover(Path.GetFullPath(path));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public static async Task<string> GetGitRepositoryAsync(string path)

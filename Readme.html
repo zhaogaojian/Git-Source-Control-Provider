@@ -6,15 +6,6 @@
 <li>This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post any issues https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. </li>
 <li>I'm not asking for donataions or anything, but if you want to fuel my nerd happy-ness please rate the plugin and tell me how you like it.  </li>
 </ul>
-<h3>Future Version</h3>
-<ul>
-<li>Performance - I want it to be the faster git provider out there. </li>
-<li>Keep fixing bugs people find. </li>
-<li>Fix the hundreds of Warnings.</li>
-<li>Add new test project to replace the test project that had to be removed.</li>
-<li>Remove all the dead code.</li>
-<li>Finish move to libgit2sharp.</li>
-</ul>
 <h2>Notice : Initial Visual Studio 2015 Upgrade</h2>
 <p>This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c">git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&amp;f[0].Value=yysun">Yiyi Sun</a></p>
 <ul>
@@ -24,6 +15,7 @@
 <h2>Features</h2>
 <ul>
 <li>Display file status in solution explorer and solution navigator</li>
+<li>Multiple repository support.  </li>
 <li>Display repository status e.g. in the middle of merging, patching, rebase and bisecting</li>
 <li>Enable/disable plug-in through visual studio's source control plug-in selection</li>
 <li>No source code control information stored in solution or project file</li>
@@ -47,14 +39,14 @@
 <li>Using the option page to disable the commands if you like.</li>
 </ul>
 <h2>Change Logs -- Visual Studio 2015</h2>
-<p><strong>C.I Build - Pre-V1.5</strong> <a href="https://ci.appveyor.com/project/jzoss/git-source-control-provider"><img src="https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true" alt="Build status" /></a></p>
+<p><strong>V1.5</strong> <a href="https://ci.appveyor.com/project/jzoss/git-source-control-provider"><img src="https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true" alt="Build status" /></a></p>
 <pre><code>---New Features---
 </code></pre>
 <ul>
 <li>Added ability to update your .gitingore file to latest version from github</li>
+<li>Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  </li>
 <li>
-<p>Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  
-</p>
+<p>Added ability Filter Pending Changes To Only Show Solution Files</p>
 <p>---Fixes---</p>
 </li>
 <li>Theme now switches with the need to resart.</li>

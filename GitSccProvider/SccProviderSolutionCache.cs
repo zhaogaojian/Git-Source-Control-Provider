@@ -25,7 +25,6 @@ namespace GitSccProvider
         private ConcurrentDictionary<string, GitFileStatus> _fileStatus;
         private List<IVsSccProject2> _projects;
         private ConcurrentDictionary<string, List<IVsSccProject2>> _fileProjectLookup;
-        //private ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION> _projectSelectionLookup;
         private DateTime _lastNewFileScan;
         private static int _projectScanDelaySeconds = 5;
         private object _registerLock = new object();
@@ -36,7 +35,6 @@ namespace GitSccProvider
             _projects = new List<IVsSccProject2>();
             _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
             _fileStatus = new ConcurrentDictionary<string, GitFileStatus>();
-    //_projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
             _lastNewFileScan = DateTime.MinValue;
         }
 
@@ -46,12 +44,6 @@ namespace GitSccProvider
 
             if (!_fileProjectLookup.TryGetValue(filename, out projects))
             {
-                //VSITEMSELECTION vsItem;
-                //if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
-                //{
-                //    vsItem = CreateItem(filename, project);
-                //    _projectSelectionLookup.TryAdd(project, vsItem);
-                //}
                 _fileProjectLookup.TryAdd(filename, new List<IVsSccProject2> { project });
             }
 
@@ -61,54 +53,8 @@ namespace GitSccProvider
                 {
                     projects.Add(project);
                 }
-                //VSITEMSELECTION vsItem;
-                //if (!_projectSelectionLookup.TryGetValue(project, out vsItem))
-                //{
-                //    vsItem = CreateItem(filename, project);
-                //    _projectSelectionLookup.TryAdd(project, vsItem);
-                //}
-                //if (!projects.Contains(vsItem))
-                //{
-                //    projects.Add(vsItem);
-                //}
             }
         }
-
-        //private VSITEMSELECTION CreateItem(string filename,IVsSccProject2 project)
-        //{
-        //    VSITEMSELECTION vsItem = new VSITEMSELECTION();
-
-
-        //    IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
-        //    IVsHierarchy pHier = project as IVsHierarchy;
-
-        //    if (solHier == pHier)
-        //    {
-        //        // This is the solution
-        //        if (filename.ToLower().CompareTo(GetSolutionFileName().ToLower()) == 0)
-        //        {
-        //            vsItem.itemid = VSConstants.VSITEMID_ROOT;
-        //            vsItem.pHier = null;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        IVsProject2 pProject = pHier as IVsProject2;
-        //        // See if the file is member of this project
-        //        // Caveat: the IsDocumentInProject function is expensive for certain project types, 
-        //        // you may want to limit its usage by creating your own maps of file2project or folder2project
-        //        int fFound;
-        //        uint itemid;
-        //        VSDOCUMENTPRIORITY[] prio = new VSDOCUMENTPRIORITY[1];
-        //        if (pProject != null && pProject.IsDocumentInProject(filename, out fFound, prio, out itemid) == VSConstants.S_OK && fFound != 0)
-        //        {
-        //            vsItem.itemid = itemid;
-        //            vsItem.pHier = pHier;
-        //        }
-        //    }
-        //    return  vsItem;
-        //}
-
         #region Public Methods
 
         public bool FileTracked(string filename)
@@ -135,26 +81,6 @@ namespace GitSccProvider
             // _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
             _lastNewFileScan = DateTime.MinValue;
         }
-
-        //public bool StatusChanged(string filename, GitFileStatus status)
-        //{
-
-        //    var file = filename.ToLower();
-        //    var fileStatus = GitFileStatus.NotControlled;
-
-
-        //    if (_fileStatus.TryGetValue(file, out fileStatus))
-        //    {
-        //        if (fileStatus == status)
-        //        {
-        //            return false;
-        //        }
-        //        _fileStatus[file] = status;
-        //        return true;
-        //    }
-        //    _fileStatus.TryAdd(file, status);
-        //    return true;
-        //}
 
         public List<IVsSccProject2> GetProjectsSelectionForFile(string filename)
         {
@@ -240,7 +166,7 @@ namespace GitSccProvider
         {
             List<IVsSccProject2> projects;
             var filePath = filename.ToLower();
-            if (!_fileProjectLookup.TryGetValue(filePath, out projects))
+            if (_fileProjectLookup == null || !_fileProjectLookup.TryGetValue(filePath, out projects))
             {
                 return new List<IVsSccProject2>();
             }
@@ -249,7 +175,8 @@ namespace GitSccProvider
 
         private async Task ScanSolution()
         {
-            var projects = await GetLoadedControllableProjects();
+            var projects = await SolutionExtensions.GetLoadedControllableProjects();
+
             //TODO MAke sure I want to do this
             _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
             foreach (var project in projects)
@@ -272,33 +199,33 @@ namespace GitSccProvider
 
         //}
 
-        //TODo Temp
-        private async Task<List<IVsSccProject2>> GetLoadedControllableProjects()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var list = new List<IVsSccProject2>();
+        ////TODo Temp
+        //private async Task<List<IVsSccProject2>> GetLoadedControllableProjects()
+        //{
+        //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        //    var list = new List<IVsSccProject2>();
 
-            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
-            list.Add(sol as IVsSccProject2);
+        //    IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
+        //    list.Add(sol as IVsSccProject2);
 
-            Guid rguidEnumOnlyThisType = new Guid();
-            IEnumHierarchies ppenum = null;
-            ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
+        //    Guid rguidEnumOnlyThisType = new Guid();
+        //    IEnumHierarchies ppenum = null;
+        //    ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
 
-            IVsHierarchy[] rgelt = new IVsHierarchy[1];
-            uint pceltFetched = 0;
-            while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
-                   pceltFetched == 1)
-            {
-                IVsSccProject2 sccProject2 = rgelt[0] as IVsSccProject2;
-                if (sccProject2 != null)
-                {
-                    list.Add(sccProject2);
-                }
-            }
+        //    IVsHierarchy[] rgelt = new IVsHierarchy[1];
+        //    uint pceltFetched = 0;
+        //    while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
+        //           pceltFetched == 1)
+        //    {
+        //        IVsSccProject2 sccProject2 = rgelt[0] as IVsSccProject2;
+        //        if (sccProject2 != null)
+        //        {
+        //            list.Add(sccProject2);
+        //        }
+        //    }
 
-            return list;
-        }
+        //    return list;
+        //}
 
         //public string GetSolutionFileName()
         //{
