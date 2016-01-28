@@ -3,20 +3,9 @@ Git Source Control Provider 2015
 
 Introduction
 ------------
-This Visual Studio Extensions integrates Git with Visual Studio solution explorer.  
+** This Visual Studio Extensions integrates Git with Visual Studio solution explorer. ** 
 
 
-## Upgrade : 1.4
-
-*   This upgrade might not look like much on the surface, but under the hood, it was pretty large. Please post any issues https://github.com/jzoss/Git-Source-Control-Provider or contact me directly if you find any bugs of have any questions. 
-*   I'm not asking for donataions or anything, but if you want to fuel my nerd happy-ness please rate the plugin and tell me how you like it.  
-
-
-
-## Notice : Initial Visual Studio 2015 Upgrade
-This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c) by [Yiyi Sun](https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&f[0].Value=yysun)
-
-*   This Upgrade started as a quick and dirty modification so I could use the git plug-in I wanted in Visual Studio 2015\. A few others asked if they could use it, so then I went a little crazy and ended up adding a new extension project in 2015 and moving the files over from the old project. From my testing all works, but please tell me if you find anything, I will try and fix it.<br\>
 
 
 ![solution explorer](http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874)
@@ -45,20 +34,21 @@ How to use
 * Select Git Source Control Provider from the drop down list, and click OK.
 * Open your solution controlled by Git to see the file's status.
 * Right click within solution explorer and select "Git". If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.
-* Using the option page to disable the commands if you like.
+
 
 
 ## Change Logs -- Visual Studio 2015
 
 **V1.5** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
 
-    ---New Features---
+#####---New Features---
 *   Added ability to update your .gitingore file to latest version from github
 *   Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  
 *   Added ability Filter Pending Changes To Only Show Solution Files
 
 
-    ---Fixes---
+#####---Fixes---
+*   Fixed issue where plugin could periodically crash Visual Studio.
 *   Theme now switches with the need to resart.
 *   Double clicking on files in Pending Changes now opens/switches to the file. 
 *   No longer slows down when used with Resharper
@@ -93,6 +83,10 @@ How to use
 *   Fix lot's of bugs
 *   Removed Git Diff Margin(use https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )
 *   Fixed file missing exceptions.
+
+## Notice : Initial Visual Studio 2015 Upgrade
+This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c) by [Yiyi Sun](https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&f[0].Value=yysun)
+
 
 [Full Changelog](history.md)
 
