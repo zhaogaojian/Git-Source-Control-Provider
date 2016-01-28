@@ -11,7 +11,6 @@ using System.Threading.Tasks.Schedulers;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using EnvDTE;
-using GitExtension;
 using GitSccProvider;
 using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
@@ -21,6 +20,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using CancellationToken = System.Threading.CancellationToken;
 using CommandID = System.ComponentModel.Design.CommandID;
+using IgnoreFileManager = GitSccProvider.Utilities.IgnoreFileManager;
 using Interlocked = System.Threading.Interlocked;
 using Task = System.Threading.Tasks.Task;
 using TaskContinuationOptions = System.Threading.Tasks.TaskContinuationOptions;
@@ -964,9 +964,16 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         internal async Task InitRepo()
         {
             var solutionPath = Path.GetDirectoryName(await GetSolutionFileName());
+            SolutionExtensions.WriteMessageToOutputPane("Creating Repo");
             GitRepository.Init(solutionPath);
+            SolutionExtensions.WriteMessageToOutputPane("Repo Created");
+            SolutionExtensions.WriteMessageToOutputPane("Adding .gitignore file");
             await IgnoreFileManager.UpdateGitIgnore(solutionPath);
             File.WriteAllText(Path.Combine(solutionPath, ".tfignore"), @"\.git");
+            SolutionExtensions.WriteMessageToOutputPane("Enabling SCC Provider");
+            await OpenTracker();
+            await EnableSccForSolution();
+            SolutionExtensions.WriteMessageToOutputPane("Done");
         } 
         #endregion
     }

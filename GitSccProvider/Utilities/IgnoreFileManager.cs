@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GitExtension
+namespace GitSccProvider.Utilities
 {
     public class IgnoreFileManager
     {
@@ -24,15 +24,16 @@ namespace GitExtension
             var path = Path.Combine(workingPath, "VisualStudio.gitignore");
             try
             {
+                SolutionExtensions.WriteMessageToOutputPane("Getting Latest ignore file from github");
                 using (WebClient client = new WebClient())
                 {
                     await client.DownloadFileTaskAsync(new Uri("https://raw.githubusercontent.com/github/gitignore/master/VisualStudio.gitignore"), path);
+                    SolutionExtensions.WriteMessageToOutputPane("Success");
                 }
             }
             catch (Exception)
             {
-                { }
-                throw;
+                SolutionExtensions.WriteMessageToOutputPane("Download Failed");
             }
           
         }
@@ -42,8 +43,10 @@ namespace GitExtension
             var path = Path.Combine(repoPath, ".gitignore");
             var encoding = GetEncoding(path);
             await GetLatestIgnoreFile();
+            SolutionExtensions.WriteMessageToOutputPane("Updating .gitignore file");
             var text = await  BuildNewIgnoreFile(repoPath,path, encoding);
             await WriteTextAsync(path, text, FileMode.Create, encoding);
+            SolutionExtensions.WriteMessageToOutputPane("Updating .gitignore done!");
         }
 
         private static async Task<string> BuildNewIgnoreFile(string repoPath, string ignorePath, Encoding encoding)

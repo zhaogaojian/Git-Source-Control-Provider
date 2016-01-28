@@ -98,6 +98,7 @@
     <Compile Include="UI\StatusBox.xaml.cs">
       <DependentUpon>StatusBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utilities\IgnoreFileManager.cs" />
     <Compile Include="Utilities\SolutionExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="ToolWindowWithEditor.cs" />
@@ -345,10 +346,6 @@
     <ProjectReference Include="..\GitApi\GitApi.csproj">
       <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
       <Name>GitApi</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GitExtension\GitExtension.csproj">
-      <Project>{b6e161a0-86d1-46b8-9d11-42bc0b4156de}</Project>
-      <Name>GitExtension</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

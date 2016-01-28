@@ -861,53 +861,6 @@ Note: if the file is included project, you need to delete the file from project 
         }
         #endregion
 
-        //private void DiffEditor_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        //{
-        //    int start = 1, column = 1;
-        //    try
-        //    {
-        //        if (this.textView != null && diffLines != null && diffLines.Length > 0)
-        //        {
-        //            int line;
-        //            textView.GetCaretPos(out line, out column);
-
-        //            string text = diffLines[line];
-        //            while (line >= 0)
-        //            {
-        //                var match = Regex.Match(text, "^@@(.+)@@");
-        //                if (match.Success)
-        //                {
-        //                    var s = match.Groups[1].Value;
-        //                    s = s.Substring(s.IndexOf('+') + 1);
-        //                    s = s.Substring(0, s.IndexOf(','));
-        //                    start += Convert.ToInt32(s) - 2;
-        //                    break;
-        //                }
-        //                else if (text.StartsWith("-"))
-        //                {
-        //                    start--;
-        //                }
-
-        //                start++;
-        //                --line;
-        //                text = line >= 0 ? diffLines[line] : "";
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ShowStatusMessage(ex.Message);
-        //        Log.WriteLine("Pending Changes View - DiffEditor_MouseDoubleClick: {0}", ex.ToString());
-        //    }
-        //    GetSelectedFileFullName((fileName) =>
-        //    {
-        //        OpenFile(fileName);
-        //        var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
-        //        var selection = dte.ActiveDocument.Selection as EnvDTE.TextSelection;
-        //        selection.MoveToLineAndOffset(start, column);
-        //    });
-        //}
-
         private void OpenFile(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName)) return;
@@ -915,24 +868,6 @@ Note: if the file is included project, you need to delete the file from project 
             fileName = fileName.Replace("/", "\\");
             var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
             dte.ExecuteCommand("File.OpenFile", fileName);
-            //bool opened = false;
-            //Array projects = (Array)dte.ActiveSolutionProjects;
-            //foreach (dynamic project in projects)
-            //{
-            //    foreach (dynamic item in project.ProjectItems)
-            //    {
-            //        if (string.Compare(item.FileNames[0], fileName, true) == 0)
-            //        {
-            //            dynamic wnd = item.Open(EnvDTE.Constants.vsViewKindPrimary);
-            //            wnd.Activate();
-            //            opened = true;
-            //            break;
-            //        }
-            //    }
-            //    if (opened) break;
-            //}
-
-            //if (!opened) dte.ItemOperations.OpenFile(fileName);
         }
 
         private void UserControl_KeyDown(object sender, KeyEventArgs e)

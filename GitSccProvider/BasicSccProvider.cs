@@ -20,10 +20,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using EnvDTE;
-using GitExtension;
 using GitSccProvider;
 using GitSccProvider.Utilities;
 using Microsoft.VisualStudio.Threading;
+using IgnoreFileManager = GitSccProvider.Utilities.IgnoreFileManager;
 using Process = System.Diagnostics.Process;
 using Task = System.Threading.Tasks.Task;
 

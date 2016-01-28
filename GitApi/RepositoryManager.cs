@@ -395,7 +395,8 @@ namespace GitScc
         {
             try
             {
-                return Repository.Discover(Path.GetFullPath(path));
+                var repoPath = Repository.Discover(Path.GetFullPath(path));
+                return repoPath;
             }
             catch (Exception)
             {
