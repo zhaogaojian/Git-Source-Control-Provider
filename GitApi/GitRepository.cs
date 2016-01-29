@@ -439,6 +439,34 @@ namespace GitScc
             }
         }
 
+
+        public void AddFile(string filename)
+        {
+            try
+            {
+                string relPath;
+                if (Path.IsPathRooted(filename))
+                {
+                    if (!TryGetRelativePath(filename,out relPath))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    relPath = filename;
+                }
+                using (var repository = GetRepository())
+                {
+                    repository.Index.Add(relPath);
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+        }
+
         public void StageFile(string fileName)
         {
             using (var repository = GetRepository())
@@ -708,10 +736,10 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                var diffTree = repository.Diff.Compare<Patch>(repository.Head.Tip.Tree,
+                var diffTree = repository.Diff.Compare<Patch>(repository.Head?.Tip?.Tree,
                     DiffTargets.Index | DiffTargets.WorkingDirectory);
 
-                return diffTree[fileName].Patch;
+                return diffTree?[fileName].Patch;
             }
 
         }
@@ -903,10 +931,9 @@ namespace GitScc
 
         #endregion
 
-        public static void Init(string folderName)
+        public static string Init(string folderName)
         {
-            GitBash.Run("init", folderName);
-            GitBash.Run("config core.ignorecase true", folderName);
+            return Repository.Init(folderName);
         }
 
      

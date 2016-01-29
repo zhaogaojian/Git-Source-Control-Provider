@@ -142,6 +142,7 @@ namespace GitScc
             var projects = await SolutionExtensions.GetLoadedControllableProjects();
             await Task.Run(async delegate
             {
+                await RefreshSolutionGlyphs();
                 await RefreshProjectGlyphs(projects);
             });
         }
@@ -864,6 +865,28 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         }
 
+        private async Task RefreshSolutionGlyphs()
+        {
+            await ThreadHelper.JoinableTaskFactory.RunAsync(VsTaskRunContext.UIThreadBackgroundPriority,
+                    async delegate
+                    {
+                    // On caller's thread. Switch to main thread (if we're not already there).
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    // Now on UI thread via background priority.
+                    await Task.Yield();
+                    string[] rgpszFullPaths = new string[1];
+                    rgpszFullPaths[0] = await GetSolutionFileName();
+                    VsStateIcon[] rgsiGlyphs = new VsStateIcon[1];
+                    uint[] rgdwSccStatus = new uint[1];
+                    GetSccGlyph(1, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
+
+                    // Set the solution's glyph directly in the hierarchy
+                    IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+                    solHier.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_StateIconIndex, rgsiGlyphs[0]);
+                });
+         
+        }
 
         public async Task RefreshProjectGlyphs(List<IVsSccProject2> projects)
         {
@@ -963,16 +986,11 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         internal async Task InitRepo()
         {
-            var solutionPath = Path.GetDirectoryName(await GetSolutionFileName());
-            SolutionExtensions.WriteMessageToOutputPane("Creating Repo");
-            GitRepository.Init(solutionPath);
-            SolutionExtensions.WriteMessageToOutputPane("Repo Created");
-            SolutionExtensions.WriteMessageToOutputPane("Adding .gitignore file");
-            await IgnoreFileManager.UpdateGitIgnore(solutionPath);
-            File.WriteAllText(Path.Combine(solutionPath, ".tfignore"), @"\.git");
+            await GitCommandWrappers.InitRepo(await GetSolutionFileName());
             SolutionExtensions.WriteMessageToOutputPane("Enabling SCC Provider");
             await OpenTracker();
             await EnableSccForSolution();
+            await ReloadAllGlyphs();
             SolutionExtensions.WriteMessageToOutputPane("Done");
         } 
         #endregion

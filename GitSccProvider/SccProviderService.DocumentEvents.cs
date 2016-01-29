@@ -61,15 +61,22 @@ namespace GitScc
         private async void _windowEvents_WindowActivated(Window GotFocus, Window LostFocus)
         {
 
-            if (GitSccOptions.Current.TrackActiveGitRepo)
+            try
             {
-                var filename = GotFocus?.Document?.FullName;
-                if (!string.IsNullOrWhiteSpace(filename))
+                if (GitSccOptions.Current.TrackActiveGitRepo)
                 {
-                    //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    //await TaskScheduler.Default;
-                    RepositoryManager.Instance.GetTrackerForPath(filename, true);
+                    var filename = GotFocus?.Document?.FullName;
+                    if (!string.IsNullOrWhiteSpace(filename))
+                    {
+                        //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        //await TaskScheduler.Default;
+                        RepositoryManager.Instance.GetTrackerForPath(filename, true);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error In Window Activated Event: " + ex.Message);
             }
         }
 
