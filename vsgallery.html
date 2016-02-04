@@ -1,0 +1,72 @@
+<h1>Git Source Control Provider 2015</h1>
+<h2>Introduction</h2>
+<p>Alternative Git integration with Visual Studio 2015. It works in the solution explorer and has a pending changes window. It also works with multiple repositories in one solution. So if you like any of these features or you are not a fan of the built in TFS style Git integration that comes with Visual Studio, this may be the plugin for you. </p>
+<p><img src="http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874" alt="solution explorer" /></p>
+
+<h2>Questions / Bugs </h2>
+<li>If you have any questions, find any bugs, have a awesome idea for a new feature or just want to say hi, head on over to the <a href="https://github.com/jzoss/Git-Source-Control-Provider">github</a></li> site. 
+
+
+<h2>Latest:</h2>
+<p>15.0 - Release 15 is the largest, most complex release since this code was forked from the original plug-in. It focued on performance and stability.  To fix many of these issue much of the code had to be rewritten. It has been updated to use the new asynchronous frameworks. It took many late nights and lots extra time to get this release out, so I hope you enjoy it.</p>
+<p>&nbsp;</p>
+
+<h2>Features</h2>
+<ul>
+<li>Display file status in solution explorer and solution navigator</li>
+<li>Multiple repository support.  
+</li>
+<li>Display repository status e.g. in the middle of merging, patching, rebase and bisecting</li>
+<li>Enable/disable plug-in through visual studio's source control plug-in selection</li>
+<li>No source code control information stored in solution or project file</li>
+<li>Initialize new git repository and generate .gitignore </li>
+<li>Integrates with <a href="http://code.google.com/p/msysgit">Git for Windows</a></li>
+<li>Integrates with <a href="http://code.google.com/p/gitextensions">Git Extensions</a></li>
+<li>Integrates with <a href="http://code.google.com/p/tortoisegit">TortoiseGit</a></li>
+<li>[Git - Pending Changes Tool Window] (http://gitscc.codeplex.com/wikipage?title=Commit%20Changes)</li>
+<li>[Git - View History Tool Window] (http://gitscc.codeplex.com/wikipage?title=View%20History)</li>
+<li>Options page</li>
+</ul>
+<h2>How to use</h2>
+<ul>
+<li>Install <a href="http://code.google.com/p/msysgit">Git for Windows</a>, or <a href="http://code.google.com/p/gitextensions">Git Extensions</a>, or <a href="http://code.google.com/p/tortoisegit">TortoiseGit</a>.</li>
+<li>Run Visual Studio. </li>
+<li>Go to Tools | Extension Manager, search online gallery for Git Source Control Provider and install. Or Install From <a href="https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d">Visual Studio Gallery</a> </li>
+<li>Go to Tools | Options, Select Source Control.</li>
+<li>Select Git Source Control Provider from the drop down list, and click OK.</li>
+<li>Open your solution controlled by Git to see the file's status.</li>
+<li>Right click within solution explorer and select &quot;Git&quot;. If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.</li>
+</ul>
+<h2>How to contribute </h2>
+<p>If you like this plugin there is a few way you can help out.</p>
+<ul>
+<li>Review It! - I'm not asking for donations or anything, but if you do use this and like it.. Please head over to the <a href="https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d">Visual Studio Gallery</a> and review it.  Good reviews refill my nerd powers that power all those late night programming sessions. They also make me feel all warm and fuzzy! </li>
+<li>Suggest Features / Point out bugs. </li>
+<li>Test It - Check out the <a href="https://github.com/jzoss/Git-Source-Control-Provider/releases">Releases</a>. If there is a early release try it out and let me know if you find any bugs!</li>
+<li>Code - Check out the code, play with it. maybe fix a bug while you are there.. It fun and educational. It also makes you super cool, better looking and possibly give you superpowers.</li>
+</ul>
+<h4>Building</h4>
+<p>All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibility Tools installed. It's <strong>THAT</strong> easy!</p>
+<h2>Change Logs -- Visual Studio 2015</h2>
+<p><strong>V-Next</strong> <a href="https://ci.appveyor.com/project/jzoss/git-source-control-provider"><img src="https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true" alt="Build status" /></a></p>
+<p><strong>V1.5</strong></p>
+<h5>---New Features---</h5>
+<ul>
+<li>Added ability to update your .gitingore file to latest version from github</li>
+<li>Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  
+</li>
+<li>Added ability Filter Pending Changes To Only Show Solution Files</li>
+</ul>
+<h5>---Fixes---</h5>
+<ul>
+<li>Fixed issue where plugin could periodically crash Visual Studio.</li>
+<li>Theme now switches with the need to resart.</li>
+<li>Double clicking on files in Pending Changes now opens/switches to the file. </li>
+<li>No longer slows down when used with Resharper</li>
+<li>Fixed issue #15, #21 where sometimes the plugin caused Visual Studio to crash. </li>
+<li>Fixed issue #16, Solution Explorer glyphs not updating. </li>
+</ul>
+<p>This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c">git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&amp;f[0].Value=yysun">Yiyi Sun</a></p>
+<p><a href="history.md">Full Changelog</a></p>
+<h2>Documentation</h2>
+<p><a href="https://github.com/jzoss/Git-Source-Control-Provider">Source + Documentation</a></p>
