@@ -141,11 +141,6 @@ namespace GitSccProvider.Utilities
         {
             List<uint> projectNodes = new List<uint>();
 
-            //if (pHier == null)
-            //{
-            //    return projectNodes;
-            //}
-
             // The method does a breadth-first traversal of the project's hierarchy tree
             Queue<uint> nodesToWalk = new Queue<uint>();
             nodesToWalk.Enqueue(startItemid);

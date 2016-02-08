@@ -78,7 +78,6 @@ namespace GitSccProvider
         {
             _projects = new List<IVsSccProject2>();
             _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
-            // _projectSelectionLookup = new ConcurrentDictionary<IVsSccProject2, VSITEMSELECTION>();
             _lastNewFileScan = DateTime.MinValue;
         }
 
@@ -185,83 +184,6 @@ namespace GitSccProvider
             }
 
         }
-
-        //private async Task ScanSolution()
-        //{
-        //    //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        //    var projects = await SolutionExtensions.GetProjects();
-        //    //TODO MAke sure I want to do this
-        //    _fileProjectLookup = new ConcurrentDictionary<string, List<IVsSccProject2>>();
-        //    foreach (var project in projects)
-        //    {
-        //        await AddProject(project);
-        //    }
-
-        //}
-
-        ////TODo Temp
-        //private async Task<List<IVsSccProject2>> GetLoadedControllableProjects()
-        //{
-        //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        //    var list = new List<IVsSccProject2>();
-
-        //    IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
-        //    list.Add(sol as IVsSccProject2);
-
-        //    Guid rguidEnumOnlyThisType = new Guid();
-        //    IEnumHierarchies ppenum = null;
-        //    ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
-
-        //    IVsHierarchy[] rgelt = new IVsHierarchy[1];
-        //    uint pceltFetched = 0;
-        //    while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
-        //           pceltFetched == 1)
-        //    {
-        //        IVsSccProject2 sccProject2 = rgelt[0] as IVsSccProject2;
-        //        if (sccProject2 != null)
-        //        {
-        //            list.Add(sccProject2);
-        //        }
-        //    }
-
-        //    return list;
-        //}
-
-        //public string GetSolutionFileName()
-        //{
-        //    IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
-        //    string solutionDirectory, solutionFile, solutionUserOptions;
-        //    if (sol.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionUserOptions) == VSConstants.S_OK)
-        //    {
-        //        return solutionFile;
-        //    }
-        //    else
-        //    {
-        //        return null;
-        //    }
-        //}
-
-        //public bool IsProjectControlled(IVsHierarchy pHier)
-        //{
-        //    if (pHier == null)
-        //    {
-        //        // this is solution, get the solution hierarchy
-        //        pHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
-        //    }
-
-        //    return project_to_storage_map.ContainsKey(pHier);
-        //}
-
-        //public bool IsProjectControlled(IVsSccProject2 project)
-        //{
-        //    if (pHier == null)
-        //    {
-        //        // this is solution, get the solution hierarchy
-        //        pHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
-        //    }
-
-        //    return project_to_storage_map.ContainsKey(pHier);
-        //}
 
         #region Implementation of IDisposable
 

@@ -144,12 +144,6 @@ namespace GitScc
             }
             ActiveTracker = null;
 
-            //if (_activeTracker != null)
-            //{
-            //    _activeTracker.BranchChanged -= _solutionTracker_BranchChanged;
-            //    _activeTracker = null;
-            //}
-
             _repositories = new List<GitFileStatusTracker>();
             _fileRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
             _basePathRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();

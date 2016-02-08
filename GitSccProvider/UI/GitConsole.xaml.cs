@@ -229,18 +229,6 @@ USE AT YOUR OWN RISK.
                 {
                     flag = 0;
 
-                    //new ReadOutput(process.StandardOutput, mreOut, (c) =>
-                    //{
-                    //    Action act = () =>
-                    //    {
-                    //        TextRange range = new TextRange(richTextBox1.Document.ContentEnd, richTextBox1.Document.ContentEnd);
-                    //        range.Text = c.ToString();
-                    //        this.richTextBox1.CaretPosition = this.richTextBox1.CaretPosition.DocumentEnd;
-                    //        //this.richTextBox1.AppendText(c.ToString());
-                    //    };
-                    //    this.Dispatcher.BeginInvoke(act, DispatcherPriority.ApplicationIdle);
-                    //});
-
                     process.OutputDataReceived += (o, e) =>
                     {
                         if (e.Data == null)

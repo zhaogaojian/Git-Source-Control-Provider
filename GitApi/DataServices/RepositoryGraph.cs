@@ -203,8 +203,6 @@ namespace GitScc.DataServices
                             parent.ChildIds[parent.ChildIds.IndexOf(commit.Id)] = cid;
                             child.ParentIds[child.ParentIds.IndexOf(commit.Id)] = pid;
                         }
-                        //commit.ChildIds.Clear();
-                        //commit.ParentIds.Clear();
                     }
                 }
             }

@@ -34,11 +34,9 @@ namespace GitScc
         private string workingDirectory;
         private readonly string _gitDirectory;
         private List<GitFile> _changedFiles;
-        //private List<GitFile> _changeFileStatus;
         private bool isGit;
         private string _branchDisplayName;
         private string _cachedBranchName;
-        //private GitChangesetManager _changesetManager;
         private CurrentOperation _cachedBranchOperation;
         private readonly string _repositoryPath;
         private readonly string _objectPath;
@@ -107,15 +105,8 @@ namespace GitScc
             this.workingDirectory = _statusRepository.Info.WorkingDirectory;
             _repositoryPath = _statusRepository.Info.Path;
             _objectPath = _repositoryPath + "objects\\";
-            //using (var repository = GetRepository())
-            //{
-            //    this.workingDirectory = repository.Info.WorkingDirectory;
-            //    repositoryPath = repository.Info.Path;
-            //}
 
             _cachedBranchOperation = CurrentOperation.None;
-            //_changesetManager = new GitChangesetManager();
-            //_lastTipId = repository.Head.Tip.sha;
             Refresh();
             _gitEventObservable = Observable.FromEventPattern(ev => _gitfileEvent += ev, ev => _gitfileEvent -= ev)
                 .Throttle(TimeSpan.FromMilliseconds(2000));
@@ -234,17 +225,11 @@ namespace GitScc
         private async Task DecodeGitEvents()
         {
             await GitFileEventUpdate();
-            //cheap :)
-            //SetBranchName();
-            //await HandleFileSystemChanged();
         }
 
         private async Task FileChangedEvent()
         {
             await HandleFileSystemChanged();
-            //cheap :)
-            //SetBranchName();
-            //await HandleFileSystemChanged();
         }
 
         /// <summary>
@@ -1067,29 +1052,7 @@ namespace GitScc
                 Thread.Sleep(2000);
                 _statusRepository?.Dispose();
                 _statusRepository = GetRepository();
-                //if (retryAllowed)
-                //{
-                //    return GetCurrentFilesStatus(false);
-                //}
-
-                //if (retryAllowed)
-                //{
-                //    return Task.Run(() =>
-                //    {
-                //        Thread.Sleep(500);
-                //        return GetCurrentChangedFiles(false);
-                //    }).Result;
-                //}
-                //else
-                //{
-                //    Debug.WriteLine("Error In GetCurrentChangedFiles: " + ex.Message);
-                //}
-
             }
-            //finally
-            //{
-            //    repository?.Dispose();
-            //}
             return files;
         }
 
@@ -1467,8 +1430,6 @@ namespace GitScc
         {
             DisableRepositoryWatcher();
             _statusRepository?.Dispose();
-            //repository.Dispose();
-            //repository = null;
         }
     }
 
