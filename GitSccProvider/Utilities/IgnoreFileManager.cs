@@ -20,7 +20,6 @@ namespace GitSccProvider.Utilities
         private static async Task GetLatestIgnoreFile()
         {
             var workingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
             var path = Path.Combine(workingPath, "VisualStudio.gitignore");
             try
             {
@@ -60,6 +59,12 @@ namespace GitSccProvider.Utilities
             var workingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             var path = Path.Combine(workingPath, "VisualStudio.gitignore");
+
+            if (!File.Exists(path))
+            {
+                SolutionExtensions.WriteMessageToOutputPane("Updated .ignorefile not found, using cached ignore file");
+                path = Path.Combine(workingPath, "Resources\\VisualStudio.gitignore");
+            }
 
             var mainBody = File.ReadAllText(path);
             sb.Append(mainBody);
