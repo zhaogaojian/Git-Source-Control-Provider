@@ -218,6 +218,17 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\ICSharpCode.AvalonEdit.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\System.Reactive.Core.dll" />
+    <EmbeddedResource Include="Resources\System.Reactive.Interfaces.dll" />
+    <EmbeddedResource Include="Resources\System.Reactive.Linq.dll" />
+    <EmbeddedResource Include="Resources\System.Reactive.PlatformServices.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Nito.AsyncEx.Concurrent.dll" />
+    <EmbeddedResource Include="Resources\Nito.AsyncEx.dll" />
+    <EmbeddedResource Include="Resources\Nito.AsyncEx.Enlightenment.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
