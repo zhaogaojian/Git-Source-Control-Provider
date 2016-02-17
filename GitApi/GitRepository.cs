@@ -489,7 +489,7 @@ namespace GitScc
 
                 CommitOptions opts = new CommitOptions();
                 opts.AmendPreviousCommit = amend;
-                var commit = repository.Commit(message, author, committer);
+                var commit = repository.Commit(message, author, committer,opts);
                 return commit.Sha;
             }
         }
