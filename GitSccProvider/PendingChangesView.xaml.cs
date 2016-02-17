@@ -284,7 +284,7 @@ namespace GitScc
                 {
                     var tmpFileName = ThreadHelper.JoinableTaskFactory.Run(async delegate
                     {
-                        await TaskScheduler.Default;
+                        //await TaskScheduler.Default;
                         return CurrentTracker.Diff(fileName);
                     });
 

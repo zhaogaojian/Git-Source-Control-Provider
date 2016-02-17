@@ -74,7 +74,7 @@ namespace GitScc.UI
             btnOK.IsEnabled = GitBash.Exists && !string.IsNullOrWhiteSpace(version) && version.StartsWith("git version");
         }
 
-        private void btnOK_Click(object sender, RoutedEventArgs e)
+        private async void btnOK_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtUserName.Text))
             {
@@ -96,6 +96,7 @@ namespace GitScc.UI
                 GitSccOptions.Current.GitBashPath = GitBash.GitExePath;
                 GitSccOptions.Current.SaveConfig();
                 var sccService = BasicSccProvider.GetServiceEx<SccProviderService>();
+                await Hide();
                 //sccService.MarkDirty(false);
             }
             catch (Exception ex)
