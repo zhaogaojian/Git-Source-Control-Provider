@@ -4,38 +4,7 @@ configuration: Release
 -
   branches:
     only:
-    - master
-
-  version: 1.5.0.{build}
-
-  install:
-
-  - ps: >-
-
-      (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
-
-
-
-
-
-
-
-  before_build:
-    - ps: Vsix-IncrementVsixVersion | Vsix-UpdateBuildVersion
-
-  build_script:
-    - nuget restore -Verbosity quiet
-    - msbuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
-  test: off
-  artifacts:
-  - path: GitSccProvider\bin\Release\GitSccProvider.vsix
-    name: GitSccProvider
-
-
--
-  branches:
-    only:
-    - /dev-.*/
+      - /dev-.*/
   
   
   environment:
@@ -85,3 +54,29 @@ configuration: Release
   on:
     branch: dev                 # release from master branch only
     appveyor_repo_tag: true        # deploy on tag push only
+
+-
+  branches:
+    only:
+      - master
+
+  version: 1.5.0.{build}
+
+  install:
+
+  - ps: >-
+
+      (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
+
+  before_build:
+    - ps: Vsix-IncrementVsixVersion | Vsix-UpdateBuildVersion
+
+  build_script:
+    - nuget restore -Verbosity quiet
+    - msbuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
+  test: off
+  artifacts:
+  - path: GitSccProvider\bin\Release\GitSccProvider.vsix
+    name: GitSccProvider
+
+
