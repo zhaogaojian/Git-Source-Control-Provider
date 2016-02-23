@@ -44,7 +44,7 @@
 
 
   deploy:
-    release: GSCP Dev-v{majorVersion}.{minorVersion}
+    release: GSCP Dev-v${majorVersion}.${minorVersion}
     description: GSCP Dev Build -v$(appveyor_build_version)
     provider: GitHub
     auth_token:
