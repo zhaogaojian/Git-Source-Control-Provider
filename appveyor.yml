@@ -1,7 +1,7 @@
 os: Previous Visual Studio 2015 RC
 configuration: Release
 
-- 
+-
   branches:
     only:
     - master
@@ -32,7 +32,7 @@ configuration: Release
     name: GitSccProvider
 
 
-- 
+-
   branches:
     only:
     - /dev-.*/
