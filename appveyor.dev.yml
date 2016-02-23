@@ -1,9 +1,10 @@
 
-majorVersion : 1
-minorVersion : 5
-patchVersion : 0
+environment:
+  majorVersion: 1
+  minorVersion: 5
+  patchVersion: 0
 
-version: {majorVersion}.{minorVersion}.{patchVersion}.{build}-dev
+version: $(majorVersion).$(minorVersion).$(patchVersion).{build}-dev
 
 os: Previous Visual Studio 2015 RC
 
@@ -16,10 +17,6 @@ install:
     (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
 
 
-
-
-
-    git submodule -q update --init
 
 before_build:
 
