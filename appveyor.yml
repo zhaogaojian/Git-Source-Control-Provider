@@ -1,6 +1,6 @@
 os: Previous Visual Studio 2015 RC
 configuration: Release
-
+-
 branches:
   only:
   - master
@@ -31,7 +31,7 @@ artifacts:
 - path: GitSccProvider\bin\Release\GitSccProvider.vsix
   name: GitSccProvider
 
-
+-
 branches:
   only:
   - /dev-.*/
