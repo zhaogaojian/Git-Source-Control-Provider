@@ -1,7 +1,8 @@
-os: Previous Visual Studio 2015 RC
-configuration: Release
+
 
 -
+  os: Previous Visual Studio 2015 RC
+  configuration: Release
   branches:
     only:
       - /dev-.*/
@@ -56,6 +57,9 @@ configuration: Release
     appveyor_repo_tag: true        # deploy on tag push only
 
 -
+  os: Previous Visual Studio 2015 RC
+  configuration: Release
+  
   branches:
     only:
       - master
