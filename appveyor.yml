@@ -13,7 +13,7 @@
     minorVersion: 5
     patchVersion: 0
 
-  version: $(majorVersion).$(minorVersion).$(patchVersion).{build}-dev
+  version: $(majorVersion).$(minorVersion).$(patchVersion).{build}
 
 
   install:
