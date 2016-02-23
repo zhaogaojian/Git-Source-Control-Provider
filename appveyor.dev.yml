@@ -1,0 +1,59 @@
+version: 1.5.0.{build}-dev
+
+os: Previous Visual Studio 2015 RC
+
+configuration: Release
+
+install:
+
+- ps: >-
+
+    (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
+
+
+
+
+
+    git submodule -q update --init
+
+before_build:
+
+- ps: >-
+
+    nuget restore
+
+
+
+    $vsixPath = "$env:appveyor_build_folder\source.extension.vsixmanifest"
+
+
+
+
+
+    $manifestXml = New-Object XML
+
+
+
+    $manifestXml.Load($vsixPath)
+
+
+
+    $manifestXml.PackageManifest.Metadata.Identity.Version = $env:appveyor_build_version)
+
+
+
+    $manifestXml.save($vsixPath)
+
+build:
+
+  project: BasicSccProvider.sln
+
+  verbosity: minimal
+
+test: off
+
+artifacts:
+
+- path: GitSccProvider\bin\Release\GitSccProvider.vsix
+
+  name: GitSccProvider
