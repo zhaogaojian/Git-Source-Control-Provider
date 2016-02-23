@@ -27,7 +27,7 @@
       $vsixPath = "$env:appveyor_build_folder\GitSccProvider\source.extension.vsixmanifest"
           $manifestXml = New-Object XML
           $manifestXml.Load($vsixPath)
-          $manifestXml.PackageManifest.Metadata.Identity.Version = $(appveyor_build_version)
+          $manifestXml.PackageManifest.Metadata.Identity.Version = $env:appveyor_build_version
           $manifestXml.save($manifestPath)
 
   build_script:
