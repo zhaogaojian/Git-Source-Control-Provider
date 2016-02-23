@@ -1,4 +1,8 @@
-version: 1.5.0.{build}-dev
+majorVersion : 1
+minorVersion : 5
+patch : 0
+
+version: {majorVersion}.{minorVersion}.{patch}.{build}-dev
 
 os: Previous Visual Studio 2015 RC
 
@@ -20,35 +24,20 @@ before_build:
 
 - ps: >-
 
-    nuget restore
-
-
-
-    $vsixPath = "$env:appveyor_build_folder\source.extension.vsixmanifest"
-
-
-
+      $vsixPath = "source.extension.vsixmanifest"
 
 
     $manifestXml = New-Object XML
 
-
-
     $manifestXml.Load($vsixPath)
 
+    $manifestXml.PackageManifest.Metadata.Identity.Version = {version}
 
+    $manifestXml.save($manifestPath)
 
-    $manifestXml.PackageManifest.Metadata.Identity.Version = $env:appveyor_build_version)
-
-
-
-    $manifestXml.save($vsixPath)
-
-build:
-
-  project: BasicSccProvider.sln
-
-  verbosity: minimal
+build_script:
+  - nuget restore -Verbosity quiet
+  - msbuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
 
 test: off
 
@@ -57,3 +46,17 @@ artifacts:
 - path: GitSccProvider\bin\Release\GitSccProvider.vsix
 
   name: GitSccProvider
+
+
+deploy:
+  release: GSCP Dev-v{majorVersion}.{minorVersion}
+  description: GSCP Dev Build -v$(appveyor_build_version)
+  provider: GitHub
+  auth_token:
+    secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc # your encrypted token from GitHub
+  artifact: GitSccProvider\bin\Release\GitSccProvider.vsix           # upload all NuGet packages to release assets
+  draft: false
+  prerelease: true
+  on:
+    branch: dev                 # release from master branch only
+    appveyor_repo_tag: true        # deploy on tag push only
