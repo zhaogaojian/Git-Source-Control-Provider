@@ -1,11 +1,11 @@
+os: Previous Visual Studio 2015 RC
+configuration: Release
 
 branches:
   only:
   - master
 
 version: 1.5.0.{build}
-
-os: Visual Studio 2015
 
 install:
 
@@ -34,7 +34,7 @@ artifacts:
 
 branches:
   only:
-  - dev
+  - /dev-.*/
   
   
 environment:
@@ -44,9 +44,6 @@ environment:
 
 version: $(majorVersion).$(minorVersion).$(patchVersion).{build}-dev
 
-os: Previous Visual Studio 2015 RC
-
-configuration: Release
 
 install:
 
