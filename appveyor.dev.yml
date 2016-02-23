@@ -3,7 +3,7 @@ majorVersion : 1
 minorVersion : 5
 patchVersion : 0
 
-version:{majorVersion}.{minorVersion}.{patch}.{build}-dev
+version: {majorVersion}.{minorVersion}.{patch}.{build}-dev
 
 os: Previous Visual Studio 2015 RC
 
