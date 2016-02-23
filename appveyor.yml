@@ -24,7 +24,7 @@
 
   before_build:
   - ps: >-
-      $vsixPath = "$env:appveyor_build_folder\source.extension.vsixmanifest"
+      $vsixPath = "$env:appveyor_build_folder\GitSccProvider\source.extension.vsixmanifest"
           $manifestXml = New-Object XML
           $manifestXml.Load($vsixPath)
           $manifestXml.PackageManifest.Metadata.Identity.Version = {version}
