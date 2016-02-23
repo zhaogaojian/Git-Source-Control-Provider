@@ -27,3 +27,12 @@
     name: GitSccProvider
 
 
+  deploy:
+    release: Release $(appveyor_build_version)
+    description: GSCP Release Build -v$(appveyor_build_version)
+    provider: GitHub
+    auth_token:
+      secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc # your encrypted token from GitHub
+    artifact: GitSccProvider\bin\Release\GitSccProvider.vsix           # upload all NuGet packages to release assets
+    draft: false
+    prerelease: false

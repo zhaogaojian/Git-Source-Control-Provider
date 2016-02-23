@@ -28,7 +28,6 @@
           $manifestXml.Load($vsixPath)
           $manifestXml.PackageManifest.Metadata.Identity.Version = $env:appveyor_build_version
           $manifestXml.save($vsixPath)
-
   build_script:
     - nuget restore -Verbosity quiet
     - msbuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
