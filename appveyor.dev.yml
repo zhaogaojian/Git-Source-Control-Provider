@@ -49,8 +49,7 @@
     release: $(tag)
     description: GSCP CI Build
     provider: GitHub
-    auth_token:
-      secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc # your encrypted token from GitHub
+    auth_token: $(access_token) # your encrypted token from GitHub
     artifact: GitSccProvider\bin\Release\GitSccProvider.vsix           # upload all NuGet packages to release assets
     draft: false
     prerelease: true
