@@ -11,8 +11,12 @@
     majorVersion: 1
     minorVersion: 5
     patchVersion: 0
+    access_token:
+      secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
+    tag: GSCP Dev-v$(majorVersion).$(minorVersion)
 
   version: $(majorVersion).$(minorVersion).$(patchVersion).{build}
+  
 
 
   install:
@@ -42,12 +46,19 @@
 
 
   deploy:
-    release: GSCP Dev-v$(majorVersion).$(minorVersion)
+    release: $(tag)
     description: GSCP CI Build
-    tag: gscp-dev-v$(appveyor_build_version)
     provider: GitHub
     auth_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc # your encrypted token from GitHub
     artifact: GitSccProvider\bin\Release\GitSccProvider.vsix           # upload all NuGet packages to release assets
     draft: false
     prerelease: true
+  
+  after_deploy:
+  - git config --global credential.helper store
+  - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
+  - git config --global user.email "build.server@appveyor.com"
+  - git config --global user.name "Build Server"
+  - git tag -a %tag% %APPVEYOR_REPO_COMMIT% -f
+  - git push origin :/refs/tags/%tag% -f
