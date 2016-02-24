@@ -43,8 +43,8 @@
 
   deploy:
     release: GSCP Dev-v$(majorVersion).$(minorVersion)
-	tag: gscp-dev-v$(appveyor_build_version)
-    description: GSCP CI Build 
+    description: GSCP CI Build
+    tag: gscp-dev-v$(appveyor_build_version)
     provider: GitHub
     auth_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc # your encrypted token from GitHub
