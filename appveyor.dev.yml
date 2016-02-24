@@ -54,7 +54,7 @@
     prerelease: true
   
   after_deploy:
-  - set TAG =GSCP Dev-v$env:majorVersion.$env:minorVersion
+  - set TAG =GSCP Dev-v%majorVersion%.%minorVersion%
   - git config --global credential.helper store
   - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
   - git config --global user.email "build.server@appveyor.com"
