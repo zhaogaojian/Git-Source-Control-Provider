@@ -54,11 +54,3 @@
     draft: false
     prerelease: true
   
-  after_deploy:
-  - ps: "$env:relName"
-  - git config --global credential.helper store
-  - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
-  - git config --global user.email "build.server@appveyor.com"
-  - git config --global user.name "Build Server"
-  - echo git tag -a %relName% %APPVEYOR_REPO_COMMIT% -f
-  - echo git push origin :/refs/tags/%relName% -f
