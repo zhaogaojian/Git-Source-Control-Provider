@@ -63,7 +63,18 @@ namespace GitScc
         #endregion
 
 
-
+        public void SetStatus(string filename, GitFileStatus status)
+        {
+            if (!String.IsNullOrWhiteSpace(filename))
+            {
+                var fileKey = filename.ToLower();
+                var changeStatus = GitFile.IsChangedStatus(status) ? status : GitFileStatus.Unaltered;
+                if (changeStatus != GitFileStatus.Unaltered || _fileStatus.ContainsKey(fileKey))
+                {
+                    _fileStatus.AddOrUpdate(fileKey, changeStatus, (key, val) => changeStatus);
+                }
+            }
+        }
 
         /// <summary>
         /// Takes the new changeset and returns a list of files that have changed status

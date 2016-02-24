@@ -50,9 +50,16 @@ If you like this plugin there is a few way you can help out.
 All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibility Tools installed. It's **THAT** easy!
 
 
+
+## Current status
+
+| :------ | :------: | :------: |
+| **Release** | [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
+| **Dev** | [![Build status](https://ci.appveyor.com/api/projects/status/qr4hm0uqyr4wnnm9?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider-bfftg)
+
 ## Change Logs -- Visual Studio 2015
 
-**V-Next** [![Build status](https://ci.appveyor.com/api/projects/status/pxqohbd79ix57vw5?svg=true)](https://ci.appveyor.com/project/jzoss/git-source-control-provider)
+**V-Next** 
 
 **V1.5**
 

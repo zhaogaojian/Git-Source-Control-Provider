@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -51,7 +52,7 @@ namespace GitScc
         private bool _solutionUpdating = false;
         private bool _updateQueued = false;
         private SccProviderSolutionCache _fileCache;
-        private Dictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
+        private ConcurrentDictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -60,7 +61,7 @@ namespace GitScc
         {
             this._sccProvider = sccProvider;
             _fileCache = new SccProviderSolutionCache(_sccProvider);
-            _fileChangesetManager = new Dictionary<GitRepository, GitChangesetManager>();
+            _fileChangesetManager = new ConcurrentDictionary<GitRepository, GitChangesetManager>();
 
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
             RepositoryManager.Instance.FileStatusUpdate += RepositoryManager_FileStatusUpdate;
@@ -442,7 +443,7 @@ namespace GitScc
             Debug.WriteLine("==== Open Tracker");
             RepositoryManager.Instance.Clear();
             _fileCache = new SccProviderSolutionCache(_sccProvider);
-            _fileChangesetManager = new Dictionary<GitRepository, GitChangesetManager>();
+            _fileChangesetManager = new ConcurrentDictionary<GitRepository, GitChangesetManager>();
 
             var solutionFileName = await GetSolutionFileName();
             RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
@@ -781,7 +782,8 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             if (tracker != null)
             {
                 status = tracker.GetFileStatus(fileName);
-                //var cm = GetChangesetManager(tracker);
+                var cm = GetChangesetManager(tracker);
+                cm?.SetStatus(fileName,status);
                 //cm.SetStatus(fileName, status);
                 //status = cm?.GetFileStatus(fileName) ?? GitFileStatus.NotControlled;
             }
@@ -796,13 +798,13 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
 
         private GitChangesetManager GetChangesetManager(GitRepository repo)
         {
-            if(!_fileChangesetManager.ContainsKey(repo))
+            GitChangesetManager manager;
+            if (!_fileChangesetManager.TryGetValue(repo, out manager))
             {
-                //Get the inital state of the repo.. I guess :)
-                _fileChangesetManager.Add(repo, new GitChangesetManager());
+                manager = new GitChangesetManager();
+                _fileChangesetManager.TryAdd(repo, manager);
             }
-
-            return _fileChangesetManager[repo];
+            return manager;
         }
 
         #endregion

@@ -390,7 +390,7 @@ namespace GitScc
             try
             {
                 var repoPath = Repository.Discover(Path.GetFullPath(path));
-                return repoPath;
+                return repoPath?.ToLower();
             }
             catch (Exception)
             {
