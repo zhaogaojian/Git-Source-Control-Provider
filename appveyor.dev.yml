@@ -15,7 +15,7 @@
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
     
   version: $(majorVersion).$(minorVersion).$(patchVersion).{build}
-  tag: GSCP Dev-v$(majorVersion).$(minorVersion)
+  releaseName: GSCP Dev-v$(majorVersion).$(minorVersion)
 
 
 
@@ -46,7 +46,7 @@
 
 
   deploy:
-    release: $(tag)
+    release: $(releaseName)
     description: GSCP CI Build
     provider: GitHub
     auth_token: $(access_token) # your encrypted token from GitHub
@@ -59,5 +59,5 @@
   - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
   - git config --global user.email "build.server@appveyor.com"
   - git config --global user.name "Build Server"
-  - git tag -a %tag% %APPVEYOR_REPO_COMMIT% -f
-  - git push origin :/refs/tags/%tag% -f
+  - git tag -a %releaseName% %APPVEYOR_REPO_COMMIT% -f
+  - git push origin :/refs/tags/%releaseName% -f
