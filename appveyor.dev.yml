@@ -54,10 +54,10 @@
     prerelease: true
   
   after_deploy:
-  - set TAG =GSCP Dev-v$(majorVersion).$(minorVersion)
+  - set TAG =GSCP Dev-v$env:majorVersion.$env:minorVersion
   - git config --global credential.helper store
   - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
   - git config --global user.email "build.server@appveyor.com"
   - git config --global user.name "Build Server"
-  - git tag -a GSCP Dev-v%$env:majorVersion.$env:minorVersion %$env:APPVEYOR_REPO_COMMIT% -f
+  - git tag -a "%TAG" "%$env:APPVEYOR_REPO_COMMIT%" -f
   - git push origin :/refs/tags/GSCP Dev-v%$env:majorVersion.$env:minorVersion -f
