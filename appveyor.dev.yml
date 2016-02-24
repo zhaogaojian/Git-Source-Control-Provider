@@ -13,7 +13,7 @@
     patchVersion: 0
     access_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
-    releaseName : GSCP Dev-v{majorVersion}.{minorVersion}
+    
     
   version: $(majorVersion).$(minorVersion).$(patchVersion).{build}
 
@@ -45,7 +45,7 @@
 
 
   deploy:
-    release: $(releaseName)
+    release: GSCP Dev-v$(majorVersion).$(minorVersion)
     description: GSCP CI Build
     provider: GitHub
     auth_token: $(access_token) # your encrypted token from GitHub
@@ -54,9 +54,10 @@
     prerelease: true
   
   after_deploy:
+  - set TAG =GSCP Dev-v$(majorVersion).$(minorVersion)
   - git config --global credential.helper store
   - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
   - git config --global user.email "build.server@appveyor.com"
   - git config --global user.name "Build Server"
-  - git tag -a %releaseName% %APPVEYOR_REPO_COMMIT% -f
-  - git push origin :/refs/tags/%releaseName% -f
+  - git tag -a GSCP Dev-v%$env:majorVersion.$env:minorVersion %$env:APPVEYOR_REPO_COMMIT% -f
+  - git push origin :/refs/tags/GSCP Dev-v%$env:majorVersion.$env:minorVersion -f
