@@ -60,5 +60,5 @@
   - ps: Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:access_token):x-oauth-basic@github.com`n"
   - git config --global user.email "build.server@appveyor.com"
   - git config --global user.name "Build Server"
-  - git tag -a %relName% %APPVEYOR_REPO_COMMIT% -f
-  - git push origin :/refs/tags/%relName% -f
+  - echo git tag -a %relName% %APPVEYOR_REPO_COMMIT% -f
+  - echo git push origin :/refs/tags/%relName% -f
