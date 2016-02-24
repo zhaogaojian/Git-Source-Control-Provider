@@ -13,10 +13,9 @@
     patchVersion: 0
     access_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
+    releaseName : GSCP Dev-v{majorVersion}.{minorVersion}
     
   version: $(majorVersion).$(minorVersion).$(patchVersion).{build}
-  releaseName: GSCP Dev-v$(majorVersion).$(minorVersion)
-
 
 
   install:
