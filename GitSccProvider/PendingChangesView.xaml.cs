@@ -107,7 +107,9 @@ namespace GitScc
             CurrentTracker = e.Repository;
             if (CurrentTracker == null)
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 ClearUI();
+                _toolWindow.UpdateRepositoryName("");
             }
             else
             {
@@ -237,7 +239,7 @@ namespace GitScc
             }
         }
 
-        private void SetEditorText(string text, string otherExtension = "")
+        private async Task SetEditorText(string text, string otherExtension = "")
         {
             if (string.IsNullOrWhiteSpace(otherExtension))
             {
@@ -250,6 +252,7 @@ namespace GitScc
                 _diffHightlighted = false;
             }
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             this.DiffEditor.ShowLineNumbers = true;
             this.DiffEditor.Text = text;
         }
@@ -285,7 +288,7 @@ namespace GitScc
 
                     await TaskScheduler.Default;
                     var tmpFileName = CurrentTracker.Diff(fileName);
-                    SetEditorText(tmpFileName);
+                    await SetEditorText(tmpFileName);
 
                 }
                 catch (Exception ex)
@@ -439,7 +442,6 @@ namespace GitScc
             if (CurrentTracker == null)
             {
                 ClearUI();
-                label3.Content = "Changed files";
             }
             else
             {
@@ -512,6 +514,7 @@ namespace GitScc
 
         internal void ClearUI()
         {
+            label3.Content = "Changed files";
             this.listView1.ItemsSource = null;
             this.textBoxComments.Document.Blocks.Clear();
             this.ClearEditor();
