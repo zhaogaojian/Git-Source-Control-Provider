@@ -45,13 +45,6 @@
 
     name: GitSccProvider
 
-  before_deploy:
-
-  - ps: >-
-      $tag = "GSCP-Dev-v$env:majorVersion.$env.minorVersion"
-      .\BuildScripts\CleanRelease.ps1 $env.gitHubUsername $env.gitRepo $tag $env.access_token
-
-
   deploy:
     release: GSCP-Dev-v$(majorVersion).$(minorVersion)
     description: GSCP CI Build
