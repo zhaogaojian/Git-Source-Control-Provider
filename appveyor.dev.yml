@@ -45,10 +45,8 @@
 
     name: GitSccProvider	
   before_deploy:
-  - ps: >-
-    $mv = $env:majorVersion
+  - ps: $mv = $env:majorVersion
    
-    
   deploy:
     release: GSCP-Dev-v$(majorVersion).$(minorVersion)
     description: GSCP CI Build
