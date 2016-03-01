@@ -46,7 +46,7 @@
     name: GitSccProvider	
   before_deploy:
   - ps: >-
-    $tagName = GSCP-Dev-v$env:majorVersion.$env:minorVersion
+    $tagName = "GSCP-Dev-v$env:majorVersion.$env:minorVersion"
     .\BuildScripts\CleanRelease.ps1  -gitHubUsername $env:gitHubUsername -gitHubRepository $env:gitRepo -tagName $tagName  -gitHubApiKey $env:access_token
     
   deploy:
