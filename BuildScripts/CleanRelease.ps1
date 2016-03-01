@@ -1,7 +1,29 @@
-﻿$gitHubUsername = $args[0]
-$gitHubRepository = $args[1]
-$tagName = $args[2]
-$gitHubApiKey = $args[3]
+﻿param (
+    [string]$gitHubUsername = $null,
+    [string]$gitHubRepository = $null,
+    [string]$tagName = $null,
+    [string]$gitHubApiKey = $null
+)
+
+
+if ($gitHubUsername.Length -eq 0) {
+    Write-Host "Parameter -gitHubUsername was not provided, and is required."
+    return
+}
+
+if ($gitHubRepository.Length -eq 0) {
+    Write-Host "Parameter -gitHubRepository was not provided, and is required."
+    return
+}
+
+if ($tagName.Length -eq 0) {
+    Write-Host "Parameter -tagName was not provided, and is required."
+    return
+}
+if ($gitHubApiKey.Length -eq 0) {
+    Write-Host "Parameter -gitHubApiKey was not provided, and is required."
+    return
+}
 
  $getReleaseParams = @{
    Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/releases/tags/$tagName";

@@ -44,6 +44,11 @@
   - path: GitSccProvider\bin\Release\GitSccProvider.vsix
 
     name: GitSccProvider
+	
+  before_deploy:
+
+  - ps: .\BuildScripts\CleanRelease.ps1  -gitHubUsername $env.gitHubUsername -gitHubRepository $env.gitRepo -tagName GSCP-Dev-v$env:majorVersion.$env:minorVersion -gitHubApiKey $env.access_token  
+  
 
   deploy:
     release: GSCP-Dev-v$(majorVersion).$(minorVersion)
