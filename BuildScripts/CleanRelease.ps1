@@ -48,7 +48,7 @@ Catch
 
 if (!$relId)
 {
-	Write-Host "Release not found" 
+	Write-Host "Release ID not found" 
 	Exit;
 }
 
