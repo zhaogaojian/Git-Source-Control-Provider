@@ -49,7 +49,7 @@
 
   - ps: >-
       $tag = "GSCP-Dev-v$env:majorVersion.$env.minorVersion"
-      .\BuildScripts\CleanRelease.ps1 $env.gitHubUsername $env.gitRepo $tag $env.access_token
+      .\BuildScripts\CleanRelease.ps1 "$env.gitHubUsername" "$env.gitRepo" $tag "$env.access_token"
 
 
   deploy:
