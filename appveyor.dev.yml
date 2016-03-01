@@ -47,9 +47,7 @@
   before_deploy:
   - ps: >-
     $mv = $env:majorVersion
-    $lv = $env:minorVersion
-    $tagName = "GSCP-Dev-v$version$mv.$lv"
-    
+   
     
   deploy:
     release: GSCP-Dev-v$(majorVersion).$(minorVersion)
