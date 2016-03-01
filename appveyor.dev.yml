@@ -13,8 +13,9 @@
     patchVersion: 0
     access_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
-    relName : GSCP-Dev-v1.5
-    
+    gitHubUsername:
+      secure: /fPbfB2kZ2Ew/pN/Pt36zA==
+    gitRepo: Git-Source-Control-Provider
     
   version: $(majorVersion).$(minorVersion).$(patchVersion).{build}
 
@@ -43,6 +44,12 @@
   - path: GitSccProvider\bin\Release\GitSccProvider.vsix
 
     name: GitSccProvider
+
+  before_deploy:
+
+  - ps: >-
+      $tag = GSCP-Dev-v$env:majorVersion.$env.minorVersion
+      .\BuildScripts\CleanRelease.ps1 $env.gitHubUsername $env.gitRepo $tag $env.access_token
 
 
   deploy:
