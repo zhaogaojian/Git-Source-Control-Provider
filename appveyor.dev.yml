@@ -49,7 +49,7 @@
     $mv = $env:majorVersion
     $lv = $env:minorVersion
     $tagName = "GSCP-Dev-v$version$mv.$lv"
-    .\BuildScripts\CleanRelease.ps1  -gitHubUsername '$env:gitHubUsername' -gitHubRepository '$env:gitRepo' -tagName $tagName  -gitHubApiKey '$env:access_token'
+    
     
   deploy:
     release: GSCP-Dev-v$(majorVersion).$(minorVersion)
