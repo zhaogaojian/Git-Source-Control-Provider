@@ -72,5 +72,7 @@ if (!$relId)
    Body = ""
  }
 
-  $result = Invoke-RestMethod @deleteReleaseParams 
+  $result = Invoke-RestMethod @deleteReleaseParams
+  Write-Host "Release Deleted"    
   $result = Invoke-RestMethod @deleteTagParams 
+  Write-Host "Tag Deleted"    
