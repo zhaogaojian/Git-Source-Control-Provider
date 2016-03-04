@@ -23,8 +23,13 @@ namespace GitUI
 				{
 					var args = Environment.GetCommandLineArgs();
 					current = new GitViewModel();
-					var directory = args.Length > 1 ? args[1] :	Environment.CurrentDirectory;
-					current.Open(directory);
+					var directory = args.Length > 1 ? @args[1] :	Environment.CurrentDirectory;
+                    DirectoryInfo info = new DirectoryInfo(directory);
+				    if (info.Exists)
+				    {
+                        current.Open(info.FullName);
+                    }
+
 				}
 
 				return current;
@@ -79,8 +84,8 @@ namespace GitUI
 		internal void Open(string directory)
 		{
 			workingDirectory = directory;
-
-			tracker = new GitFileStatusTracker(directory);
+		    var gitDir = RepositoryManager.GetGitRepository(directory);
+            tracker = new GitFileStatusTracker(gitDir);
 			if (tracker.IsGit) directory = tracker.WorkingDirectory;
 
 			if (Directory.Exists(directory))

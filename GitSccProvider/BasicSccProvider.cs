@@ -559,34 +559,49 @@ namespace GitScc
             var workingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            path = Path.Combine(path, "Resources\\Dragon.exe");
-            var tmpPath = Path.Combine(Path.GetTempPath(), "Dragon.exe");
-            var gitPath = Path.Combine(workingPath, "NativeBinaries"); 
+            path = Path.Combine(path, "Dragon.exe");
+            //path = Path.Combine(path, "Resources\\Dragon.exe");
+            //var tmpPath = Path.Combine(Path.GetTempPath(), "Dragon.exe");
+            //var gitPath = Path.Combine(workingPath, "NativeBinaries"); 
 
-            var needCopy = !File.Exists(tmpPath);
-            if(!needCopy)
-            {
-                var date1 = File.GetLastWriteTimeUtc(path);
-                var date2 = File.GetLastWriteTimeUtc(tmpPath);
-                needCopy = (date1>date2);
-            }
+            //var needCopy = !File.Exists(tmpPath);
+            //if(!needCopy)
+            //{
+            //    var date1 = File.GetLastWriteTimeUtc(path);
+            //    var date2 = File.GetLastWriteTimeUtc(tmpPath);
+            //    needCopy = (date1>date2);
+            //}
 
-            if (needCopy)
-            {
-                try
-                {
-                    File.Copy(path, tmpPath, true);
-                    DirectoryCopy(gitPath, Path.GetTempPath() + "NativeBinaries",true);
-                }
-                catch // try copy file silently
-                {
-                }
-            }
+            //if (needCopy)
+            //{
+            //    try
+            //    {
+            //        File.Copy(path, tmpPath, true);
+            //        DirectoryCopy(gitPath, Path.GetTempPath() + "NativeBinaries",true);
+            //    }
+            //    catch // try copy file silently
+            //    {
+            //    }
+            //}
 
-            if (File.Exists(tmpPath) && sccService.CurrentTracker != null)
+            //if (File.Exists(tmpPath) && sccService.CurrentTracker != null)
+            //{
+            //    Process.Start(tmpPath, sccService.CurrentTracker.WorkingDirectory);
+            //}
+
+            if (File.Exists(path) && sccService.CurrentTracker != null)
             {
-                Process.Start(tmpPath, sccService.CurrentTracker.WorkingDirectory);
+                Process.Start(path, EncodeParameterArgument(sccService.CurrentTracker.WorkingDirectory));
             }
+        }
+
+        public static string EncodeParameterArgument(string original)
+        {
+            if (string.IsNullOrEmpty(original))
+                return original;
+            string value = Regex.Replace(original, @"(\\*)" + "\"", @"$1\$0");
+            value = Regex.Replace(value, @"^(.*\s.*?)(\\*)$", "\"$1$2$2\"");
+            return value;
         }
 
         private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
