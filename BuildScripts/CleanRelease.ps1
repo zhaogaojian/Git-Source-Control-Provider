@@ -73,6 +73,9 @@ if (!$relId)
  }
 
   $result = Invoke-RestMethod @deleteReleaseParams
-  Write-Host "Release Deleted"    
+  Write-Host "Release Deleted"  
+  Start-Sleep -s 3  
   $result = Invoke-RestMethod @deleteTagParams 
-  Write-Host "Tag Deleted"    
+  Write-Host "Tag Deleted"   
+  Write-Host $result  
+  Start-Sleep -s 3  
