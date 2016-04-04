@@ -50,7 +50,7 @@
     
     
   deploy:
-    release: GSCP-Dev-v$(majorVersion).$(minorVersion)
+    release: GSCP-CI-Build
     tag : GSCP-CI
     description: GSCP CI Build
     provider: GitHub
