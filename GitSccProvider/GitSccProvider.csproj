@@ -95,6 +95,9 @@
     <Compile Include="SccProviderService.SolutionEvents.cs" />
     <Compile Include="SccProviderSolutionCache.cs" />
     <Compile Include="Schedulers\QueuedTaskScheduler.cs" />
+    <Compile Include="source.extension.cs">
+      <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+    </Compile>
     <Compile Include="UI\StatusBox.xaml.cs">
       <DependentUpon>StatusBox.xaml</DependentUpon>
     </Compile>
@@ -137,6 +140,13 @@
     <Content Include="Resources\Images_24bit.bmp" />
     <Content Include="Resources\Images_32bit.bmp" />
     <Content Include="Resources\Images_32bit.png" />
+    <EmbeddedResource Include="source.extension.resx">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
+    </EmbeddedResource>
     <Resource Include="Resources\Loading.png" />
     <Content Include="Resources\PendingCheckins.png" />
     <EmbeddedResource Include="Resources\Patch-Mode-Blue.xshd" />
@@ -161,7 +171,12 @@
     </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
+      <Generator>VsixManifestGenerator</Generator>
+      <LastGenOutput>source.extension.resx</LastGenOutput>
     </None>
+    <Content Include="source.extension.ico">
+      <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+    </Content>
     <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
