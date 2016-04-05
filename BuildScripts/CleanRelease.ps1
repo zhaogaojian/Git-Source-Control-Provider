@@ -35,8 +35,8 @@ param (
 	}
     Try
         {
-	    $result = Invoke-RestMethod @deleteTagParams 
-        Write-Host "Tag Deleted"
+			$result = Invoke-RestMethod @deleteTagParams 
+			Write-Host "Tag Deleted"
         }
      
      Catch
