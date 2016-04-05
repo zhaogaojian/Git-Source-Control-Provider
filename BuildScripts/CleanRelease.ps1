@@ -23,6 +23,7 @@ param (
 
  function DeleteTag($tag)
  {
+
 	   $deleteTagParams = @{
 	   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/git/refs/tags/$tag";
 	   Method = 'DELETE';
@@ -32,8 +33,18 @@ param (
 		  ContentType = 'application/json';
 	   Body = ""
 	}
-	$result = Invoke-RestMethod @deleteTagParams 
-	Write-Host "Tag Deleted"
+    Try
+        {
+	    $result = Invoke-RestMethod @deleteTagParams 
+        Write-Host "Tag Deleted"
+        }
+     
+     Catch
+        {
+	      Write-Host "Tag Not Found"
+        }
+
+	
  }
 
 
