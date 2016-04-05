@@ -52,7 +52,7 @@
   deploy:
     release: GSCP-CI-Build
     tag : GSCP-CI
-    description: GSCP CI Build
+    description: GSCP CI Build $(majorVersion).$(minorVersion).$(patchVersion).{build}
     provider: GitHub
     auth_token: $(access_token) # your encrypted token from GitHub
     artifact: GitSccProvider\bin\Release\GitSccProvider.vsix           # upload all NuGet packages to release assets
