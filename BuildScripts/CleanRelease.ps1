@@ -1,9 +1,40 @@
-﻿param (
+﻿
+
+param (
     [string]$gitHubUsername = $null,
     [string]$gitHubRepository = $null,
     [string]$tagName = $null,
     [string]$gitHubApiKey = $null
 )
+
+
+ function DeleteRelease($releaseId)
+ {
+	 $deleteReleaseParams = @{
+	   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/releases/$releaseId";
+	   Method = 'DELETE';
+	   Headers = @{
+		  Authorization = 'token ' + $gitHubApiKey
+	   }
+	 }
+	 $result = Invoke-RestMethod @deleteReleaseParams
+	 Write-Host "Release Deleted"  
+ }
+
+ function DeleteTag($tag)
+ {
+	   $deleteTagParams = @{
+	   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/git/refs/tags/$tag";
+	   Method = 'DELETE';
+	   Headers = @{
+		 Authorization = 'token ' + $gitHubApiKey
+	   }
+		  ContentType = 'application/json';
+	   Body = ""
+	}
+	$result = Invoke-RestMethod @deleteTagParams 
+	Write-Host "Tag Deleted"
+ }
 
 
 if ($gitHubUsername.Length -eq 0) {
@@ -60,33 +91,7 @@ DeleteTag($tagName)
 Start-Sleep -s 3  
 
  
- function DeleteRelease($releaseId)
- {
-	 $deleteReleaseParams = @{
-	   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/releases/$releaseId";
-	   Method = 'DELETE';
-	   Headers = @{
-		  Authorization = 'token ' + $gitHubApiKey
-	   }
-	 }
-	 $result = Invoke-RestMethod @deleteReleaseParams
-	 Write-Host "Release Deleted"  
- }
 
- function DeleteTag($tag)
- {
-	   $deleteTagParams = @{
-	   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/git/refs/tags/$tag";
-	   Method = 'DELETE';
-	   Headers = @{
-		 Authorization = 'token ' + $gitHubApiKey
-	   }
-		  ContentType = 'application/json';
-	   Body = ""
-	}
-	$result = Invoke-RestMethod @deleteTagParams 
-	Write-Host "Tag Deleted"
- }
  
 
 
