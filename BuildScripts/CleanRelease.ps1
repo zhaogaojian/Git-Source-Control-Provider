@@ -43,39 +43,51 @@ Try
 Catch
 {
 	Write-Host "Release not found" 
-  Exit;
+	DeleteTag($tagName)
+	Exit;
 }
 
 if (!$relId)
 {
 	Write-Host "Release ID not found" 
+	DeleteTag($tagName)
 	Exit;
 }
 
+DeleteRelease($relId)
+Start-Sleep -s 3  
+DeleteTag($tagName)
+Start-Sleep -s 3  
 
-
- $deleteReleaseParams = @{
-   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/releases/$relId";
-   Method = 'DELETE';
-   Headers = @{
-      Authorization = 'token ' + $gitHubApiKey
-   }
+ 
+ function DeleteRelease($releaseId)
+ {
+	 $deleteReleaseParams = @{
+	   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/releases/$releaseId";
+	   Method = 'DELETE';
+	   Headers = @{
+		  Authorization = 'token ' + $gitHubApiKey
+	   }
+	 }
+	 $result = Invoke-RestMethod @deleteReleaseParams
+	 Write-Host "Release Deleted"  
  }
 
-  $deleteTagParams = @{
-   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/git/refs/tags/$tagName";
-   Method = 'DELETE';
-   Headers = @{
-     Authorization = 'token ' + $gitHubApiKey
-   }
-      ContentType = 'application/json';
-   Body = ""
+ function DeleteTag($tag)
+ {
+	   $deleteTagParams = @{
+	   Uri = "https://api.github.com/repos/$gitHubUsername/$gitHubRepository/git/refs/tags/$tag";
+	   Method = 'DELETE';
+	   Headers = @{
+		 Authorization = 'token ' + $gitHubApiKey
+	   }
+		  ContentType = 'application/json';
+	   Body = ""
+	}
+	$result = Invoke-RestMethod @deleteTagParams 
+	Write-Host "Tag Deleted"
  }
+ 
 
-  $result = Invoke-RestMethod @deleteReleaseParams
-  Write-Host "Release Deleted"  
-  Start-Sleep -s 3  
-  $result = Invoke-RestMethod @deleteTagParams 
-  Write-Host "Tag Deleted"   
-  Write-Host $result  
-  Start-Sleep -s 3  
+
+  
