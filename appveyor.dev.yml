@@ -33,7 +33,7 @@
           $manifestXml.Load($vsixPath)
           $manifestXml.PackageManifest.Metadata.Identity.Version = $env:appveyor_build_version
           $manifestXml.save($vsixPath)
-    - ps: Vsix-TokenReplacement GitSccProvider\source.extension.cs 'Version = "([0-9\\.]+)"' 'Version = "{$env:appveyor_build_version}"'
+  - ps: Vsix-TokenReplacement GitSccProvider\source.extension.cs 'Version = "([0-9\\.]+)"' 'Version = "{$env:appveyor_build_version}"'
   build_script:
     - nuget restore -Verbosity quiet
     - msbuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
