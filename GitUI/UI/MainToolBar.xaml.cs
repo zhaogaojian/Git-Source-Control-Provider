@@ -46,7 +46,7 @@ namespace GitUI.UI
                 }
                 btnPendingChanges.IsEnabled = tracker.ChangedFiles.Count() > 0;
 
-                btnGitBash.IsEnabled = GitBash.Exists;
+                btnGitBash.IsEnabled = true;//GitBash.Exists;
 
             }
         }

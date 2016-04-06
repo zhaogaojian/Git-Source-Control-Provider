@@ -256,10 +256,10 @@ namespace GitScc
                     break;
 
                 case CommandId.icmdSccCommandGitBash:
-                    if (GitBash.Exists)
-                    {
+                    //if (GitBash.Exists)
+                    //{
                         cmdf |= OLECMDF.OLECMDF_ENABLED;
-                    }
+                    //}
                     break;
 
                 case CommandId.icmdSccCommandGitExtension:
@@ -284,7 +284,8 @@ namespace GitScc
 
                 case CommandId.icmdSccCommandUndo:
                 case CommandId.icmdSccCommandCompare:
-                    if (GitBash.Exists && sccService.CanCompareSelectedFile) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    //if (GitBash.Exists && sccService.CanCompareSelectedFile) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    if (sccService.CanCompareSelectedFile) cmdf |= OLECMDF.OLECMDF_ENABLED;
                     break;
 
                 case CommandId.icmdSccCommandEditIgnore:
@@ -301,7 +302,8 @@ namespace GitScc
                 case CommandId.icmdPendingChangesAmend:
                 case CommandId.icmdPendingChangesCommit:
                 case CommandId.icmdPendingChangesCommitToBranch:
-                    if (GitBash.Exists && sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    //if (GitBash.Exists && sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
                     break;
 
                 case CommandId.icmdSccCommandRefresh:
