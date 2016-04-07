@@ -61,7 +61,7 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 
 
 [release]: https://ci.appveyor.com/project/jzoss/git-source-control-provider
-[release-badge]: https://ci.appveyor.com/api/projects/status/d488lvw9ogqgb4bk?svg=true
+[release-badge]: https://ci.appveyor.com/api/projects/status/0178gk42noyr7mk3?svg=true
 [dev]: https://ci.appveyor.com/project/jzoss/git-source-control-provider-bfftg
 [dev-badge]: https://ci.appveyor.com/api/projects/status/qr4hm0uqyr4wnnm9?svg=true
 
