@@ -48,7 +48,9 @@
   before_deploy:
   - ps: $env:tagName = "GSCP-CI"
   - ps: .\BuildScripts\CleanRelease.ps1  -gitHubUsername $env:gitHubUsername -gitHubRepository $env:gitRepo -tagName $env:tagName  -gitHubApiKey $env:access_token
-    
+
+  after_build:
+  - ps: Vsix-PushArtifacts | Vsix-PublishToGallery
     
   deploy:
     release: GSCP-CI-Build

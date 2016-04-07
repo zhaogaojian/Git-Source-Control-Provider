@@ -44,6 +44,9 @@ If you like this plugin there is a few way you can help out.
 * Test It - Check out the [Releases](https://github.com/jzoss/Git-Source-Control-Provider/releases). If there is a early release try it out and let me know if you find any bugs!
 * Code - Check out the code, play with it. maybe fix a bug while you are there.. It fun and educational. It also makes you super cool, better looking and possibly give you superpowers.
 
+Living on the Edge!
+----------
+Install the Latest C.I. Build either from [Github](https://github.com/jzoss/Git-Source-Control-Provider/releases/tag/GSCP-CI) or
 
 #### Building
 
@@ -67,6 +70,9 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 ## Change Logs -- Visual Studio 2015
 
 **V-Next** 
+
+**V1.5.1**
+*   Fixed Issues #33,#34,#36,#38,#39-#42
 
 **V1.5**
 
