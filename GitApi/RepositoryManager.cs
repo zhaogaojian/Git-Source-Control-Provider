@@ -172,12 +172,12 @@ namespace GitScc
             if (string.IsNullOrWhiteSpace(filename)) return null;
 
             GitFileStatusTracker repo = null;
-            filename = filename.ToLower();
+            var filePath = filename.ToLower();
 
             //check out quick list to see if we have he file first. 
-            if (!_fileRepoLookup.TryGetValue(filename, out repo))
+            if (!_fileRepoLookup.TryGetValue(filePath, out repo))
             {
-                var basePath = GetGitRepository(filename);
+                var basePath = GetGitRepository(filePath);
                 if (createTracker && 
                     !string.IsNullOrWhiteSpace(basePath) && !_basePathRepoLookup.TryGetValue(basePath, out repo))
                 {
@@ -191,7 +191,7 @@ namespace GitScc
                     _repositories.Add(repo);
                     _basePathRepoLookup.TryAdd(basePath, repo);
                 }
-                _fileRepoLookup.TryAdd(filename, repo);
+                _fileRepoLookup.TryAdd(filePath, repo);
             }
 
 
@@ -390,7 +390,7 @@ namespace GitScc
             try
             {
                 var repoPath = Repository.Discover(Path.GetFullPath(path));
-                return repoPath;
+                return repoPath?.ToLower();
             }
             catch (Exception)
             {

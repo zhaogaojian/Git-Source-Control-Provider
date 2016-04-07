@@ -1,0 +1,62 @@
+-
+  os: Previous Visual Studio 2015 RC
+  configuration: Release
+  skip_tags: true
+  branches:
+    only:
+      - dev
+  
+  
+  environment:
+    majorVersion: 1
+    minorVersion: 5
+    patchVersion: 0
+    access_token:
+      secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
+    gitHubUsername:
+      secure: /fPbfB2kZ2Ew/pN/Pt36zA==
+    gitRepo: Git-Source-Control-Provider
+    
+  version: $(majorVersion).$(minorVersion).$(patchVersion).{build}
+
+
+  install:
+
+  - ps: >-
+
+      (new-object Net.WebClient).DownloadString("https://raw.github.com/madskristensen/ExtensionScripts/master/AppVeyor/vsix.ps1") | iex
+
+  before_build:
+  - ps: >-
+      $vsixPath = "$env:appveyor_build_folder\GitSccProvider\source.extension.vsixmanifest"
+          $manifestXml = New-Object XML
+          $manifestXml.Load($vsixPath)
+          $manifestXml.PackageManifest.Metadata.Identity.Version = $env:appveyor_build_version
+          $manifestXml.save($vsixPath)
+  - ps: Vsix-TokenReplacement GitSccProvider\source.extension.cs 'Version = "([0-9\\.]+)"' 'Version = "{version}"'
+  build_script:
+    - nuget restore -Verbosity quiet
+    - msbuild /p:configuration=Release /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /v:m
+
+  test: off
+
+  artifacts:
+
+  - path: GitSccProvider\bin\Release\GitSccProvider.vsix
+
+    name: GitSccProvider	
+  before_deploy:
+  - ps: $env:tagName = "GSCP-CI"
+  - ps: .\BuildScripts\CleanRelease.ps1  -gitHubUsername $env:gitHubUsername -gitHubRepository $env:gitRepo -tagName $env:tagName  -gitHubApiKey $env:access_token
+    
+    
+  deploy:
+    release: GSCP-CI-Build
+    tag : GSCP-CI
+    description: GSCP CI Build $(appveyor_build_version)
+    provider: GitHub
+    auth_token: $(access_token) # your encrypted token from GitHub
+    artifact: GitSccProvider\bin\Release\GitSccProvider.vsix           # upload all NuGet packages to release assets
+    draft: false
+    prerelease: true
+  

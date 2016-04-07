@@ -81,7 +81,7 @@ namespace GitScc
             return IsChangedStatus(GetGitFileStatus(state));
         }
 
-        private static bool IsChangedStatus(GitFileStatus status)
+        public static bool IsChangedStatus(GitFileStatus status)
         {
             
             switch (status)
@@ -91,7 +91,7 @@ namespace GitScc
                 case GitFileStatus.New:
                     return true;
                 case GitFileStatus.Tracked:
-                    return true;
+                    return false;
                 case GitFileStatus.Modified:
                     return true;
                 case GitFileStatus.Staged:

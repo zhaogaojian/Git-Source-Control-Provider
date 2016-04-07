@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -107,7 +108,9 @@ namespace GitScc
             CurrentTracker = e.Repository;
             if (CurrentTracker == null)
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 ClearUI();
+                _toolWindow.UpdateRepositoryName("");
             }
             else
             {
@@ -233,11 +236,11 @@ namespace GitScc
             var checkBox = sender as CheckBox;
             foreach (var item in this.listView1.Items.Cast<GitFile>())
             {
-                ((GitFile)item).IsSelected = checkBox.IsChecked == true;
+                item.IsSelected = checkBox?.IsChecked == true;
             }
         }
 
-        private void SetEditorText(string text, string otherExtension = "")
+        private async Task SetEditorText(string text, string otherExtension = "")
         {
             if (string.IsNullOrWhiteSpace(otherExtension))
             {
@@ -250,6 +253,7 @@ namespace GitScc
                 _diffHightlighted = false;
             }
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             this.DiffEditor.ShowLineNumbers = true;
             this.DiffEditor.Text = text;
         }
@@ -282,14 +286,10 @@ namespace GitScc
             {
                 try
                 {
-                    var tmpFileName = ThreadHelper.JoinableTaskFactory.Run(async delegate
-                    {
-                        //await TaskScheduler.Default;
-                        return CurrentTracker.Diff(fileName);
-                    });
 
-                    //var tmpFileName = CurrentTracker.Diff(fileName);
-                    SetEditorText(tmpFileName);
+                    await TaskScheduler.Default;
+                    var tmpFileName = CurrentTracker.Diff(fileName);
+                    await SetEditorText(tmpFileName);
 
                 }
                 catch (Exception ex)
@@ -367,9 +367,10 @@ namespace GitScc
 
         private void GetSelectedFileFullName(Action<string> action, bool fileMustExists = true)
         {
+            List<string> files = new List<string>();
             try
             {
-                var files = this.listView1.SelectedItems.Cast<GitFile>()
+                 files = this.listView1.SelectedItems.Cast<GitFile>()
                     .Select(item => System.IO.Path.Combine(this.CurrentTracker.WorkingDirectory, item.FileName))
                     .ToList();
 
@@ -381,7 +382,19 @@ namespace GitScc
             }
             catch (Exception ex)
             {
-                ShowStatusMessage(ex.Message);
+                var errorMessage = new StringBuilder();
+                errorMessage.Append("Error in File Operation");
+                errorMessage.AppendLine(ex.Message);
+                errorMessage.AppendLine($"Working Directory: {this.CurrentTracker.WorkingDirectory}");
+                if (files?.Count > 0)
+                {
+                    errorMessage.Append($"File(s):");
+                    foreach (var file in files)
+                    {
+                        errorMessage.AppendLine(file);
+                    }
+                }
+                ShowStatusMessage(errorMessage.ToString());
             }
         }
 
@@ -443,7 +456,6 @@ namespace GitScc
             if (CurrentTracker == null)
             {
                 ClearUI();
-                label3.Content = "Changed files";
             }
             else
             {
@@ -516,6 +528,7 @@ namespace GitScc
 
         internal void ClearUI()
         {
+            label3.Content = "Changed files";
             this.listView1.ItemsSource = null;
             this.textBoxComments.Document.Blocks.Clear();
             this.ClearEditor();
@@ -865,9 +878,9 @@ Note: if the file is included project, you need to delete the file from project 
         {
             if (string.IsNullOrWhiteSpace(fileName)) return;
 
-            fileName = fileName.Replace("/", "\\");
+            //fileName = fileName.Replace("/", "\\");
             var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
-            dte.ExecuteCommand("File.OpenFile", fileName);
+            dte.ExecuteCommand("File.OpenFile", $"\"{fileName}\"");
         }
 
         private void UserControl_KeyDown(object sender, KeyEventArgs e)

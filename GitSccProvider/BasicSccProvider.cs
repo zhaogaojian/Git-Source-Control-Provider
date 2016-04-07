@@ -31,10 +31,10 @@ namespace GitScc
 {
     /////////////////////////////////////////////////////////////////////////////
     // BasicSccProvider
-    [MsVsShell.ProvideLoadKey("Standard", "0.1", "Git Source Control Provider 2015", "Jon.Zoss@gmail.com", 15261)]
+    [MsVsShell.ProvideLoadKey("Standard", "0.1", Vsix.Name, Vsix.Author, 15261)]
     [MsVsShell.DefaultRegistryRoot("Software\\Microsoft\\VisualStudio\\10.0Exp")]
     // Register the package to have information displayed in Help/About dialog box
-    [MsVsShell.InstalledProductRegistration("#100", "#101", "1.5.0.0", IconResourceID = CommandId.iiconProductIcon)]
+    [MsVsShell.InstalledProductRegistration("#100", "#101", Vsix.Version, IconResourceID = CommandId.iiconProductIcon)]
     // Declare that resources for the package are to be found in the managed assembly resources, and not in a satellite dll
     [MsVsShell.PackageRegistration(UseManagedResourcesOnly = true)]
     // Register the resource ID of the CTMENU section (generated from compiling the VSCT file), so the IDE will know how to merge this package's menus with the rest of the IDE when "devenv /setup" is run
@@ -52,7 +52,7 @@ namespace GitScc
     //Register the source control provider's service (implementing IVsScciProvider interface)
     [MsVsShell.ProvideService(typeof(SccProviderService), ServiceName = "Git Source Control Service")]
     // Register the source control provider to be visible in Tools/Options/SourceControl/Plugin dropdown selector
-    [ProvideSourceControlProvider("Git Source Control Provider", "#100")]
+    [GitScc.ProvideSourceControlProvider("Git Source Control Provider", "#100")]
     // Pre-load the package when the command UI context is asserted (the provider will be automatically loaded after restarting the shell if it was active last time the shell was shutdown)
     [MsVsShell.ProvideAutoLoad("C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
     //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
@@ -256,10 +256,10 @@ namespace GitScc
                     break;
 
                 case CommandId.icmdSccCommandGitBash:
-                    if (GitBash.Exists)
-                    {
+                    //if (GitBash.Exists)
+                    //{
                         cmdf |= OLECMDF.OLECMDF_ENABLED;
-                    }
+                    //}
                     break;
 
                 case CommandId.icmdSccCommandGitExtension:
@@ -284,7 +284,8 @@ namespace GitScc
 
                 case CommandId.icmdSccCommandUndo:
                 case CommandId.icmdSccCommandCompare:
-                    if (GitBash.Exists && sccService.CanCompareSelectedFile) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    //if (GitBash.Exists && sccService.CanCompareSelectedFile) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    if (sccService.CanCompareSelectedFile) cmdf |= OLECMDF.OLECMDF_ENABLED;
                     break;
 
                 case CommandId.icmdSccCommandEditIgnore:
@@ -301,7 +302,8 @@ namespace GitScc
                 case CommandId.icmdPendingChangesAmend:
                 case CommandId.icmdPendingChangesCommit:
                 case CommandId.icmdPendingChangesCommitToBranch:
-                    if (GitBash.Exists && sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    //if (GitBash.Exists && sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    if (sccService.IsSolutionGitControlled) cmdf |= OLECMDF.OLECMDF_ENABLED;
                     break;
 
                 case CommandId.icmdSccCommandRefresh:
@@ -559,34 +561,49 @@ namespace GitScc
             var workingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            path = Path.Combine(path, "Resources\\Dragon.exe");
-            var tmpPath = Path.Combine(Path.GetTempPath(), "Dragon.exe");
-            var gitPath = Path.Combine(workingPath, "NativeBinaries"); 
+            path = Path.Combine(path, "Dragon.exe");
+            //path = Path.Combine(path, "Resources\\Dragon.exe");
+            //var tmpPath = Path.Combine(Path.GetTempPath(), "Dragon.exe");
+            //var gitPath = Path.Combine(workingPath, "NativeBinaries"); 
 
-            var needCopy = !File.Exists(tmpPath);
-            if(!needCopy)
-            {
-                var date1 = File.GetLastWriteTimeUtc(path);
-                var date2 = File.GetLastWriteTimeUtc(tmpPath);
-                needCopy = (date1>date2);
-            }
+            //var needCopy = !File.Exists(tmpPath);
+            //if(!needCopy)
+            //{
+            //    var date1 = File.GetLastWriteTimeUtc(path);
+            //    var date2 = File.GetLastWriteTimeUtc(tmpPath);
+            //    needCopy = (date1>date2);
+            //}
 
-            if (needCopy)
-            {
-                try
-                {
-                    File.Copy(path, tmpPath, true);
-                    DirectoryCopy(gitPath, Path.GetTempPath() + "NativeBinaries",true);
-                }
-                catch // try copy file silently
-                {
-                }
-            }
+            //if (needCopy)
+            //{
+            //    try
+            //    {
+            //        File.Copy(path, tmpPath, true);
+            //        DirectoryCopy(gitPath, Path.GetTempPath() + "NativeBinaries",true);
+            //    }
+            //    catch // try copy file silently
+            //    {
+            //    }
+            //}
 
-            if (File.Exists(tmpPath) && sccService.CurrentTracker != null)
+            //if (File.Exists(tmpPath) && sccService.CurrentTracker != null)
+            //{
+            //    Process.Start(tmpPath, sccService.CurrentTracker.WorkingDirectory);
+            //}
+
+            if (File.Exists(path) && sccService.CurrentTracker != null)
             {
-                Process.Start(tmpPath, sccService.CurrentTracker.WorkingDirectory);
+                Process.Start(path, EncodeParameterArgument(sccService.CurrentTracker.WorkingDirectory));
             }
+        }
+
+        public static string EncodeParameterArgument(string original)
+        {
+            if (string.IsNullOrEmpty(original))
+                return original;
+            string value = Regex.Replace(original, @"(\\*)" + "\"", @"$1\$0");
+            value = Regex.Replace(value, @"^(.*\s.*?)(\\*)$", "\"$1$2$2\"");
+            return value;
         }
 
         private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)

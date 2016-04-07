@@ -170,6 +170,10 @@ namespace GitScc
                 _currentRepoName = repositoryName;
                 Caption = string.Format(CAPTION_STRING,_pendingChangesToolWindowCaption, repositoryName);
             }
+            else
+            {
+                Caption = _pendingChangesToolWindowCaption;
+            }
         }
 
 
