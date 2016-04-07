@@ -1,5 +1,8 @@
 ## Change Logs -- Visual Studio 2015
 
+**V1.5.1**
+*   Fixed Issues #33,#34,#36,#38,#39-#42
+
 **V1.5**
 
 #####---New Features---
