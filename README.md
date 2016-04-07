@@ -36,6 +36,12 @@ How to use
 * Right click within solution explorer and select "Git". If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.
 
 
+Living on the Edge!
+----------
+Install the Latest C.I. Build either from [Open VSIX Gallery](http://vsixgallery.com/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a/) or [Github](https://github.com/jzoss/Git-Source-Control-Provider/releases/tag/GSCP-CI). Don't worry you will still autoupdate when the next release comes out. 
+
+For Bonus Points Add this [feed](http://vsixgallery.com/feed/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a) from VSIX Gallery to your extension manager to always autoupdate to the latest C.I. build.  
+
 How to contribute 
 ----------
 If you like this plugin there is a few way you can help out.
