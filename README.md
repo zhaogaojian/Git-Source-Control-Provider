@@ -35,6 +35,12 @@ How to use
 * Right click within solution explorer and select "Git". If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.
 
 
+Living on the Edge!
+----------
+Install the Latest C.I. Build either from [Open VSIX Gallery](http://vsixgallery.com/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a/) or [Github](https://github.com/jzoss/Git-Source-Control-Provider/releases/tag/GSCP-CI). Don't worry you will still autoupdate when the next release comes out. 
+
+For Bonus Points Add this [feed](http://vsixgallery.com/feed/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a) from VSIX Gallery to your extension manager to always autoupdate to the latest C.I. build.  
+
 How to contribute 
 ----------
 If you like this plugin there is a few way you can help out.
@@ -44,14 +50,11 @@ If you like this plugin there is a few way you can help out.
 * Test It - Check out the [Releases](https://github.com/jzoss/Git-Source-Control-Provider/releases). If there is a early release try it out and let me know if you find any bugs!
 * Code - Check out the code, play with it. maybe fix a bug while you are there.. It fun and educational. It also makes you super cool, better looking and possibly give you superpowers.
 
-Living on the Edge!
-----------
-Install the Latest C.I. Build either from [Github](https://github.com/jzoss/Git-Source-Control-Provider/releases/tag/GSCP-CI) or
+
 
 #### Building
 
 All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibility Tools installed. It's **THAT** easy!
-
 
 
 ## Current status
@@ -72,6 +75,7 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 **V-Next** 
 
 **V1.5.1**
+
 *   Fixed Issues #33,#34,#36,#38,#39-#42
 
 **V1.5**
