@@ -33,8 +33,8 @@ using ThreadPriority = System.Threading.ThreadPriority;
 namespace GitScc
 {
     [Guid("C4128D99-1000-41D1-A6C3-704E6C1A3DE2")]
-    public partial class SccProviderService : IVsSccProvider,
-        IVsSccManager3,
+    public partial class SccProviderService : 
+        IVsSccProvider,
         IVsSccManagerTooltip,
         IVsSolutionEvents,
         IVsSolutionEvents2,
@@ -42,7 +42,7 @@ namespace GitScc
         IDisposable,
         IVsUpdateSolutionEvents2,
         IVsTrackProjectDocumentsEvents2
-        
+
     {
         private static readonly TimeSpan InitialRefreshDelay = TimeSpan.FromMilliseconds(500);
         
@@ -123,7 +123,16 @@ namespace GitScc
 
         public int AnyItemsUnderSourceControl(out int pfResult)
         {
-            pfResult = 0;
+            if (!_active)
+            {
+                pfResult = 0;
+            }
+            else
+            {
+                // Although the parameter is an int, it's in reality a BOOL value, so let's return 0/1 values
+                pfResult = 1;
+            }
+
             return VSConstants.S_OK;
         }
         #endregion

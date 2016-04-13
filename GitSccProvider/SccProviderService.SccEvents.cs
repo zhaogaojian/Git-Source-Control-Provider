@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace GitScc
 {
-    public partial class SccProviderService
+    public partial class SccProviderService : IVsSccManager3
     {
 
 

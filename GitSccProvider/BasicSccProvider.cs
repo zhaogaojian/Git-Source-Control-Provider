@@ -52,7 +52,9 @@ namespace GitScc
     //Register the source control provider's service (implementing IVsScciProvider interface)
     [MsVsShell.ProvideService(typeof(SccProviderService), ServiceName = "Git Source Control Service")]
     // Register the source control provider to be visible in Tools/Options/SourceControl/Plugin dropdown selector
-    [GitScc.ProvideSourceControlProvider("Git Source Control Provider", "#100")]
+    //[GitScc.ProvideSourceControlProvider("Git Source Control Provider", "#100")]
+    [MsVsShell.ProvideSourceControlProvider("Git Source Control Provider 2015", "#100", "{C4128D99-0000-41D1-A6C3-704E6C1A3DE2}",
+        "{C4128D99-2000-41D1-A6C3-704E6C1A3DE2}", "{C4128D99-1000-41D1-A6C3-704E6C1A3DE2}", IsPublishSupported = true)]
     // Pre-load the package when the command UI context is asserted (the provider will be automatically loaded after restarting the shell if it was active last time the shell was shutdown)
     [MsVsShell.ProvideAutoLoad("C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
     //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
