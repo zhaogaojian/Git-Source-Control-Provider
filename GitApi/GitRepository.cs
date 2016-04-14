@@ -92,6 +92,8 @@ namespace GitScc
             get { return workingDirectory; }
         }
 
+        public string Name => new DirectoryInfo(WorkingDirectory).Name;
+
         public bool IsGit
         {
             get { return Repository.IsValid(workingDirectory); }

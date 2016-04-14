@@ -455,8 +455,9 @@ namespace GitScc
             _fileChangesetManager = new ConcurrentDictionary<GitRepository, GitChangesetManager>();
 
             var solutionFileName = await GetSolutionFileName();
-            RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
-            SetSolutionExplorerTitle();
+            await RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
+            await SetSolutionExplorerTitle();
+            RepositoryName = RepositoryManager.Instance?.SolutionTracker?.Name;
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {
@@ -511,10 +512,10 @@ namespace GitScc
         private async Task SetSolutionExplorerTitle()
         {
             var caption = "Solution Explorer";
-            string branch = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
-            if (!string.IsNullOrEmpty(branch))
+            BranchName = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
+            if (!string.IsNullOrEmpty(BranchName))
             {
-                caption += " (" + branch + ")";
+                caption += " (" + BranchName + ")";
                 await SetSolutionExplorerTitle(caption);
             }
         }

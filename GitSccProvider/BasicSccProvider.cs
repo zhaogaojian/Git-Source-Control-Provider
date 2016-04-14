@@ -22,6 +22,7 @@ using System.Windows;
 using EnvDTE;
 using GitSccProvider;
 using GitSccProvider.Utilities;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Threading;
 using IgnoreFileManager = GitSccProvider.Utilities.IgnoreFileManager;
 using Process = System.Diagnostics.Process;
@@ -190,6 +191,7 @@ namespace GitScc
             }
 
 
+
             ThreadHelper.ThrowIfNotOnUIThread();
             // Register the provider with the source control manager
             // If the package is to become active, this will also callback on OnActiveStateChange and the menu commands will be enabled
@@ -198,9 +200,16 @@ namespace GitScc
 
             _OnIdleEvent.RegisterForIdleTimeCallbacks(GetGlobalService(typeof(SOleComponentManager)) as IOleComponentManager);
             //_OnIdleEvent.OnIdleEvent += new OnIdleEvent(sccService.UpdateNodesGlyphs);
+            SetupStatusMenu();
 
         }
 
+
+        private void SetupStatusMenu()
+        {
+            sccService.RepositoryIcon = KnownMonikers.GitNoColor;
+            sccService.BranchIcon = KnownMonikers.BranchNoColor;
+        }
 
         protected override void Dispose(bool disposing)
         {

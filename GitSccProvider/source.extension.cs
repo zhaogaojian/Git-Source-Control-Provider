@@ -1,4 +1,4 @@
-namespace GitSccProvider
+namespace GitScc
 {
     static class Vsix
     {
