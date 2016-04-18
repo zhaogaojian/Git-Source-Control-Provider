@@ -70,6 +70,13 @@ namespace GitScc
         public const int igrpPendingChangesToolWindowGitExt = 0x0952;
         public const int imnuPendingChangesToolWindowGitTor = 0x0961;
         public const int igrpPendingChangesToolWindowGitTor = 0x0962;
+        public const int BranchMenu = 0x1000;
+        public const int BranchGroup = 0x2000;
+        public const int BranchCommandGroup = 0x2100;
+        public const int cmdidSampleBranch1 = 0x0080;
+        public const int cmdidSampleBranch2 = 0x0090;
+        public const int cmdidSampleAction1 = 0x1101;
+        public const int cmdidSampleAction2 = 0x0120;
         public const int GitIgnoreSubMenu = 0x1100;
         public const int GitIgnoreSubMenuGroup = 0x1150;
         public const int iconGitBash = 0x0001;

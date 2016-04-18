@@ -34,10 +34,6 @@ namespace GitScc
 
         private event EventHandler<string> _onSolutionTrackerBranchChanged;
 
-        private event EventHandler<string> _trackerPauseRequest;
-
-        private event EventHandler _trackerUnPauseRequest;
-
         private DateTime _pauseTime = DateTime.MinValue;
         private bool _paused;
 

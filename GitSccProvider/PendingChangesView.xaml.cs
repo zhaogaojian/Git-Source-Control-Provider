@@ -164,7 +164,7 @@ namespace GitScc
                 var defaultForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
 
                 var theme = ThemeHelper.GetCurrentTheme();
-                var filename = "GitSccProvider.Resources.Patch-Mode-Blue.xshd";
+                var filename = "GitScc.Resources.Patch-Mode-Blue.xshd";
 
                 DiffEditor.Background = defaultBackground.ToBrush();
                 DiffEditor.Foreground = defaultForeground.ToBrush();
@@ -173,7 +173,7 @@ namespace GitScc
                 {
                     //DiffEditor.Background = System.Windows.Media.Brushes.Black; //new SolidColorBrush((Color)ColorConverter.ConvertFromString("#242424"));
                     //DiffEditor.Foreground = System.Windows.Media.Brushes.White;
-                    filename = "GitSccProvider.Resources.Patch-Mode-Dark.xshd";
+                    filename = "GitScc.Resources.Patch-Mode-Dark.xshd";
                 }
                 var assembly = Assembly.GetExecutingAssembly();
                 

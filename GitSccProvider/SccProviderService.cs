@@ -129,10 +129,10 @@ namespace GitScc
             }
             else
             {
-                // Although the parameter is an int, it's in reality a BOOL value, so let's return 0/1 values
-                pfResult = 1;
+                    // Although the parameter is an int, it's in reality a BOOL value, so let's return 0/1 values
+                pfResult = 1; //RepositoryManager.Instance.Active ? 1 : 0;
             }
-
+            //pfResult = 0;
             return VSConstants.S_OK;
         }
         #endregion
@@ -513,6 +513,7 @@ namespace GitScc
         {
             var caption = "Solution Explorer";
             BranchName = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
+            BranchDetail = "Test";
             if (!string.IsNullOrEmpty(BranchName))
             {
                 caption += " (" + BranchName + ")";
@@ -522,7 +523,8 @@ namespace GitScc
 
         private async Task RegisterEntireSolution()
         {
-            await _fileCache.RegisterSolution();
+            var registerSolution = _fileCache?.RegisterSolution();
+            if (registerSolution != null) await registerSolution;
         }
 
 

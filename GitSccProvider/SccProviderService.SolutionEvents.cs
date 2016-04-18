@@ -57,12 +57,14 @@ namespace GitScc
 
         public int OnAfterOpenSolution([In] Object pUnkReserved, [In] int fNewSolution)
         {
-
-            ThreadHelper.JoinableTaskFactory.Run(async delegate
+            if (Active)
             {
-                await OpenTracker();
-            });
-           
+                ThreadHelper.JoinableTaskFactory.Run(async delegate
+                {
+                    await OpenTracker();
+                });
+            }
+
             //RefreshDelay = InitialRefreshDelay;
 
             //automatic switch the scc provider
@@ -163,7 +165,7 @@ namespace GitScc
 
         public int OnBeforeCloseProject([In] IVsHierarchy pHierarchy, [In] int fRemoved)
         {
-            _fileCache.InValidateCache();
+            _fileCache?.InValidateCache();
             return VSConstants.S_OK;
         }
 
@@ -184,13 +186,13 @@ namespace GitScc
 
         public int OnQueryCloseSolution([In] Object pUnkReserved, [In] ref int pfCancel)
         {
-            _fileCache.InValidateCache();
+            _fileCache?.InValidateCache();
             return VSConstants.S_OK;
         }
 
         public int OnQueryUnloadProject([In] IVsHierarchy pRealHierarchy, [In] ref int pfCancel)
         {
-            _fileCache.InValidateCache();
+            _fileCache?.InValidateCache();
             return VSConstants.S_OK;
         }
 

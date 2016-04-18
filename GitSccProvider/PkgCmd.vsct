@@ -63,8 +63,12 @@
           <CommandName>Git Ignore Controller</CommandName>
         </Strings>
       </Menu>-->
-      
-    
+
+      <Menu guid="guidSccProviderCmdSet" id="BranchMenu" priority="0x0000" type="Context">
+        <Strings>
+          <ButtonText>Branch Menu</ButtonText>
+        </Strings>
+      </Menu>
       
     </Menus>
     
@@ -109,6 +113,17 @@
       <!-- Document TabWnd context menu -->
       <Group guid="guidSccProviderCmdSet" id="igrpDocTabWnd" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_EZDOCWINTAB"/>
+      </Group>
+
+
+      <!-- 	Group for buttons in the Branch context menu -->
+      <Group guid="guidSccProviderCmdSet" id="BranchGroup" priority="0x0000">
+        <Parent guid="guidSccProviderCmdSet" id="BranchMenu" />
+      </Group>
+
+      <!-- 	Group for branch action buttons in the Branch context menu -->
+      <Group guid="guidSccProviderCmdSet" id="BranchCommandGroup" priority="0x0010">
+        <Parent guid="guidSccProviderCmdSet" id="BranchMenu" />
       </Group>
       
     </Groups>
@@ -335,6 +350,36 @@
        <ButtonText>Update Ignore</ButtonText>
     </Strings>
 </Button>
+
+
+
+      <Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch1" priority="0x0000" type="Button">
+        <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
+        <Strings>
+          <ButtonText>Sample Branch &amp;3</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch2" priority="0x0100" type="Button">
+        <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
+        <Strings>
+          <ButtonText>Sample Branch &amp;4</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSccProviderCmdSet" id="cmdidSampleAction1" priority="0x0000" type="Button">
+        <Parent guid="guidSccProviderCmdSet" id="BranchCommandGroup" />
+        <Strings>
+          <ButtonText>Sample Action &amp;1</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSccProviderCmdSet" id="cmdidSampleAction2" priority="0x0000" type="Button">
+        <Parent guid="guidSccProviderCmdSet" id="BranchCommandGroup" />
+        <Strings>
+          <ButtonText>Sample Action &amp;2</ButtonText>
+        </Strings>
+      </Button>
       
     </Buttons>
     
@@ -480,6 +525,14 @@
       <IDSymbol name="imnuPendingChangesToolWindowGitTor" value="0x961"/>
       <IDSymbol name="igrpPendingChangesToolWindowGitTor" value="0x962"/>
 
+      <IDSymbol name="BranchMenu"             value="0x1000" />
+      <IDSymbol name="BranchGroup"            value="0x2000" />
+      <IDSymbol name="BranchCommandGroup"     value="0x2100" />
+      <IDSymbol name="cmdidSampleBranch1"     value="0x0080" />
+      <IDSymbol name="cmdidSampleBranch2"     value="0x0090" />
+      <IDSymbol name="cmdidSampleAction1"     value="0x01101" />
+      <IDSymbol name="cmdidSampleAction2"     value="0x0120" />
+
       
       <!--<IDSymbol name="imnuPendingChangesToolWindowGitIgnore" value="0x1100"/>
       <IDSymbol name="igrpPendingChangesToolWindowGitIgnore" value="0x1150"/>-->
@@ -507,5 +560,13 @@
     <GuidSymbol name="guidSccProviderImagePendingCheckins" value="{8E7C0075-060A-4411-A90C-BE88E4370386}" />
     <GuidSymbol name="guidSccProviderImageCompare" value="{89C2CE10-4265-462C-83B6-BEC12CF0CDD0}" />
     <GuidSymbol name="guidSccProviderImageUndoCheckout" value="{78B4AED4-1FEC-4910-A3F7-8FE4022BED8B}" />
+    
+    
+    
   </Symbols>
+  
+  
+  
+  
+  
 </CommandTable>

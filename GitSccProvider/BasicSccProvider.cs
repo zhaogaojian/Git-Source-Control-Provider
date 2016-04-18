@@ -61,10 +61,11 @@ namespace GitScc
     //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
     // Declare the package guid
     [Guid("C4128D99-2000-41D1-A6C3-704E6C1A3DE2")]
-    public class BasicSccProvider : MsVsShell.Package, IOleCommandTarget
+    public sealed class BasicSccProvider : MsVsShell.Package, IOleCommandTarget
     {
         private SccOnIdleEvent _OnIdleEvent = new SccOnIdleEvent();
-
+        // As a best practice, to be sure the provider has an unique name, a guid like the provider guid can be used as a part of the name
+        private const string _strProviderName = "Sample Source Control Provider:{C4128D99-0000-41D1-A6C3-704E6C1A3DE2}";
         private List<GitFileStatusTracker> projects;
         private SccProviderService sccService = null;
 
@@ -209,6 +210,11 @@ namespace GitScc
         {
             sccService.RepositoryIcon = KnownMonikers.GitNoColor;
             sccService.BranchIcon = KnownMonikers.BranchNoColor;
+        }
+
+        public string ProviderName
+        {
+            get { return _strProviderName; }
         }
 
         protected override void Dispose(bool disposing)
@@ -707,7 +713,7 @@ namespace GitScc
 
         // This function is called by the IVsSccProvider service implementation when the active state of the provider changes
         // The package needs to show or hide the scc-specific commands 
-        public virtual void OnActiveStateChange()
+        public void OnActiveStateChange()
         {
 
         }
