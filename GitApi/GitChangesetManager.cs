@@ -102,7 +102,7 @@ namespace GitScc
             var lastChangeList = _fileStatus.Where(x => x.Value.Status != GitFileStatus.Unaltered).Select(x => x.Key).ToList();
             foreach (var file in lastChangeList)
             {
-                if (!newChangeSet.Exists(x => x.FilePath.ToLower() == file.ToLower()))
+                if (!newChangeSet.Exists(x => String.Equals(x.FilePath, file, StringComparison.CurrentCultureIgnoreCase)))
                 {
                     updatedFiles.Add(file.ToLower(), GitFileStatus.Unaltered);
                     _fileStatus.AddOrUpdate(file, new ChangesetFileStatus(GitFileStatus.Unaltered), (key, value) => new ChangesetFileStatus(GitFileStatus.Unaltered));
