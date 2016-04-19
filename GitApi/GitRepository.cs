@@ -60,8 +60,8 @@ namespace GitScc
         private event EventHandler _fileEvent;
 
 
-        private IObservable<EventPattern<object>> _gitEventObservable;
-        private IObservable<EventPattern<object>> _fileChangedEventObservable;
+        private readonly IObservable<EventPattern<object>> _gitEventObservable;
+        private readonly IObservable<EventPattern<object>> _fileChangedEventObservable;
 
         private readonly AsyncLock _statusMutex = new AsyncLock();
         private readonly AsyncLock _gitStatusMutex = new AsyncLock();
@@ -243,21 +243,12 @@ namespace GitScc
             {
                 Debug.WriteLine("Git File Event Update");
                 bool supressBranchEvent = false;
-                var files = new List<GitFile>();
+                List<GitFile> files = new List<GitFile>();
                 Repository repository = null;
                 try
                 {
                     repository = GetRepository();
-                    //get changed files
-                    var repoFiles = repository.RetrieveStatus(new StatusOptions()
-                    {
-                        IncludeUnaltered = false,
-                        RecurseIgnoredDirs = false
-                    });
-                    files.AddRange(
-                        repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
-                            .Select(item => new GitFile(repository, item)));
-
+                    files = GetCurrentChangedFiles(repository: repository);
 
                     //logic getting complicated time to break it out
                     if (_cachedBranchOperation != repository.Info.CurrentOperation)
@@ -1032,21 +1023,28 @@ namespace GitScc
             return files.Select(gitFile => gitFile.FilePath).ToList();
         }
 
-        private List<GitFile> GetCurrentChangedFiles(bool retryAllowed = true)
+        private List<GitFile> GetCurrentChangedFiles(bool retryAllowed = true, Repository repository = null)
         {
             var files = new List<GitFile>();
-            Repository repository = null;
+            //Repository repository = null;
             try
             {
-                repository = _statusRepository;
+                //let a function 
+                if (repository == null)
+                {
+                    repository = _statusRepository;
+                }
                 var repoFiles = repository.RetrieveStatus(new StatusOptions()
                 {
                     IncludeUnaltered = false,
                     RecurseIgnoredDirs = false
                 });
-                files.AddRange(
-                    repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
-                        .Select(item => new GitFile(repository, item)));
+                files.AddRange(repoFiles.Modified.Select(item => new GitFile(repository, item)));
+                //files.AddRange(
+                //    repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
+                //        .Select(item => new GitFile(repository, item)));
+
+
             }
             catch (Exception ex)
             {
