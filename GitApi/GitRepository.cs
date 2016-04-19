@@ -247,8 +247,9 @@ namespace GitScc
                 Repository repository = null;
                 try
                 {
+                    //repository = _statusRepository;
                     repository = GetRepository();
-                    files = GetCurrentChangedFiles(repository: repository);
+                    files = GetCurrentChangedFiles();
 
                     //logic getting complicated time to break it out
                     if (_cachedBranchOperation != repository.Info.CurrentOperation)
@@ -289,7 +290,7 @@ namespace GitScc
                     repository?.Dispose();
                 }
                  _changedFiles = files;
-                 FireFileStatusUpdateEvent(files);
+                FireFileStatusUpdateEvent(files);
             }
         }
 

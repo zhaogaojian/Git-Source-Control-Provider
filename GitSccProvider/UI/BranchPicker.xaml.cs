@@ -19,20 +19,6 @@ using GitScc.DataServices;
 namespace GitScc.UI
 {
 
-
-    public class BranchPickerResult
-    {
-        public GitBranchInfo BranchInfo { get; set; }
-
-        public string BranchName { get; set; }
-
-        public bool CreateBranch { get; set; }
-
-        public bool Switch { get; set; }
-
-        public GitRepository Repository { get; set; }
-    }
-
     /// <summary>
     /// Interaction logic for BranchPicker.xaml
     /// </summary>
@@ -46,7 +32,7 @@ namespace GitScc.UI
         public bool CreateNew { get; set; }
 
         public ObservableCollection<GitBranchInfo> _branches { get; set; }
-        BranchPickerResult _pickerResult;
+        SwitchBranchInfo _pickerResult;
 
         public BranchPicker(GitRepository repository)
         {
@@ -58,7 +44,7 @@ namespace GitScc.UI
             //this.list = list;
         }
 
-        internal BranchPickerResult Show()
+        internal SwitchBranchInfo Show()
         {
             window = new Window
             {
@@ -81,7 +67,7 @@ namespace GitScc.UI
             comboBranches.DisplayMemberPath = "FullName";
             comboBranches.SelectedValuePath = "CanonicalName";
             comboBranches.SelectedValue = repository.CurrentBranchInfo.CanonicalName;
-            _pickerResult = new BranchPickerResult();
+            _pickerResult = new SwitchBranchInfo();
             _pickerResult.Repository = repository;
 
 
@@ -91,7 +77,7 @@ namespace GitScc.UI
             }
             else
             {
-                return new BranchPickerResult();
+                return new SwitchBranchInfo();
             }
         }
 

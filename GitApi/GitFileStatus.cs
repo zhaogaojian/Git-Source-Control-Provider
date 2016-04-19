@@ -38,7 +38,7 @@ namespace GitScc
         public GitFile(Repository repository, StatusEntry fileStatusEntry)
         {
             FileStatusEntry = fileStatusEntry;
-            _path = Path.GetFullPath(string.Format(PATH_STRING, repository.Info.WorkingDirectory, FileStatusEntry.FilePath));
+            _path = Path.GetFullPath(string.Format(PATH_STRING, repository.Info.WorkingDirectory, FileStatusEntry.FilePath)).ToLower();
         }
 
         public StatusEntry FileStatusEntry { get; set; }

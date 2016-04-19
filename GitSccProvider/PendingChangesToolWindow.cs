@@ -120,7 +120,7 @@ namespace GitScc
             control.AmendCommit();
         }
 
-        internal async Task OnSwitchCommand(BranchPickerResult result)
+        internal async Task OnSwitchCommand(SwitchBranchInfo result)
         {
            await control.SwitchCommand(result);
         }

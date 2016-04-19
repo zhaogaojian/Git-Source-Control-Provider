@@ -107,6 +107,7 @@
     <Compile Include="UI\StatusBox.xaml.cs">
       <DependentUpon>StatusBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SwitchBranchInfo.cs" />
     <Compile Include="Utilities\GitCommandWrappers.cs" />
     <Compile Include="Utilities\IgnoreFileManager.cs" />
     <Compile Include="Utilities\SolutionExtensions.cs" />

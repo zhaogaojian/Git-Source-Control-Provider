@@ -164,7 +164,7 @@ namespace GitSccProvider
         private List<IVsSccProject2> GetProjectsSelectionForFileInternal(string filename)
         {
             List<IVsSccProject2> projects;
-            var filePath = filename.ToLower();
+            var filePath = filename;
             if (_fileProjectLookup == null || !_fileProjectLookup.TryGetValue(filePath, out projects))
             {
                 return new List<IVsSccProject2>();

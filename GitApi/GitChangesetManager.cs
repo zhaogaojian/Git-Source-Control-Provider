@@ -84,9 +84,17 @@ namespace GitScc
             {
                 var fileKey = filename.ToLower();
                 var changeStatus = GitFile.IsChangedStatus(status) ? status : GitFileStatus.Unaltered;
-                if (changeStatus != GitFileStatus.Unaltered || _fileStatus.ContainsKey(fileKey))
+                if (_fileStatus.ContainsKey(fileKey))
                 {
-                    _fileStatus.AddOrUpdate(fileKey, new ChangesetFileStatus(changeStatus), (key, val) => new ChangesetFileStatus(changeStatus));
+                    if (changeStatus == GitFileStatus.Unaltered)
+                    {
+                        ChangesetFileStatus dStatus;
+                        _fileStatus.TryRemove(fileKey,out dStatus);
+                    }
+                    else
+                    {
+                        _fileStatus.AddOrUpdate(fileKey, new ChangesetFileStatus(changeStatus), (key, val) => new ChangesetFileStatus(changeStatus));
+                    }
                 }
             }
         }
@@ -99,31 +107,31 @@ namespace GitScc
         private Dictionary<string, GitFileStatus> CreateRepositoryUpdateChangeSet(List<GitFile> newChangeSet)
         {
             var updatedFiles = new Dictionary<string, GitFileStatus>();
-            var lastChangeList = _fileStatus.Where(x => x.Value.Status != GitFileStatus.Unaltered).Select(x => x.Key).ToList();
-            foreach (var file in lastChangeList)
+            var newChangeKeys = newChangeSet.Select(x => x.FilePath).ToList(); //_fileStatus.Where(x => x.Value.Status != GitFileStatus.Unaltered).Select(x => x.Key).ToList();
+            var newUnchangedFiles = _fileStatus.Keys.Except(newChangeKeys).ToList();
+            foreach (var file in newUnchangedFiles)
             {
-                if (!newChangeSet.Exists(x => String.Equals(x.FilePath, file, StringComparison.CurrentCultureIgnoreCase)))
-                {
-                    updatedFiles.Add(file.ToLower(), GitFileStatus.Unaltered);
-                    _fileStatus.AddOrUpdate(file, new ChangesetFileStatus(GitFileStatus.Unaltered), (key, value) => new ChangesetFileStatus(GitFileStatus.Unaltered));
-                }
+                updatedFiles.Add(file, GitFileStatus.Unaltered);
+                ChangesetFileStatus dStatus;
+                _fileStatus.TryRemove(file, out dStatus);
+
             }
 
             foreach (var gitFile in newChangeSet)
             {
                 ChangesetFileStatus fileStatus;
-                if (_fileStatus.TryGetValue(gitFile.FilePath.ToLower(), out fileStatus))
+                if (_fileStatus.TryGetValue(gitFile.FilePath, out fileStatus))
                 {
                     if (fileStatus.IsStale || fileStatus.Status != gitFile.Status)
                     {
-                        updatedFiles.Add(gitFile.FilePath.ToLower(), gitFile.Status);
-                        _fileStatus.AddOrUpdate(gitFile.FilePath.ToLower(), new ChangesetFileStatus(gitFile.Status), (key, value) => new ChangesetFileStatus(gitFile.Status));
+                        updatedFiles.Add(gitFile.FilePath, gitFile.Status);
+                        _fileStatus.AddOrUpdate(gitFile.FilePath, new ChangesetFileStatus(gitFile.Status), (key, value) => new ChangesetFileStatus(gitFile.Status));
                     }
                 }
                 else
                 {
-                    updatedFiles.Add(gitFile.FilePath.ToLower(), gitFile.Status);
-                    _fileStatus.AddOrUpdate(gitFile.FilePath.ToLower(), new ChangesetFileStatus(gitFile.Status), (key, value) => new ChangesetFileStatus(gitFile.Status));
+                    updatedFiles.Add(gitFile.FilePath, gitFile.Status);
+                    _fileStatus.AddOrUpdate(gitFile.FilePath, new ChangesetFileStatus(gitFile.Status), (key, value) => new ChangesetFileStatus(gitFile.Status));
                 }
             }
             return updatedFiles;

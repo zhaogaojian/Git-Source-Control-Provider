@@ -562,7 +562,7 @@ namespace GitScc
                 ////if (_fileCache.StatusChanged(file.Key.t, file.Status))
                 ////{
 
-                var items = _fileCache.GetProjectsSelectionForFile(file.Key.ToLower());
+                var items = _fileCache.GetProjectsSelectionForFile(file.Key);
                 if (items != null)
                 {
                     foreach (var vsitemselection in items)
