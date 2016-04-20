@@ -1040,10 +1040,10 @@ namespace GitScc
                     IncludeUnaltered = false,
                     RecurseIgnoredDirs = false
                 });
-                files.AddRange(repoFiles.Modified.Select(item => new GitFile(repository, item)));
-                //files.AddRange(
-                //    repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
-                //        .Select(item => new GitFile(repository, item)));
+                //files.AddRange(repoFiles.Modified.Select(item => new GitFile(repository, item)));
+                files.AddRange(
+                    repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
+                        .Select(item => new GitFile(repository, item)));
 
 
             }

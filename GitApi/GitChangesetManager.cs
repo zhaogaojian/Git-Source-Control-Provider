@@ -19,7 +19,7 @@ namespace GitScc
 
         public bool IsStale => ((DateTime.UtcNow - StatusTime).Seconds > _secondsUntilStale);
 
-        public ChangesetFileStatus(GitFileStatus status, int secondsUntilStale = 5)
+        public ChangesetFileStatus(GitFileStatus status, int secondsUntilStale = 60)
         {
             StatusTime = DateTime.UtcNow;
         }
@@ -95,6 +95,10 @@ namespace GitScc
                     {
                         _fileStatus.AddOrUpdate(fileKey, new ChangesetFileStatus(changeStatus), (key, val) => new ChangesetFileStatus(changeStatus));
                     }
+                }
+                else if (changeStatus != GitFileStatus.Unaltered)
+                {
+                    _fileStatus.AddOrUpdate(fileKey, new ChangesetFileStatus(changeStatus), (key, val) => new ChangesetFileStatus(changeStatus));
                 }
             }
         }
