@@ -969,6 +969,62 @@ Note: if the file is included project, you need to delete the file from project 
             _showOnlySolutionFiles = false;
             await Refresh();
         }
+
+        private async void DiffEditor_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            await HandleDiffOpenFile();
+        }
+
+        private async Task HandleDiffOpenFile()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            int start = 1, column = 1;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(DiffEditor.Text))
+                {
+                    var doc = DiffEditor.Document;
+                    var line = DiffEditor.TextArea.Caret.Line - 1;
+
+                    
+                    //textView.GetCaretPos(out line, out column);
+
+                  
+                    while (line >= 0)
+                    {
+                        var text = doc.GetText(doc.Lines[line].Offset, doc.Lines[line].Length);
+                        var match = Regex.Match(text, "^@@(.+)@@");
+                        if (match.Success)
+                        {
+                            var s = match.Groups[1].Value;
+                            s = s.Substring(s.IndexOf('+') + 1);
+                            s = s.Substring(0, s.IndexOf(','));
+                            start += Convert.ToInt32(s) - 2;
+                            break;
+                        }
+                        else if (text.StartsWith("-"))
+                        {
+                            start--;
+                        }
+                        start++;
+                        line--;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage(ex.Message);
+                Log.WriteLine("Pending Changes View - DiffEditor_MouseDoubleClick: {0}", ex.ToString());
+            }
+
+            GetSelectedFileFullName((fileName) =>
+            {
+                OpenFile(fileName);
+                var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
+                var selection = dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+                selection.MoveToLineAndOffset(start, column);
+            });
+        }
     }
 
     public static class ExtHelper

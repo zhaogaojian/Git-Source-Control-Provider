@@ -715,10 +715,11 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                var diffTree = repository.Diff.Compare<Patch>(repository.Head?.Tip?.Tree,
-                    DiffTargets.Index | DiffTargets.WorkingDirectory);
+                //var diffTree = repository.Diff.Compare<Patch>(repository.Head?.Tip?.Tree,
+                //    DiffTargets.Index | DiffTargets.WorkingDirectory);
+                var patch = repository.Diff.Compare<Patch>(new List<string>() { fileName });
 
-                return diffTree?[fileName].Patch;
+                return patch.Content; //diffTree?[fileName].;
             }
 
         }
