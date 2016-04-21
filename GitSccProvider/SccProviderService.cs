@@ -29,6 +29,7 @@ using TaskCreationOptions = System.Threading.Tasks.TaskCreationOptions;
 using TaskScheduler = System.Threading.Tasks.TaskScheduler;
 using Thread = System.Threading.Thread;
 using ThreadPriority = System.Threading.ThreadPriority;
+using GitScc.Utilities;
 
 namespace GitScc
 {

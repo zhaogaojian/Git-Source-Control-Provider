@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
 using GitSccProvider;
 using Task = System.Threading.Tasks.Task;
+using GitScc.Utilities;
 
 namespace GitScc
 {
@@ -108,10 +109,10 @@ namespace GitScc
             return dte.ItemOperations.PromptToSave != EnvDTE.vsPromptResult.vsPromptResultCancelled;
         }
 
-        internal void OnCommitCommand()
+        internal async Task OnCommitCommand()
         {
             if (!hasFileSaved()) return;
-            control.Commit();
+            await control.Commit();
         }
 
         internal void OnAmendCommitCommand()

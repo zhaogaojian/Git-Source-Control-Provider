@@ -371,7 +371,6 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-
                 var result = new GitActionResult<GitBranchInfo>();
 
                 CheckoutOptions options = new CheckoutOptions();
@@ -381,6 +380,7 @@ namespace GitScc
                 if (force)
                 {
                     options.CheckoutModifiers = CheckoutModifiers.Force;
+
                 }
                 try
                 {
@@ -470,21 +470,29 @@ namespace GitScc
         #region Commit Functions
 
 
-        public string Commit(string message, bool amend = false, bool signoff = false)
+        public GitActionResult<string> Commit(string message, bool amend = false, bool signoff = false)
         {
+            var result = new GitActionResult<string>();
             using (var repository = GetRepository())
             {
                 if (string.IsNullOrEmpty(message))
                 {
-                    throw new ArgumentException("Commit message must not be null or empty!", "message");
+                    result.Succeeded = false;
+                    result.ErrorMessage = "Commit message must not be null or empty!";
+                    //throw new ArgumentException("Commit message must not be null or empty!", "message");
                 }
-                Signature author = repository.Config.BuildSignature(DateTimeOffset.Now);
-                Signature committer = author;
+                else
+                {
+                    Signature author = repository.Config.BuildSignature(DateTimeOffset.Now);
+                    Signature committer = author;
 
-                CommitOptions opts = new CommitOptions();
-                opts.AmendPreviousCommit = amend;
-                var commit = repository.Commit(message, author, committer,opts);
-                return commit.Sha;
+                    CommitOptions opts = new CommitOptions();
+                    opts.AmendPreviousCommit = amend;
+                    var commit = repository.Commit(message, author, committer, opts);
+                    result.Succeeded = true;
+                    result.Item = commit.Sha;
+                }
+                return result;
             }
         }
 
@@ -569,14 +577,26 @@ namespace GitScc
         }
 
 
-        public GitActionResult<GitBranchInfo> CreateBranch(string branchName)
+        public void SetRemoteBranch(GitBranchInfo localBranch, string remoteName = "origin")
+        {
+            using (var repository = GetRepository())
+            {
+                Remote remote = repository.Network.Remotes[remoteName];
+                var branch = GetLib2GitBranch(localBranch);
+                repository.Branches.Update(branch,
+                    b => b.Remote = remote.Name,
+                    b => b.UpstreamBranch = localBranch.CanonicalName);
+            }
+        }
+
+        public GitActionResult<GitBranchInfo> CreateBranch(string branchName, string commitish = "HEAD")
         {
             var result = new GitActionResult<GitBranchInfo>();
             try
             {
                 using (var repository = GetRepository())
                 {
-                    var branch = repository.CreateBranch(branchName, "HEAD");
+                    var branch = repository.CreateBranch(branchName, commitish);
                     if (branch != null)
                     {
                         result.Item = new GitBranchInfo

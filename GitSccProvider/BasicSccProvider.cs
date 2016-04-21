@@ -694,9 +694,9 @@ namespace GitScc
             
         }
 
-        private void OnCommitCommand(object sender, EventArgs e)
+        private async void OnCommitCommand(object sender, EventArgs e)
         {
-            GetToolWindowPane<PendingChangesToolWindow>().OnCommitCommand();
+            await GetToolWindowPane<PendingChangesToolWindow>().OnCommitCommand();
         }
 
         private void OnAmendCommitCommand(object sender, EventArgs e)

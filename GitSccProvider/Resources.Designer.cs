@@ -127,6 +127,15 @@ namespace GitScc {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please enter comments for the commit..
+        /// </summary>
+        internal static string NoCommentErrorMessage {
+            get {
+                return ResourceManager.GetString("NoCommentErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pending Changes.
         /// </summary>
         internal static string PendingChangesToolWindowCaption {

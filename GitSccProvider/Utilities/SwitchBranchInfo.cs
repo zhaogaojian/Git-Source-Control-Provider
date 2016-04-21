@@ -1,4 +1,4 @@
-namespace GitScc
+namespace GitScc.Utilities
 {
     public class SwitchBranchInfo
     {
