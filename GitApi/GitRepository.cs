@@ -33,7 +33,7 @@ namespace GitScc
 
         private string workingDirectory;
         private readonly string _gitDirectory;
-        private List<GitFile> _changedFiles;
+        private Dictionary<string,GitFile> _changedFiles;
         private bool isGit;
         private string _branchDisplayName;
         private string _cachedBranchName;
@@ -243,7 +243,7 @@ namespace GitScc
             {
                 Debug.WriteLine("Git File Event Update");
                 bool supressBranchEvent = false;
-                List<GitFile> files = new List<GitFile>();
+                var files = new Dictionary<string, GitFile>();
                 Repository repository = null;
                 try
                 {
@@ -290,7 +290,7 @@ namespace GitScc
                     repository?.Dispose();
                 }
                  _changedFiles = files;
-                FireFileStatusUpdateEvent(files);
+                FireFileStatusUpdateEvent(files.Values.ToList());
             }
         }
 
@@ -300,13 +300,13 @@ namespace GitScc
             using (await _statusMutex.LockAsync())
             {
 
-                var changeFileStatus = await GetCurrentChangeSet();
+                var changeFileStatus =  GetCurrentChangedFiles();
                 //}
 
                 if (changeFileStatus != null)
                 {
                     _changedFiles = changeFileStatus;
-                    FireFileStatusUpdateEvent(changeFileStatus);
+                    FireFileStatusUpdateEvent(changeFileStatus.Values.ToList());
                 }
             }
 
@@ -315,19 +315,19 @@ namespace GitScc
         /// <summary>
         /// Update status when some file change is detected in the .git dir
         /// </summary>
-        private void HandleGitFileSystemChange()
-        {
-            //lock (_repoUpdateLock)
-            //{
-                var files = CreateRepositoryUpdateChangeSet();
-                SetBranchName();
-                _branchInfoList = null;
-                if (files != null && files.Count > 0)
-                {
-                    FireFilesChangedEvent(files);
-                }
-            //}
-        }
+        //private void HandleGitFileSystemChange()
+        //{
+        //    //lock (_repoUpdateLock)
+        //    //{
+        //        var files = CreateRepositoryUpdateChangeSet();
+        //        SetBranchName();
+        //        _branchInfoList = null;
+        //        if (files != null && files.Count > 0)
+        //        {
+        //            FireFilesChangedEvent(files);
+        //        }
+        //    //}
+        //}
 
         public void DisableRepositoryWatcher()
         {
@@ -1001,11 +1001,11 @@ namespace GitScc
                     }
                     catch
                     {
-                        _changedFiles = new List<GitFile>();
+                        _changedFiles = new Dictionary<string, GitFile>();
                     }
 
                 }
-                return _changedFiles;
+                return _changedFiles.Values.ToList();
 
             }
         }
@@ -1018,36 +1018,37 @@ namespace GitScc
         //    return changedFileCache;
         //}
 
-        private List<string> CreateRepositoryUpdateChangeSet()
-        {
-            var _lastChanged = _changedFiles;
-            //we have no idea what changes happened before.. so update everthing 
-            if (_lastChanged == null)
-            {
-                return GetFullPathForGitFiles(GetCurrentFilesStatus());
-            }
-            var changedFileCache = GetCurrentChangedFiles();
-            var currentChangeList = GetFullPathForGitFiles(changedFileCache);
-            var lastChangeList = GetFullPathForGitFiles(_lastChanged);
-            foreach (var path in lastChangeList)
-            {
-                if (!currentChangeList.Contains(path))
-                {
-                    currentChangeList.Add(path);
-                }
-            }
-            _changedFiles = changedFileCache;
-            return currentChangeList;
-        }
+        //private List<string> CreateRepositoryUpdateChangeSet()
+        //{
+        //    var _lastChanged = _changedFiles;
+        //    //we have no idea what changes happened before.. so update everthing 
+        //    if (_lastChanged == null)
+        //    {
+        //        return GetFullPathForGitFiles(GetCurrentFilesStatus());
+        //    }
+        //    var changedFileCache = GetCurrentChangedFiles();
+        //    var currentChangeList = GetFullPathForGitFiles(changedFileCache);
+        //    var lastChangeList = GetFullPathForGitFiles(_lastChanged);
+        //    foreach (var path in lastChangeList)
+        //    {
+        //        if (!currentChangeList.Contains(path))
+        //        {
+        //            currentChangeList.Add(path);
+        //        }
+        //    }
+        //    _changedFiles = changedFileCache;
+        //    return currentChangeList;
+        //}
 
         private List<string> GetFullPathForGitFiles(List<GitFile> files)
         {
             return files.Select(gitFile => gitFile.FilePath).ToList();
         }
 
-        private List<GitFile> GetCurrentChangedFiles(bool retryAllowed = true, Repository repository = null)
+        private Dictionary<string, GitFile> GetCurrentChangedFiles(bool retryAllowed = true, Repository repository = null)
         {
-            var files = new List<GitFile>();
+            //var files = new List<GitFile>();
+            var files = new Dictionary<string, GitFile>();
             //Repository repository = null;
             try
             {
@@ -1061,12 +1062,11 @@ namespace GitScc
                     IncludeUnaltered = false,
                     RecurseIgnoredDirs = false
                 });
+
                 //files.AddRange(repoFiles.Modified.Select(item => new GitFile(repository, item)));
-                files.AddRange(
-                    repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
-                        .Select(item => new GitFile(repository, item)));
-
-
+                //files.AddRange(
+                files = repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
+                    .Select(item => new GitFile(repository, item)).ToDictionary(x=>x.FilePath,x =>x); //);
             }
             catch (Exception ex)
             {
@@ -1080,10 +1080,10 @@ namespace GitScc
 
         public async Task<List<GitFile>> GetCurrentChangeSet()
         {
-            List<GitFile> changedFileCache;
+            //ist<GitFile> changedFileCache;
 
-            changedFileCache = GetCurrentChangedFiles();
-            return changedFileCache;
+            var changedFileCache = GetCurrentChangedFiles();
+            return changedFileCache.Values.ToList();
         }
 
         private List<GitFile> GetCurrentFilesStatus()
@@ -1262,9 +1262,18 @@ namespace GitScc
         {
             try
             {
-                fileName = Path.GetFullPath(fileName);
-                var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
-                if (file != null) return file.Status;
+                fileName = Path.GetFullPath(fileName).ToLower();
+                GitFile file;
+                if (_changedFiles == null)
+                {
+                    _changedFiles = GetCurrentChangedFiles();
+                }
+                if (_changedFiles.TryGetValue(fileName, out file))
+                {
+                    return file.Status;
+                }
+                //var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
+                //if (file != null) return file.Status;
 
                 if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
                 // did not check if the file is ignored for performance reason

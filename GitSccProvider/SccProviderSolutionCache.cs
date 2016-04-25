@@ -40,6 +40,7 @@ namespace GitSccProvider
 
         private void AddFileToList(string filename, IVsSccProject2 project)
         {
+            filename = filename.ToLower();
             List<IVsSccProject2> projects;
 
             if (!_fileProjectLookup.TryGetValue(filename, out projects))
@@ -70,7 +71,7 @@ namespace GitSccProvider
         {
             if (_projects.Contains(project))
             {
-                AddFileToList(filename.ToLower(), project);
+                AddFileToList(filename, project);
             }
         }
         
@@ -121,7 +122,7 @@ namespace GitSccProvider
 
             foreach (var file in files)
             {
-                AddFileToList(file.ToLower(), project);
+                AddFileToList(file, project);
             }
         }
 
