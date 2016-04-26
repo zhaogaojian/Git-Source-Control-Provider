@@ -573,6 +573,12 @@ namespace GitScc
            //ShowToolWindow(typeof(PendingChangesToolWindow));
         }
 
+        public async Task ShowPendingChangesWindow()
+        {
+            RepositoryManager.Instance.ActiveTracker = sccService.CurrentTracker;
+            await ShowToolWindow<PendingChangesToolWindow>();
+        }
+
         private void ShowHistoryWindow(object sender, EventArgs e)
         {
             var workingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

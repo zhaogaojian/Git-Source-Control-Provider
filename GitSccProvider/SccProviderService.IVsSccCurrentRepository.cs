@@ -88,22 +88,22 @@ namespace GitScc
 
             Debug.Assert(args != null, "Repository UI coordinates were not received.");
 
-            IVsUIShell uiShell = (IVsUIShell)_sccProvider.GetService(typeof(SVsUIShell));
-            if (uiShell != null)
-            {
-                int result;
-                uiShell.ShowMessageBox(dwCompRole: 0,
-                                       rclsidComp: Guid.Empty,
-                                       pszTitle: Resources.ProviderName,
-                                       pszText: string.Format(CultureInfo.CurrentUICulture, "Clicked", args.ClickedElementPosition.ToString()),
-                                       pszHelpFile: string.Empty,
-                                       dwHelpContextID: 0,
-                                       msgbtn: OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                                       msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-                                       msgicon: OLEMSGICON.OLEMSGICON_INFO,
-                                       fSysAlert: 0,        // false = application modal; true would make it system modal
-                                       pnResult: out result);
-            }
+            //IVsUIShell uiShell = (IVsUIShell)_sccProvider.GetService(typeof(SVsUIShell));
+            //if (uiShell != null)
+            //{
+            //    int result;
+            //    uiShell.ShowMessageBox(dwCompRole: 0,
+            //                           rclsidComp: Guid.Empty,
+            //                           pszTitle: Resources.ProviderName,
+            //                           pszText: string.Format(CultureInfo.CurrentUICulture, "Clicked", args.ClickedElementPosition.ToString()),
+            //                           pszHelpFile: string.Empty,
+            //                           dwHelpContextID: 0,
+            //                           msgbtn: OLEMSGBUTTON.OLEMSGBUTTON_OK,
+            //                           msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
+            //                           msgicon: OLEMSGICON.OLEMSGICON_INFO,
+            //                           fSysAlert: 0,        // false = application modal; true would make it system modal
+            //                           pnResult: out result);
+            //}
         }
 
         #endregion

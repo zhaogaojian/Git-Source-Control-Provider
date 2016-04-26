@@ -186,6 +186,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Compile Include="SccProviderService.IVsSccCurrentRepository.cs" />
+    <Compile Include="SccProviderService.IVsSccChanges.cs" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>
