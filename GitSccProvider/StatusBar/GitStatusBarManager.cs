@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using IVsSccCurrentBranch = Microsoft.VisualStudio.Shell.IVsSccCurrentBranch;
@@ -13,7 +16,7 @@ using MsVsShell = Microsoft.VisualStudio.Shell;
 
 namespace GitScc.StatusBar
 {
-    public abstract class GitStatusBarManager
+    public abstract class GitStatusBarManager : IOleCommandTarget
     {
         private GitRepository _repository;
         protected IStatusBarService StatusBarService { get; }
@@ -35,6 +38,7 @@ namespace GitScc.StatusBar
             CommandSetGuid = commandSetGuid;
             _menuCommandService = serviceProvider.GetService(typeof(IMenuCommandService)) as MsVsShell.OleMenuCommandService;
             _serviceProvider = serviceProvider;
+            _branchMenuCommands = new List<Tuple<string, MenuCommand>>();
         }
 
 
@@ -72,15 +76,29 @@ namespace GitScc.StatusBar
                 _branchMenuCommands = new List<Tuple<string, MenuCommand>>();
                 for (int i = 0; i < branchNames.Count; i++)
                 {
-                    var cmdID = new CommandID(CommandSetGuid, PackageIds.cmdidBranchmenuStart + i);
+                    var cmdID = new CommandID(CommandSetGuid, BranchMenuCmId + i);
                     var mc = new OleMenuCommand(
                         new EventHandler(OnBranchSelection), cmdID, branchNames[i]);
-                    mc.Visible = true;
-                    mc.Enabled = true;
                     _menuCommandService.AddCommand(mc);
+                   // mc.BeforeQueryStatus += new EventHandler(OnBranchQueryStatus);
+                    _branchMenuCommands.Add(new Tuple<string, MenuCommand>(branchNames[i],mc));
 
                 }
                 await UpdateUI();
+            }
+        }
+
+        private void OnBranchQueryStatus(object sender, EventArgs e)
+        {
+            OleMenuCommand menuCommand = sender as OleMenuCommand;
+            if (null != menuCommand)
+            {
+                int idx = (int) menuCommand.CommandID.ID - BranchMenuCmId;
+                //int MRUItemIndex = menuCommand.CommandID.ID - this.baseMRUID;
+                if (idx >= 0 && idx < _branchMenuCommands.Count)
+                {
+                    menuCommand.Text = _branchMenuCommands[idx].Item1;
+                }
             }
         }
 
@@ -157,6 +175,65 @@ namespace GitScc.StatusBar
         {
             StatusBarService.BranchName = branchName;
         }
+
+        private bool TryParseBranchName(uint cmdId, out string label)
+        {
+            label = "";
+            int idx = (int)cmdId - BranchMenuCmId;
+            if (cmdId >= BranchMenuCmId &&
+                       cmdId < BranchMenuCmId + _branchMenuCommands.Count)
+            {
+                //int idx = (int)cmdId - PackageIds.cmdidBranchMenuCommandStart;
+                label = _branchMenuCommands[idx].Item1;
+                //menuCommand.Text
+                //SetOleCmdText(pCmdText, _branchMenuCommands[idx].Item1);
+                //cmdf |= OLECMDF.OLECMDF_ENABLED;
+                return true;
+            }
+            return false;
+        }
+
+        public void SetOleCmdText(IntPtr pCmdText, string text)
+        {
+            OLECMDTEXT CmdText = (OLECMDTEXT)Marshal.PtrToStructure(pCmdText, typeof(OLECMDTEXT));
+            char[] buffer = text.ToCharArray();
+            IntPtr pText = (IntPtr)((long)pCmdText + (long)Marshal.OffsetOf(typeof(OLECMDTEXT), "rgwz"));
+            IntPtr pCwActual = (IntPtr)((long)pCmdText + (long)Marshal.OffsetOf(typeof(OLECMDTEXT), "cwActual"));
+            // The max chars we copy is our string, or one less than the buffer size,
+            // since we need a null at the end.
+            int maxChars = (int)Math.Min(CmdText.cwBuf - 1, buffer.Length);
+            Marshal.Copy(buffer, 0, pText, maxChars);
+            // append a null
+            Marshal.WriteInt16((IntPtr)((long)pText + (long)maxChars * 2), (Int16)0);
+            // write out the length + null char
+            Marshal.WriteInt32(pCwActual, maxChars + 1);
+        }
+
         protected abstract Task UpdateBranchMenu();
+
+        int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            OLECMDF cmdf = OLECMDF.OLECMDF_SUPPORTED;
+            string label;
+            if(TryParseBranchName(prgCmds[0].cmdID, out label))
+            {
+                SetOleCmdText(pCmdText, label);
+                cmdf |= OLECMDF.OLECMDF_ENABLED;
+
+                prgCmds[0].cmdf = (uint)(cmdf);
+                return VSConstants.S_OK;
+            }
+            else
+            {
+                        return (int)(Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED);
+            }
+           
+            //throw new NotImplementedException();
+        }
+
+        int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            return ((IOleCommandTarget)_menuCommandService).Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+        }
     }
 }

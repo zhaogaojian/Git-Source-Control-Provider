@@ -77,7 +77,6 @@ namespace GitScc
         public const int cmdidBranchMenuCommandStart = 0x3001;
         public const int cmdidBranchMenuStartAnchor = 0x3100;
         public const int cmdidBranchmenuStart = 0x3101;
-        public const int cmdidSampleBranch2 = 0x4101;
         public const int GitIgnoreSubMenu = 0x1100;
         public const int GitIgnoreSubMenuGroup = 0x1150;
         public const int iconGitBash = 0x0001;

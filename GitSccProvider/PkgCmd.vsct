@@ -353,7 +353,7 @@
 
 
 
-      <Button guid="guidSccProviderCmdSet" id="cmdidBranchmenuStart" type="Button" priority="0x0000" >
+      <Button guid="guidSccProviderCmdSet" id="cmdidBranchmenuStart" type="Button" priority="0x0100" >
         <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
         <CommandFlag>DynamicItemStart</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -376,12 +376,12 @@
         </Strings>
       </Button>
 
-      <Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch2" priority="0x0100" type="Button">
+      <!--<Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch2" priority="0x0100" type="Button">
         <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
         <Strings>
           <ButtonText>Sample Branch &amp;4</ButtonText>
         </Strings>
-      </Button>
+      </Button>-->
 
       <!--<Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch1" priority="0x0000" type="Button">
         <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
@@ -562,7 +562,7 @@
       <IDSymbol name="cmdidBranchMenuCommandStart" value="0x3001" />
       <IDSymbol name="cmdidBranchMenuStartAnchor" value="0x3100" />
       <IDSymbol name="cmdidBranchmenuStart" value="0x3101" />
-      <IDSymbol name="cmdidSampleBranch2" value="0x4101" />
+
       
 
 

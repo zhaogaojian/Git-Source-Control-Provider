@@ -160,13 +160,13 @@ namespace GitScc
                 }
 
 
-                for (int i = 4; i < 8; i++)
-                {
-                    var cmdID = new CommandID(GuidList.guidSccProviderCmdSet, PackageIds.cmdidBranchmenuStart + i);
-                    var mc = new OleMenuCommand(
-                        new EventHandler(OnGitTorCommandExec), cmdID, "Brranch" + i);
-                    mcs.AddCommand(mc);
-                }
+                //for (int i = 4; i < 8; i++)
+                //{
+                //    var cmdID = new CommandID(GuidList.guidSccProviderCmdSet, PackageIds.cmdidBranchmenuStart + i);
+                //    var mc = new OleMenuCommand(
+                //        new EventHandler(OnGitTorCommandExec), cmdID, "Brranch" + i);
+                //    mcs.AddCommand(mc);
+                //}
 
                 //for (int i = 0; i < GitToolCommands.IgnoreCommands.Count; i++)
                 //{
