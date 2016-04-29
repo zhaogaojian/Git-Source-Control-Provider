@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitScc.StatusBar;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,7 +15,7 @@ using Task = System.Threading.Tasks.Task;
 namespace GitScc
 {
     public partial class SccProviderService :
-        IVsSccCurrentBranch
+        IStatusBarService
     {
         private string _branchName;
         private string _branchDetail;

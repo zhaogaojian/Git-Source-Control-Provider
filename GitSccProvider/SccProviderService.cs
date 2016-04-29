@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -12,6 +13,7 @@ using System.Threading.Tasks.Schedulers;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using EnvDTE;
+using GitScc.StatusBar;
 using GitSccProvider;
 using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
@@ -54,6 +56,7 @@ namespace GitScc
         private bool _updateQueued = false;
         private SccProviderSolutionCache _fileCache;
         private ConcurrentDictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
+        private GitStatusBarManager _statusBarManager;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -67,6 +70,14 @@ namespace GitScc
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
             RepositoryManager.Instance.FileStatusUpdate += RepositoryManager_FileStatusUpdate;
             RepositoryManager.Instance.SolutionTrackerBranchChanged += RepositoryManager_SolutionTrackerBranchChanged;
+
+            //var mcs = sccProvider.GetService(typeof(IMenuCommandService)) as Microsoft.VisualStudio.Shell.OleMenuCommandService;
+            _statusBarManager = new StandardGitStatusBarManager(
+                GuidList.guidSccProviderCmdSet,
+                PackageIds.cmdidBranchmenuStart,
+                PackageIds.cmdidBranchMenuCommandStart,
+                sccProvider,
+                this);
             //this.trackers = trackers;
             SetupSolutionEvents();
             SetupDocumentEvents();
@@ -161,6 +172,7 @@ namespace GitScc
         {
             await RegisterEntireSolution();
             await SetSolutionExplorerTitle();
+            await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
         }
 
         private void DisableSccForSolution()

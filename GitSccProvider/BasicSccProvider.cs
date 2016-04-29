@@ -132,6 +132,7 @@ namespace GitScc
                 menu = new MenuCommand(new EventHandler(OnInitCommand), cmd);
                 mcs.AddCommand(menu);
 
+
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandEditIgnore);
                 menu = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
                 mcs.AddCommand(menu);
@@ -155,6 +156,15 @@ namespace GitScc
                 {
                     cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitTorCommand1 + i);
                     var mc = new MenuCommand(new EventHandler(OnGitTorCommandExec), cmd);
+                    mcs.AddCommand(mc);
+                }
+
+
+                for (int i = 4; i < 8; i++)
+                {
+                    var cmdID = new CommandID(GuidList.guidSccProviderCmdSet, PackageIds.cmdidBranchmenuStart + i);
+                    var mc = new OleMenuCommand(
+                        new EventHandler(OnGitTorCommandExec), cmdID, "Brranch" + i);
                     mcs.AddCommand(mc);
                 }
 

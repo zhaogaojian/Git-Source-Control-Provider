@@ -353,7 +353,37 @@
 
 
 
-      <Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch1" priority="0x0000" type="Button">
+      <Button guid="guidSccProviderCmdSet" id="cmdidBranchmenuStart" type="Button" priority="0x0000" >
+        <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
+        <CommandFlag>DynamicItemStart</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <!-- This text does not appear. -->
+        <Strings>
+          <ButtonText>Branch</ButtonText>
+          <CommandName>cmdidBranchmenuStart</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSccProviderCmdSet" id="cmdidBranchMenuCommandStart" priority="0x0000" >
+        <Parent guid="guidSccProviderCmdSet" id="BranchCommandGroup" />
+        <CommandFlag>DynamicItemStart</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <!-- This text does not appear. -->
+        <Strings>
+          <ButtonText>Command</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch2" priority="0x0100" type="Button">
+        <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
+        <Strings>
+          <ButtonText>Sample Branch &amp;4</ButtonText>
+        </Strings>
+      </Button>
+
+      <!--<Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch1" priority="0x0000" type="Button">
         <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
         <Strings>
           <ButtonText>Sample Branch &amp;3</ButtonText>
@@ -379,7 +409,7 @@
         <Strings>
           <ButtonText>Sample Action &amp;2</ButtonText>
         </Strings>
-      </Button>
+      </Button>-->
       
     </Buttons>
     
@@ -528,12 +558,17 @@
       <IDSymbol name="BranchMenu"             value="0x1000" />
       <IDSymbol name="BranchGroup"            value="0x2000" />
       <IDSymbol name="BranchCommandGroup"     value="0x2100" />
-      <IDSymbol name="cmdidSampleBranch1"     value="0x0080" />
-      <IDSymbol name="cmdidSampleBranch2"     value="0x0090" />
-      <IDSymbol name="cmdidSampleAction1"     value="0x01101" />
-      <IDSymbol name="cmdidSampleAction2"     value="0x0120" />
-
+      <IDSymbol name="cmdidBranchMenuCommandAnchor" value="0x3000" />
+      <IDSymbol name="cmdidBranchMenuCommandStart" value="0x3001" />
+      <IDSymbol name="cmdidBranchMenuStartAnchor" value="0x3100" />
+      <IDSymbol name="cmdidBranchmenuStart" value="0x3101" />
+      <IDSymbol name="cmdidSampleBranch2" value="0x4101" />
       
+
+
+
+
+
       <!--<IDSymbol name="imnuPendingChangesToolWindowGitIgnore" value="0x1100"/>
       <IDSymbol name="igrpPendingChangesToolWindowGitIgnore" value="0x1150"/>-->
       <IDSymbol name="GitIgnoreSubMenu" value="0x1100"/>
