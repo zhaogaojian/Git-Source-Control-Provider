@@ -95,50 +95,48 @@ namespace GitScc.StatusBar
             }
         }
 
+        #region Command Selections
+
+        protected abstract Task OnRepositoryCommandSelection(string command);
+        protected abstract Task OnBranchSelection(string command);
+
         private void OnRepositoryCommandSelection(object sender, EventArgs e)
         {
             OleMenuCommand menuCommand = sender as OleMenuCommand;
-            if (null != menuCommand)
+            string command;
+            if (TryParseCommandName(menuCommand, RepositoryCommandMenuCmId, _repositoryCommands, out command))
             {
-                int idx = (int)menuCommand.CommandID.ID - BranchMenuCmId;
-                //int MRUItemIndex = menuCommand.CommandID.ID - this.baseMRUID;
-                if (idx >= 0 && idx < _branchMenuCommands.Count)
-                {
-                    menuCommand.Text = _branchMenuCommands[idx].Item1;
-                }
-            }
-        }
-
-        private void OnBranchQueryStatus(object sender, EventArgs e)
-        {
-            OleMenuCommand menuCommand = sender as OleMenuCommand;
-            if (null != menuCommand)
-            {
-                int idx = (int) menuCommand.CommandID.ID - BranchMenuCmId;
-                //int MRUItemIndex = menuCommand.CommandID.ID - this.baseMRUID;
-                if (idx >= 0 && idx < _branchMenuCommands.Count)
-                {
-                    menuCommand.Text = _branchMenuCommands[idx].Item1;
-                }
+                OnRepositoryCommandSelection(command);
             }
         }
 
         private void OnBranchSelection(object sender, EventArgs e)
         {
             var menuCommand = sender as OleMenuCommand;
-            if (null != menuCommand)
+            string command;
+            if (TryParseCommandName(menuCommand, BranchMenuCmId, _branchMenuCommands, out command))
             {
-                int branchIndex = menuCommand.CommandID.ID - BranchMenuCmId;
-                if (branchIndex >= 0 && branchIndex < _branchMenuCommands.Count)
-                {
-                    string selection = this._branchMenuCommands[branchIndex].Item1;
-                    System.Windows.Forms.MessageBox.Show(string.Format(CultureInfo.CurrentCulture,
-                        "Selected {0}", selection));
-                }
+                OnBranchSelection(command);
             }
         }
 
+    #endregion
 
+
+        private bool TryParseCommandName(OleMenuCommand menuCommand, int cmId, List<Tuple<string, MenuCommand>> commands, out string commandText)
+        {
+            commandText = null;
+            if (menuCommand != null)
+            {
+                int idx = menuCommand.CommandID.ID - cmId;
+                if (idx >= 0 && idx < commands.Count)
+                {
+                    commandText = commands[idx].Item1;
+                    return true;
+                }
+            }
+            return false;
+        }
 
         private bool TryParseBranchName(uint cmdId, out string label)
         {
@@ -185,6 +183,8 @@ namespace GitScc.StatusBar
         protected abstract Task UpdateBranchMenu();
 
         protected abstract Task UpdateRepsitoryCommands();
+
+
 
         int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {

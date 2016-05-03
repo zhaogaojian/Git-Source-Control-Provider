@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -76,6 +77,12 @@ namespace GitScc.StatusBar
         protected virtual async Task OnBranchChanged(string branchName)
         {
             StatusBarService.BranchName = branchName;
+        }
+
+        protected override async Task OnRepositoryCommandSelection(string command)
+        {
+            System.Windows.Forms.MessageBox.Show(string.Format(CultureInfo.CurrentCulture,
+        "Selected {0}", command));
         }
     }
 }
