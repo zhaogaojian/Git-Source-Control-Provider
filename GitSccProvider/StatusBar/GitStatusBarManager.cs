@@ -18,46 +18,31 @@ namespace GitScc.StatusBar
 {
     public abstract class GitStatusBarManager : IOleCommandTarget
     {
-        private GitRepository _repository;
+        
         protected IStatusBarService StatusBarService { get; }
         protected Guid CommandSetGuid { get; }
         protected int BranchMenuCmId { get; }
         protected int BranchCommandMenuCmId { get; }
+        protected int RepositoryCommandMenuCmId { get; }
 
         private List<Tuple<string,MenuCommand>> _branchMenuCommands;
+        private List<Tuple<string, MenuCommand>> _branchRepositoryCommands;
+        private List<Tuple<string, MenuCommand>> _repositoryCommands;
         private List<MenuCommand> _branchCommandMenuCommands;
 
         private OleMenuCommandService _menuCommandService;
         private IServiceContainer _serviceProvider;
 
-        protected GitStatusBarManager(Guid commandSetGuid, int branchMenuCmId, int branchCommandMenuCmId, IServiceContainer serviceProvider, IStatusBarService statusBarService)
+        protected GitStatusBarManager(Guid commandSetGuid, int branchMenuCmId, int branchCommandMenuCmId, int repositoryCommandMenuCmId,  IServiceContainer serviceProvider, IStatusBarService statusBarService)
         {
             BranchMenuCmId = branchMenuCmId;
             BranchCommandMenuCmId = branchCommandMenuCmId;
+            RepositoryCommandMenuCmId = repositoryCommandMenuCmId;
             StatusBarService = statusBarService;
             CommandSetGuid = commandSetGuid;
             _menuCommandService = serviceProvider.GetService(typeof(IMenuCommandService)) as MsVsShell.OleMenuCommandService;
             _serviceProvider = serviceProvider;
             _branchMenuCommands = new List<Tuple<string, MenuCommand>>();
-        }
-
-
-        protected GitRepository CurrentRepository
-        {
-            get { return _repository; }
-            set
-            {
-                SetupTracker(value);
-            }
-        }
-
-        public async Task SetActiveRepository(GitRepository repository)
-        {
-            if (repository != null)
-            {
-                CurrentRepository = repository;
-                await UpdateBranchMenu();
-            }
         }
 
         protected async Task LoadBranches(List<string> branchNames)
@@ -80,11 +65,47 @@ namespace GitScc.StatusBar
                     var mc = new OleMenuCommand(
                         new EventHandler(OnBranchSelection), cmdID, branchNames[i]);
                     _menuCommandService.AddCommand(mc);
-                   // mc.BeforeQueryStatus += new EventHandler(OnBranchQueryStatus);
                     _branchMenuCommands.Add(new Tuple<string, MenuCommand>(branchNames[i],mc));
-
                 }
-                await UpdateUI();
+            }
+        }
+
+        protected async Task LoadRepositoryCommands(List<string> commands)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (_menuCommandService != null)
+            {
+                if (_repositoryCommands?.Count > 0)
+                {
+                    //clear old branches
+                    foreach (var command in _repositoryCommands)
+                    {
+                        _menuCommandService.RemoveCommand(command.Item2);
+                    }
+                }
+                _repositoryCommands = new List<Tuple<string, MenuCommand>>();
+                for (int i = 0; i < commands.Count; i++)
+                {
+                    var cmdID = new CommandID(CommandSetGuid, RepositoryCommandMenuCmId + i);
+                    var mc = new OleMenuCommand(
+                        new EventHandler(OnRepositoryCommandSelection), cmdID, commands[i]);
+                    _menuCommandService.AddCommand(mc);
+                    _repositoryCommands.Add(new Tuple<string, MenuCommand>(commands[i], mc));
+                }
+            }
+        }
+
+        private void OnRepositoryCommandSelection(object sender, EventArgs e)
+        {
+            OleMenuCommand menuCommand = sender as OleMenuCommand;
+            if (null != menuCommand)
+            {
+                int idx = (int)menuCommand.CommandID.ID - BranchMenuCmId;
+                //int MRUItemIndex = menuCommand.CommandID.ID - this.baseMRUID;
+                if (idx >= 0 && idx < _branchMenuCommands.Count)
+                {
+                    menuCommand.Text = _branchMenuCommands[idx].Item1;
+                }
             }
         }
 
@@ -102,43 +123,6 @@ namespace GitScc.StatusBar
             }
         }
 
-        private async Task UpdateUI()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            IVsUIShell vsShell = (IVsUIShell)_serviceProvider.GetService(typeof(IVsUIShell));
-            if (vsShell != null)
-            {
-                int hr = vsShell.UpdateCommandUI(0);
-                Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(hr);
-            }
-        }
-
-
-
-        protected void SetupTracker(GitRepository tracker)
-        {
-            if (tracker == _repository)
-            {
-                return;
-            }
-            else
-            {
-                if (_repository != null)
-                {
-                    CurrentRepository.BranchChanged -= CurrentTracker_BranchChanged;
-                    CurrentRepository.FileStatusUpdate -= CurrentTracker_FileStatusUpdate;
-
-                }
-                _repository = tracker;
-                if (CurrentRepository != null)
-                {
-                    CurrentRepository.BranchChanged += CurrentTracker_BranchChanged;
-                    CurrentRepository.FileStatusUpdate += CurrentTracker_FileStatusUpdate; 
-                }
-            }
-        }
-
-
         private void OnBranchSelection(object sender, EventArgs e)
         {
             var menuCommand = sender as OleMenuCommand;
@@ -148,33 +132,13 @@ namespace GitScc.StatusBar
                 if (branchIndex >= 0 && branchIndex < _branchMenuCommands.Count)
                 {
                     string selection = this._branchMenuCommands[branchIndex].Item1;
-                    System.Windows.Forms.MessageBox.Show(
-    string.Format(CultureInfo.CurrentCulture,
-                  "Selected {0}", selection));
-
+                    System.Windows.Forms.MessageBox.Show(string.Format(CultureInfo.CurrentCulture,
+                        "Selected {0}", selection));
                 }
             }
         }
 
-        private async void CurrentTracker_FileStatusUpdate(object sender, GitFilesStatusUpdateEventArgs e)
-        {
-           await OnFileStatusUpdate(e.Files);
-        }
 
-        private async void CurrentTracker_BranchChanged(object sender, string e)
-        {
-            await OnBranchChanged(e);
-        }
-
-        protected virtual async Task OnFileStatusUpdate(List<GitFile> files)
-        {
-            StatusBarService.PendingChangeCount = files.Count;
-        }
-
-        protected virtual async Task OnBranchChanged(string branchName)
-        {
-            StatusBarService.BranchName = branchName;
-        }
 
         private bool TryParseBranchName(uint cmdId, out string label)
         {
@@ -183,11 +147,20 @@ namespace GitScc.StatusBar
             if (cmdId >= BranchMenuCmId &&
                        cmdId < BranchMenuCmId + _branchMenuCommands.Count)
             {
-                //int idx = (int)cmdId - PackageIds.cmdidBranchMenuCommandStart;
                 label = _branchMenuCommands[idx].Item1;
-                //menuCommand.Text
-                //SetOleCmdText(pCmdText, _branchMenuCommands[idx].Item1);
-                //cmdf |= OLECMDF.OLECMDF_ENABLED;
+                return true;
+            }
+            return false;
+        }
+
+        private bool TryParseRepositoryCommand(uint cmdId, out string label)
+        {
+            label = "";
+            int idx = (int)cmdId - RepositoryCommandMenuCmId;
+            if (cmdId >= RepositoryCommandMenuCmId &&
+                       cmdId < RepositoryCommandMenuCmId + _branchMenuCommands.Count)
+            {
+                label = _repositoryCommands[idx].Item1;
                 return true;
             }
             return false;
@@ -211,6 +184,8 @@ namespace GitScc.StatusBar
 
         protected abstract Task UpdateBranchMenu();
 
+        protected abstract Task UpdateRepsitoryCommands();
+
         int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
         {
             OLECMDF cmdf = OLECMDF.OLECMDF_SUPPORTED;
@@ -219,7 +194,17 @@ namespace GitScc.StatusBar
             {
                 SetOleCmdText(pCmdText, label);
                 cmdf |= OLECMDF.OLECMDF_ENABLED;
+                if(string.Equals(label,StatusBarService.BranchName,StringComparison.OrdinalIgnoreCase))
+                {
+                    cmdf |= OLECMDF.OLECMDF_LATCHED;
+                }
 
+                prgCmds[0].cmdf = (uint)(cmdf);
+                return VSConstants.S_OK;
+            }
+            else if(TryParseRepositoryCommand(prgCmds[0].cmdID, out label))
+            {
+                SetOleCmdText(pCmdText, label);
                 prgCmds[0].cmdf = (uint)(cmdf);
                 return VSConstants.S_OK;
             }

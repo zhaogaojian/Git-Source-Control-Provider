@@ -54,6 +54,7 @@ namespace GitScc
 
         private async void _solutionEvents_Opened()
         {
+            await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
             await EnableSccForSolution();
             await ReloadAllGlyphs();
         }

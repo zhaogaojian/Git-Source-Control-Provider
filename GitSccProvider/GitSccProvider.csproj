@@ -109,6 +109,7 @@
     <Compile Include="source.extension.cs">
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
+    <Compile Include="StatusBar\GitApiStatusBarManager.cs" />
     <Compile Include="StatusBar\GitStatusBarManager.cs" />
     <Compile Include="StatusBar\IStatusBarService.cs" />
     <Compile Include="StatusBar\StandardGitStatusBarManager.cs" />

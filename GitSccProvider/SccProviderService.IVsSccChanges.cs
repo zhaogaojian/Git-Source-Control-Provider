@@ -70,7 +70,7 @@ namespace GitScc
 
             await _sccProvider.ShowPendingChangesWindow();
 
-            //IVsUIShell uiShell = (IVsUIShell)_sccProvider.GetService(typeof(SVsUIShell));
+            IVsUIShell uiShell = (IVsUIShell)_sccProvider.GetService(typeof(SVsUIShell));
             //if (uiShell != null)
             //{
             //    int result;

@@ -56,7 +56,7 @@ namespace GitScc
         private bool _updateQueued = false;
         private SccProviderSolutionCache _fileCache;
         private ConcurrentDictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
-        private GitStatusBarManager _statusBarManager;
+        private GitApiStatusBarManager _statusBarManager;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -76,6 +76,7 @@ namespace GitScc
                 GuidList.guidSccProviderCmdSet,
                 PackageIds.cmdidBranchmenuStart,
                 PackageIds.cmdidBranchMenuCommandStart,
+                PackageIds.cmdidRepositorymenuStart,
                 sccProvider,
                 this);
             //this.trackers = trackers;
@@ -173,6 +174,7 @@ namespace GitScc
             await RegisterEntireSolution();
             await SetSolutionExplorerTitle();
             await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
+            //await _statusBarManager.
         }
 
         private void DisableSccForSolution()

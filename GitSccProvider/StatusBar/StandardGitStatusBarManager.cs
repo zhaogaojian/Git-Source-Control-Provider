@@ -9,11 +9,11 @@ using Task = System.Threading.Tasks.Task;
 
 namespace GitScc.StatusBar
 {
-    public class StandardGitStatusBarManager : GitStatusBarManager
+    public class StandardGitStatusBarManager : GitApiStatusBarManager
     {
 
-        public StandardGitStatusBarManager(Guid commandSetGuid, int branchMenuCmId, int branchCommandMenuCmId, IServiceContainer serviceProvider, IStatusBarService statusBarService) 
-            : base(commandSetGuid, branchMenuCmId, branchCommandMenuCmId, serviceProvider, statusBarService)
+        public StandardGitStatusBarManager(Guid commandSetGuid, int branchMenuCmId, int branchCommandMenuCmId, int repositoryCommandMenuCmId, IServiceContainer serviceProvider, IStatusBarService statusBarService) 
+            : base(commandSetGuid, branchMenuCmId, branchCommandMenuCmId, repositoryCommandMenuCmId, serviceProvider, statusBarService)
         {
         }
 
@@ -22,6 +22,10 @@ namespace GitScc.StatusBar
             await LoadBranches(CurrentRepository.LocalBranchNames);
         }
 
-        
+        protected override async Task UpdateRepsitoryCommands()
+        {
+           var repos =  RepositoryManager.Instance.Repositories.Select(x => x.Name).ToList();
+           await LoadRepositoryCommands(repos);
+        }
     }
 }

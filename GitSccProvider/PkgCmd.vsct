@@ -69,6 +69,12 @@
           <ButtonText>Branch Menu</ButtonText>
         </Strings>
       </Menu>
+
+      <Menu guid="guidSccProviderCmdSet" id="RepositoryMenu" priority="0x0000" type="Context">
+        <Strings>
+          <ButtonText>Repository Menu</ButtonText>
+        </Strings>
+      </Menu>
       
     </Menus>
     
@@ -117,13 +123,17 @@
 
 
       <!-- 	Group for buttons in the Branch context menu -->
-      <Group guid="guidSccProviderCmdSet" id="BranchGroup" priority="0x0000">
+      <Group guid="guidSccProviderCmdSet" id="BranchGroup" priority="0x0010">
         <Parent guid="guidSccProviderCmdSet" id="BranchMenu" />
       </Group>
 
       <!-- 	Group for branch action buttons in the Branch context menu -->
-      <Group guid="guidSccProviderCmdSet" id="BranchCommandGroup" priority="0x0010">
+      <Group guid="guidSccProviderCmdSet" id="BranchCommandGroup" priority="0x0000">
         <Parent guid="guidSccProviderCmdSet" id="BranchMenu" />
+      </Group>
+
+      <Group guid="guidSccProviderCmdSet" id="RepositoryCommandGroup" priority="0x0000">
+        <Parent guid="guidSccProviderCmdSet" id="RepositoryMenu" />
       </Group>
       
     </Groups>
@@ -353,7 +363,7 @@
 
 
 
-      <Button guid="guidSccProviderCmdSet" id="cmdidBranchmenuStart" type="Button" priority="0x0100" >
+      <Button guid="guidSccProviderCmdSet" id="cmdidBranchmenuStart" type="Button" priority="0x0101" >
         <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
         <CommandFlag>DynamicItemStart</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -365,8 +375,19 @@
         </Strings>
       </Button>
 
-      <Button guid="guidSccProviderCmdSet" id="cmdidBranchMenuCommandStart" priority="0x0000" >
+      <Button guid="guidSccProviderCmdSet" id="cmdidBranchMenuCommandStart" priority="0x0100" >
         <Parent guid="guidSccProviderCmdSet" id="BranchCommandGroup" />
+        <CommandFlag>DynamicItemStart</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <!-- This text does not appear. -->
+        <Strings>
+          <ButtonText>Command</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSccProviderCmdSet" id="cmdidRepositorymenuStart" priority="0x0100" >
+        <Parent guid="guidSccProviderCmdSet" id="RepositoryCommandGroup" />
         <CommandFlag>DynamicItemStart</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
@@ -563,7 +584,9 @@
       <IDSymbol name="cmdidBranchMenuStartAnchor" value="0x3100" />
       <IDSymbol name="cmdidBranchmenuStart" value="0x3101" />
 
-      
+      <IDSymbol name="RepositoryMenu"             value="0x3200" />
+      <IDSymbol name="RepositoryCommandGroup"            value="0x3210" />
+      <IDSymbol name="cmdidRepositorymenuStart" value="0x3211" />
 
 
 

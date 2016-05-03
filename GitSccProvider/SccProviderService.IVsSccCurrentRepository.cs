@@ -88,7 +88,17 @@ namespace GitScc
 
             Debug.Assert(args != null, "Repository UI coordinates were not received.");
 
-            //IVsUIShell uiShell = (IVsUIShell)_sccProvider.GetService(typeof(SVsUIShell));
+            IVsUIShell uiShell = (IVsUIShell)_sccProvider.GetService(typeof(SVsUIShell));
+            if (uiShell != null)
+            {
+                POINTS[] p = new POINTS[1];
+                p[0] = new POINTS();
+                p[0].x = (short)args.ClickedElementPosition.TopRight.X;
+                p[0].y = (short)args.ClickedElementPosition.TopRight.Y;
+
+                Guid commandSet = GuidList.guidSccProviderCmdSet;
+                uiShell.ShowContextMenu(0, ref commandSet, PackageIds.RepositoryMenu, p, _statusBarManager);
+            }
             //if (uiShell != null)
             //{
             //    int result;

@@ -109,6 +109,11 @@ namespace GitScc
             get { return _instance; }
         }
 
+        public List<GitFileStatusTracker> Repositories
+        {
+            get { return _repositories; }
+        }
+
         #endregion
 
         private RepositoryManager()
