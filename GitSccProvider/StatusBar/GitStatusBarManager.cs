@@ -158,7 +158,7 @@ namespace GitScc.StatusBar
             label = "";
             int idx = (int)cmdId - RepositoryCommandMenuCmId;
             if (cmdId >= RepositoryCommandMenuCmId &&
-                       cmdId < RepositoryCommandMenuCmId + _branchMenuCommands.Count)
+                       cmdId < RepositoryCommandMenuCmId + _repositoryCommands.Count)
             {
                 label = _repositoryCommands[idx].Item1;
                 return true;
@@ -205,6 +205,7 @@ namespace GitScc.StatusBar
             else if(TryParseRepositoryCommand(prgCmds[0].cmdID, out label))
             {
                 SetOleCmdText(pCmdText, label);
+                cmdf |= OLECMDF.OLECMDF_ENABLED;
                 prgCmds[0].cmdf = (uint)(cmdf);
                 return VSConstants.S_OK;
             }

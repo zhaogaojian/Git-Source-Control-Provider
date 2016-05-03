@@ -93,8 +93,8 @@ namespace GitScc
             {
                 POINTS[] p = new POINTS[1];
                 p[0] = new POINTS();
-                p[0].x = (short)args.ClickedElementPosition.TopRight.X;
-                p[0].y = (short)args.ClickedElementPosition.TopRight.Y;
+                p[0].x = (short)args.ClickedElementPosition.TopLeft.X;
+                p[0].y = (short)args.ClickedElementPosition.TopLeft.Y;
 
                 Guid commandSet = GuidList.guidSccProviderCmdSet;
                 uiShell.ShowContextMenu(0, ref commandSet, PackageIds.RepositoryMenu, p, _statusBarManager);
