@@ -153,16 +153,21 @@ namespace GitScc.StatusBar
 
         private bool TryParseRepositoryCommand(uint cmdId, out string label)
         {
+
+
             label = "";
-            int idx = (int)cmdId - RepositoryCommandMenuCmId;
-            if (cmdId >= RepositoryCommandMenuCmId &&
-                       cmdId < RepositoryCommandMenuCmId + _repositoryCommands.Count)
+            if (_repositoryCommands != null)
             {
-                label = _repositoryCommands[idx].Item1;
-                return true;
+                int idx = (int) cmdId - RepositoryCommandMenuCmId;
+                if (cmdId >= RepositoryCommandMenuCmId &&
+                    cmdId < RepositoryCommandMenuCmId + _repositoryCommands?.Count)
+                {
+                    label = _repositoryCommands[idx].Item1;
+                    return true;
+                }
             }
             return false;
-        }
+    }
 
         public void SetOleCmdText(IntPtr pCmdText, string text)
         {
@@ -192,7 +197,8 @@ namespace GitScc.StatusBar
             string label;
             if(TryParseBranchName(prgCmds[0].cmdID, out label))
             {
-                SetOleCmdText(pCmdText, label);
+                VsShellUtilities.SetOleCmdText(pCmdText,label);
+               // SetOleCmdText(pCmdText, label);
                 cmdf |= OLECMDF.OLECMDF_ENABLED;
                 if(string.Equals(label,StatusBarService.BranchName,StringComparison.OrdinalIgnoreCase))
                 {
