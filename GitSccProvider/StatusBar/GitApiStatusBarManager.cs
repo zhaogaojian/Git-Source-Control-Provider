@@ -17,6 +17,11 @@ namespace GitScc.StatusBar
         {
         }
 
+        public async Task RefreshBranches()
+        {
+            await UpdateBranchMenu();
+        }
+
         protected GitRepository CurrentRepository
         {
             get { return _repository; }
@@ -31,6 +36,8 @@ namespace GitScc.StatusBar
             if (repository != null)
             {
                 CurrentRepository = repository;
+                StatusBarService.RepositoryName = CurrentRepository.Name;
+                StatusBarService.PendingChangeCount = CurrentRepository.ChangedFiles.Count();
                 await UpdateBranchMenu();
                 await UpdateRepsitoryCommands();
             }
@@ -81,8 +88,10 @@ namespace GitScc.StatusBar
 
         protected override async Task OnRepositoryCommandSelection(string command)
         {
-            System.Windows.Forms.MessageBox.Show(string.Format(CultureInfo.CurrentCulture,
-        "Selected {0}", command));
+            var newRepo =
+                RepositoryManager.Instance.Repositories.FirstOrDefault(
+                    x => string.Equals(x.Name, command, StringComparison.OrdinalIgnoreCase));
+            await SetActiveRepository(newRepo);
         }
     }
 }

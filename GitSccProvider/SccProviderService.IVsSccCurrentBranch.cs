@@ -89,6 +89,7 @@ namespace GitScc
                 p[0].y = (short)args.ClickedElementPosition.TopRight.Y;
 
                 Guid commandSet = GuidList.guidSccProviderCmdSet;
+                await _statusBarManager.RefreshBranches();
                 uiShell.ShowContextMenu(0, ref commandSet, PackageIds.BranchMenu, p, _statusBarManager);
             }
         }

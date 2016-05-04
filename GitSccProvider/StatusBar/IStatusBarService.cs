@@ -7,9 +7,11 @@ using Microsoft.VisualStudio.Shell;
 
 namespace GitScc.StatusBar
 {
-    public interface IStatusBarService : IVsSccCurrentBranch, IVsSccChanges
+    public interface IStatusBarService : IVsSccCurrentBranch, IVsSccChanges, IVsSccCurrentRepository
     {
         new string BranchName { get; set; }
+
+        new string RepositoryName { get; set; }
 
         new int PendingChangeCount { get; set; }
     }

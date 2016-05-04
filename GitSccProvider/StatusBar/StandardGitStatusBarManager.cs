@@ -5,12 +5,13 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GitScc.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
 namespace GitScc.StatusBar
 {
-    public class StandardGitStatusBarManager : GitApiStatusBarManager
+    public sealed class StandardGitStatusBarManager : GitApiStatusBarManager
     {
 
         public StandardGitStatusBarManager(Guid commandSetGuid, int branchMenuCmId, int branchCommandMenuCmId, int repositoryCommandMenuCmId, IServiceContainer serviceProvider, IStatusBarService statusBarService) 
@@ -33,8 +34,15 @@ namespace GitScc.StatusBar
 
         protected override async Task OnBranchSelection(string command)
         {
-            System.Windows.Forms.MessageBox.Show(string.Format(CultureInfo.CurrentCulture,
-        "Selected {0}", command));
+            var branch = CurrentRepository.GetBranchInfo(includeRemote: false)
+                .FirstOrDefault(x => string.Equals(x.Name,command,StringComparison.OrdinalIgnoreCase));
+            var switchInfo = new SwitchBranchInfo()
+            {
+                BranchInfo = branch,
+                Switch = true,
+                Repository = CurrentRepository
+            };
+            await GitCommandWrappers.SwitchCommand(switchInfo);
         }
     }
 }
