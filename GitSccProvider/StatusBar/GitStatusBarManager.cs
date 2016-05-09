@@ -28,7 +28,7 @@ namespace GitScc.StatusBar
         private List<Tuple<string,MenuCommand>> _branchMenuCommands;
         private List<Tuple<string, MenuCommand>> _branchRepositoryCommands;
         private List<Tuple<string, MenuCommand>> _repositoryCommands;
-        private List<MenuCommand> _branchCommandMenuCommands;
+        private List<Tuple<string, MenuCommand>> _branchCommandMenuCommands;
 
         private OleMenuCommandService _menuCommandService;
         private IServiceContainer _serviceProvider;
@@ -42,7 +42,8 @@ namespace GitScc.StatusBar
             CommandSetGuid = commandSetGuid;
             _menuCommandService = serviceProvider.GetService(typeof(IMenuCommandService)) as MsVsShell.OleMenuCommandService;
             _serviceProvider = serviceProvider;
-            _branchMenuCommands = new List<Tuple<string, MenuCommand>>();
+            _branchCommandMenuCommands = new List<Tuple<string, MenuCommand>>();
+
         }
 
         protected async Task LoadBranches(List<string> branchNames)
@@ -91,6 +92,31 @@ namespace GitScc.StatusBar
                         new EventHandler(OnRepositoryCommandSelection), cmdID, commands[i]);
                     _menuCommandService.AddCommand(mc);
                     _repositoryCommands.Add(new Tuple<string, MenuCommand>(commands[i], mc));
+                }
+            }
+        }
+
+        protected async Task LoadBranchCommands(List<string> commands)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (_menuCommandService != null)
+            {
+                if (_repositoryCommands?.Count > 0)
+                {
+                    //clear old branches
+                    foreach (var command in _branchCommandMenuCommands)
+                    {
+                        _menuCommandService.RemoveCommand(command.Item2);
+                    }
+                }
+                _branchCommandMenuCommands = new List<Tuple<string, MenuCommand>>();
+                for (int i = 0; i < commands.Count; i++)
+                {
+                    var cmdID = new CommandID(CommandSetGuid, BranchCommandMenuCmId + i);
+                    var mc = new OleMenuCommand(
+                        new EventHandler(OnRepositoryCommandSelection), cmdID, commands[i]);
+                    _menuCommandService.AddCommand(mc);
+                    _branchCommandMenuCommands.Add(new Tuple<string, MenuCommand>(commands[i], mc));
                 }
             }
         }
@@ -153,8 +179,6 @@ namespace GitScc.StatusBar
 
         private bool TryParseRepositoryCommand(uint cmdId, out string label)
         {
-
-
             label = "";
             if (_repositoryCommands != null)
             {
@@ -167,7 +191,23 @@ namespace GitScc.StatusBar
                 }
             }
             return false;
-    }
+        }
+
+        private bool TryParseBranchCommand(uint cmdId, out string label)
+        {
+            label = "";
+            if (_branchCommandMenuCommands != null)
+            {
+                int idx = (int)cmdId - BranchCommandMenuCmId;
+                if (cmdId >= BranchCommandMenuCmId &&
+                    cmdId < BranchCommandMenuCmId + _branchCommandMenuCommands?.Count)
+                {
+                    label = _branchCommandMenuCommands[idx].Item1;
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public void SetOleCmdText(IntPtr pCmdText, string text)
         {
@@ -208,9 +248,10 @@ namespace GitScc.StatusBar
                 prgCmds[0].cmdf = (uint)(cmdf);
                 return VSConstants.S_OK;
             }
-            else if(TryParseRepositoryCommand(prgCmds[0].cmdID, out label))
+            else if(TryParseRepositoryCommand(prgCmds[0].cmdID, out label) || TryParseBranchCommand(prgCmds[0].cmdID, out label))
             {
-                SetOleCmdText(pCmdText, label);
+                VsShellUtilities.SetOleCmdText(pCmdText, label);
+                //SetOleCmdText(pCmdText, label);
                 cmdf |= OLECMDF.OLECMDF_ENABLED;
                 prgCmds[0].cmdf = (uint)(cmdf);
                 return VSConstants.S_OK;
