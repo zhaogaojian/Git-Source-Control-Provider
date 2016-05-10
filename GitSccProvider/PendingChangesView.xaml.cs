@@ -33,9 +33,6 @@ using GitScc.Utilities;
 
 namespace GitScc
 {
-    /// <summary>
-    /// Interaction logic for PendingChangesView.xaml
-    /// </summary>
     public partial class PendingChangesView : UserControl, IDisposable
     {
         private SccProviderService service;
@@ -136,9 +133,7 @@ namespace GitScc
                    VsTaskRunContext.UIThreadBackgroundPriority,
                    async delegate
                    {
-                       // On caller's thread. Switch to main thread (if we're not already there).
                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                       // Now on UI thread via background priority.
                        await Task.Yield();
                        var displayName = " (" + CurrentTracker.CurrentBranchDisplayName + ")";
                        _toolWindow.UpdateRepositoryName(displayName);
@@ -172,8 +167,6 @@ namespace GitScc
 
                 if (theme == VsTheme.Dark)
                 {
-                    //DiffEditor.Background = System.Windows.Media.Brushes.Black; //new SolidColorBrush((Color)ColorConverter.ConvertFromString("#242424"));
-                    //DiffEditor.Foreground = System.Windows.Media.Brushes.White;
                     filename = "GitScc.Resources.Patch-Mode-Dark.xshd";
                 }
                 var assembly = Assembly.GetExecutingAssembly();
@@ -265,11 +258,8 @@ namespace GitScc
                  VsTaskRunContext.UIThreadBackgroundPriority,
                  async delegate
                  {
-                     // On caller's thread. Switch to main thread (if we're not already there).
                      await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                     // Now on UI thread via background priority.
                      await SetDiffEditorText();
-                     // Resumed on UI thread, also via background priority.
                  });
         }
 
@@ -304,11 +294,9 @@ namespace GitScc
 
         private void listView1_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // only enable double-click to open when exactly one item is selected
             if (listView1.SelectedItems.Count != 1)
                 return;
 
-            // disable double-click to open for the checkbox
             var checkBox = FindAncestorOfType<CheckBox>(e.OriginalSource as DependencyObject);
             if (checkBox != null)
                 return;
@@ -416,7 +404,6 @@ namespace GitScc
         internal async Task Refresh(List<GitFile> files)
         {
             var updatedFiles = files;
-            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (!_refreshing)
             {
                 if (_showOnlySolutionFiles)
@@ -437,13 +424,10 @@ namespace GitScc
                     VsTaskRunContext.UIThreadBackgroundPriority,
                     async delegate
                     {
-                        // On caller's thread. Switch to main thread (if we're not already there).
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        // Now on UI thread via background priority.
                         await Task.Yield();
                         await RefreshInternal(updatedFiles);
                     });
-                //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = false;
             }
         }
@@ -467,9 +451,6 @@ namespace GitScc
 
         private async Task<List<GitFile>> GetFileList()
         {
-            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //ShowStatusMessage("Getting changed files ...");
-            //await TaskScheduler.Default;
             if (CurrentTracker != null)
             {
                 return await CurrentTracker.GetCurrentChangeSet();
@@ -522,7 +503,6 @@ namespace GitScc
             }
 
             this.listView1.EndInit();
-            //Debug.WriteLine("**** PendingChangesView Refresh: ");
         }
 
 
@@ -590,7 +570,6 @@ namespace GitScc
             }
         }
 
-        //Todo UPdate
         internal async Task AmendCommit()
         {
             const string amendMsg = @"You are about to amend a commit that has tags or remotes, which could cause issues in local and remote repositories.
@@ -638,7 +617,6 @@ Are you sure you want to continue?";
             }
         }
 
-        //TODO.. Move this and Commit. I sorta hate it all! 
         internal async Task SwitchCommand(SwitchBranchInfo branchInfo)
         {
             var switchResult = await GitCommandWrappers.SwitchCommand(branchInfo);
@@ -650,62 +628,6 @@ Are you sure you want to continue?";
             {
                 MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
-            //if (!result.CreateBranch && !result.Switch)
-            //{
-            //    return;
-            //}
-
-            //bool inError = false;
-            //var branch = result.BranchInfo;
-            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //SolutionExtensions.WriteMessageToOutputPane("Branch Operation Started");
-            //if (result.CreateBranch)
-            //{
-            //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //    SolutionExtensions.WriteMessageToOutputPane("Creating Branch");
-            //    //await status.SetMessage("Creating Branch");
-            //  await TaskScheduler.Default;
-            //  var branchResult = result.Repository.CreateBranch(result.BranchName);
-            //    if (branchResult.Succeeded)
-            //    {
-            //        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //        SolutionExtensions.WriteMessageToOutputPane("Branch: ' "+ branchResult.Item.Name + "' Created" );
-            //        branch = branchResult.Item;
-            //    }
-            //    else
-            //    {
-            //        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //        inError = true;
-            //        //status.Hide();
-            //        SolutionExtensions.WriteMessageToOutputPane(branchResult.ErrorMessage);
-            //        MessageBox.Show(branchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-            //    }
-            //}
-            //if (result.Switch && ! inError)
-            //{
-            //    if (branch != null)
-            //    {
-            //        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //        SolutionExtensions.WriteMessageToOutputPane("Switching Branch");
-            //        await TaskScheduler.Default;
-            //        var switchResult = result.Repository.Checkout(branch);
-            //        if (!switchResult.Succeeded)
-            //        {
-            //            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //            inError = true;
-            //            SolutionExtensions.WriteMessageToOutputPane(switchResult.ErrorMessage);
-            //            MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK,
-            //                MessageBoxImage.Exclamation);
-            //        }
-            //    }
-            //}
-
-            //if (!inError)
-            //{
-            //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //    SolutionExtensions.WriteMessageToOutputPane("Branch Operation Complete");
-            //    await UpdateRepositoryName();
-            //}
         }
 
         private void StageSelectedFiles()
@@ -793,7 +715,7 @@ Are you sure you want to continue?";
             {
                 var service = BasicSccProvider.GetServiceEx<SccProviderService>();
                 service.UndoFileChanges(fileName);
-            }, false); // file must exists check flag is false
+            }, false);        
         }
 
 
@@ -874,7 +796,6 @@ Note: if the file is included project, you need to delete the file from project 
         {
             if (string.IsNullOrWhiteSpace(fileName)) return;
 
-            //fileName = fileName.Replace("/", "\\");
             var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
             dte.ExecuteCommand("File.OpenFile", $"\"{fileName}\"");
         }
@@ -930,7 +851,6 @@ Note: if the file is included project, you need to delete the file from project 
 
         private void UpdateColumnHeaderTemplate(GridViewColumnHeader header, ListSortDirection direction)
         {
-            // don't change the template if we're sorting by the check state
             GridViewColumn checkStateColumn = ((GridView)listView1.View).Columns[0];
             if (header.Column != checkStateColumn)
             {
@@ -982,8 +902,6 @@ Note: if the file is included project, you need to delete the file from project 
                     var doc = DiffEditor.Document;
                     var line = DiffEditor.TextArea.Caret.Line - 1;
 
-
-                    //textView.GetCaretPos(out line, out column);
 
 
                     while (line >= 0)

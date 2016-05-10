@@ -136,7 +136,7 @@ namespace GitScc
 
         public int AnyItemsUnderSourceControl(out int pfResult)
         {
-            if (!_active)
+            if (!_active || RepositoryManager.Instance.SolutionTracker == null)
             {
                 pfResult = 0;
             }
@@ -471,7 +471,7 @@ namespace GitScc
 
             var solutionFileName = await GetSolutionFileName();
             await RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
-
+            await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
             await SetSolutionExplorerTitle();
             RepositoryName = RepositoryManager.Instance?.SolutionTracker?.Name;
             PendingChangeCount = RepositoryManager.Instance?.SolutionTracker?.ChangedFiles.Count() ?? 0;

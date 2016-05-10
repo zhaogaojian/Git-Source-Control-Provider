@@ -114,17 +114,30 @@ namespace GitScc.StatusBar
                 {
                     var cmdID = new CommandID(CommandSetGuid, BranchCommandMenuCmId + i);
                     var mc = new OleMenuCommand(
-                        new EventHandler(OnRepositoryCommandSelection), cmdID, commands[i]);
+                        new EventHandler(OnBranchCommandSelection), cmdID, commands[i]);
                     _menuCommandService.AddCommand(mc);
                     _branchCommandMenuCommands.Add(new Tuple<string, MenuCommand>(commands[i], mc));
                 }
             }
         }
 
+
+
         #region Command Selections
 
         protected abstract Task OnRepositoryCommandSelection(string command);
         protected abstract Task OnBranchSelection(string command);
+        protected abstract Task OnBranchCommandSelection(string command);
+
+        private void OnBranchCommandSelection(object sender, EventArgs e)
+        {
+            OleMenuCommand menuCommand = sender as OleMenuCommand;
+            string command;
+            if (TryParseCommandName(menuCommand, BranchCommandMenuCmId, _branchCommandMenuCommands, out command))
+            {
+                OnBranchCommandSelection(command);
+            }
+        }
 
         private void OnRepositoryCommandSelection(object sender, EventArgs e)
         {
@@ -209,21 +222,6 @@ namespace GitScc.StatusBar
             return false;
         }
 
-        public void SetOleCmdText(IntPtr pCmdText, string text)
-        {
-            OLECMDTEXT CmdText = (OLECMDTEXT)Marshal.PtrToStructure(pCmdText, typeof(OLECMDTEXT));
-            char[] buffer = text.ToCharArray();
-            IntPtr pText = (IntPtr)((long)pCmdText + (long)Marshal.OffsetOf(typeof(OLECMDTEXT), "rgwz"));
-            IntPtr pCwActual = (IntPtr)((long)pCmdText + (long)Marshal.OffsetOf(typeof(OLECMDTEXT), "cwActual"));
-            // The max chars we copy is our string, or one less than the buffer size,
-            // since we need a null at the end.
-            int maxChars = (int)Math.Min(CmdText.cwBuf - 1, buffer.Length);
-            Marshal.Copy(buffer, 0, pText, maxChars);
-            // append a null
-            Marshal.WriteInt16((IntPtr)((long)pText + (long)maxChars * 2), (Int16)0);
-            // write out the length + null char
-            Marshal.WriteInt32(pCwActual, maxChars + 1);
-        }
 
         protected abstract Task UpdateBranchMenu();
 

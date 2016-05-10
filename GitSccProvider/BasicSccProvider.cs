@@ -159,22 +159,6 @@ namespace GitScc
                     mcs.AddCommand(mc);
                 }
 
-
-                //for (int i = 4; i < 8; i++)
-                //{
-                //    var cmdID = new CommandID(GuidList.guidSccProviderCmdSet, PackageIds.cmdidBranchmenuStart + i);
-                //    var mc = new OleMenuCommand(
-                //        new EventHandler(OnGitTorCommandExec), cmdID, "Brranch" + i);
-                //    mcs.AddCommand(mc);
-                //}
-
-                //for (int i = 0; i < GitToolCommands.IgnoreCommands.Count; i++)
-                //{
-                //    cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitIgnoreCommand1 + i);
-                //    var mc = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
-                //    mcs.AddCommand(mc);
-                //}
-
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandPendingChanges);
                 menu = new MenuCommand(new EventHandler(ShowPendingChangesWindow), cmd);
                 mcs.AddCommand(menu);
@@ -747,25 +731,7 @@ namespace GitScc
             return (T)_SccProvider.GetService(typeof(T));
         }
 
-        //public Hashtable GetSolutionFoldersEnum()
-        //{
-        //    Hashtable mapHierarchies = new Hashtable();
 
-        //    IVsSolution sol = (IVsSolution)GetService(typeof(SVsSolution));
-        //    Guid rguidEnumOnlyThisType = SolutionExtensions.GuidSolutionFolderProject;
-        //    IEnumHierarchies ppenum = null;
-        //    ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
-
-        //    IVsHierarchy[] rgelt = new IVsHierarchy[1];
-        //    uint pceltFetched = 0;
-        //    while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
-        //           pceltFetched == 1)
-        //    {
-        //        mapHierarchies[rgelt[0]] = true;
-        //    }
-
-        //    return mapHierarchies;
-        //}
 
         #region Run Command
         //internal void RunCommand(string cmd, string args)
@@ -823,14 +789,6 @@ namespace GitScc
         } 
         #endregion
 
-        //internal void OnSccStatusChanged()
-        //{
-        //    var pendingChangesToolWindow = GetToolWindowPane<PendingChangesToolWindow>();
-        //    if (pendingChangesToolWindow != null)
-        //    {
-        //        pendingChangesToolWindow.Refresh(sccService.CurrentTracker);
-        //    }
-        //}
 
         private T GetToolWindowPane<T>() where T : ToolWindowPane
         {

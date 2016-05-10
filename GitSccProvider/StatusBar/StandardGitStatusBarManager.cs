@@ -5,6 +5,8 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using GitScc.UI;
 using GitScc.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
@@ -18,8 +20,6 @@ namespace GitScc.StatusBar
             : base(commandSetGuid, branchMenuCmId, branchCommandMenuCmId, repositoryCommandMenuCmId, serviceProvider, statusBarService)
         {
         }
-
-
 
         protected override async Task UpdateBranchMenu()
         {
@@ -44,6 +44,23 @@ namespace GitScc.StatusBar
                 Repository = CurrentRepository
             };
             await GitCommandWrappers.SwitchCommand(switchInfo);
+        }
+
+        protected override async Task OnBranchCommandSelection(string command)
+        {
+            if (string.Equals("Create Branch", command, StringComparison.OrdinalIgnoreCase))
+            {
+                var branchPicker = new BranchPicker(CurrentRepository);
+                var branchInfo = branchPicker.Show();
+
+                var switchResult = await GitCommandWrappers.SwitchCommand(branchInfo);
+                if (!switchResult.Succeeded)
+                {
+                    MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+
+
         }
     }
 }

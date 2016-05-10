@@ -75,6 +75,12 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 
 **V-Next** 
 
+**V1.6.0*
+*   Added Repository controls on the status bar!
+*   Clicking on line in diff window now opens the file to that line.
+*   Improved performance with larger projects.
+*   Can now initialize new projects from the status bar. 
+
 **V1.5**
 
 #####---New Features---

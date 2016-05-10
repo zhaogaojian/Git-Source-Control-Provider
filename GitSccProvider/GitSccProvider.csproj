@@ -102,6 +102,7 @@
     <Compile Include="SccProviderService.cs" />
     <Compile Include="SccProviderService.DocumentEvents.cs" />
     <Compile Include="SccProviderService.IVsSccCurrentBranch.cs" />
+    <Compile Include="SccProviderService.IVsSccPublish.cs" />
     <Compile Include="SccProviderService.SccEvents.cs" />
     <Compile Include="SccProviderService.SolutionEvents.cs" />
     <Compile Include="SccProviderSolutionCache.cs" />
