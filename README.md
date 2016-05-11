@@ -76,6 +76,9 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 ## Change Logs -- Visual Studio 2015
 
 **V-Next** 
+*   Add more features to the status bar.
+*   Work on integrating gitflow.
+
 
 **V1.6.0*
 *   Added Repository controls on the status bar!
