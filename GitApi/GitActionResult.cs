@@ -10,5 +10,10 @@ namespace GitScc
         public T Item { get; set; }
         public bool Succeeded { get; set; }
         public string ErrorMessage { get; set; }
+
+        public GitActionResult()
+        {
+            Succeeded = false;
+        }
     }
 }

@@ -22,6 +22,7 @@ using System.Windows;
 using EnvDTE;
 using GitSccProvider;
 using GitSccProvider.Utilities;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Threading;
 using IgnoreFileManager = GitSccProvider.Utilities.IgnoreFileManager;
 using Process = System.Diagnostics.Process;
@@ -52,16 +53,19 @@ namespace GitScc
     //Register the source control provider's service (implementing IVsScciProvider interface)
     [MsVsShell.ProvideService(typeof(SccProviderService), ServiceName = "Git Source Control Service")]
     // Register the source control provider to be visible in Tools/Options/SourceControl/Plugin dropdown selector
-    [GitScc.ProvideSourceControlProvider("Git Source Control Provider", "#100")]
+    //[GitScc.ProvideSourceControlProvider("Git Source Control Provider", "#100")]
+    [MsVsShell.ProvideSourceControlProvider("Git Source Control Provider 2015", "#100", "{C4128D99-0000-41D1-A6C3-704E6C1A3DE2}",
+        "{C4128D99-2000-41D1-A6C3-704E6C1A3DE2}", "{C4128D99-1000-41D1-A6C3-704E6C1A3DE2}", IsPublishSupported = true)]
     // Pre-load the package when the command UI context is asserted (the provider will be automatically loaded after restarting the shell if it was active last time the shell was shutdown)
     [MsVsShell.ProvideAutoLoad("C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
     //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
     // Declare the package guid
     [Guid("C4128D99-2000-41D1-A6C3-704E6C1A3DE2")]
-    public class BasicSccProvider : MsVsShell.Package, IOleCommandTarget
+    public sealed class BasicSccProvider : MsVsShell.Package, IOleCommandTarget
     {
         private SccOnIdleEvent _OnIdleEvent = new SccOnIdleEvent();
-
+        // As a best practice, to be sure the provider has an unique name, a guid like the provider guid can be used as a part of the name
+        private const string _strProviderName = "Sample Source Control Provider:{C4128D99-0000-41D1-A6C3-704E6C1A3DE2}";
         private List<GitFileStatusTracker> projects;
         private SccProviderService sccService = null;
 
@@ -128,6 +132,7 @@ namespace GitScc
                 menu = new MenuCommand(new EventHandler(OnInitCommand), cmd);
                 mcs.AddCommand(menu);
 
+
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandEditIgnore);
                 menu = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
                 mcs.AddCommand(menu);
@@ -153,13 +158,6 @@ namespace GitScc
                     var mc = new MenuCommand(new EventHandler(OnGitTorCommandExec), cmd);
                     mcs.AddCommand(mc);
                 }
-
-                //for (int i = 0; i < GitToolCommands.IgnoreCommands.Count; i++)
-                //{
-                //    cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitIgnoreCommand1 + i);
-                //    var mc = new MenuCommand(new EventHandler(OnEditIgnore), cmd);
-                //    mcs.AddCommand(mc);
-                //}
 
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandPendingChanges);
                 menu = new MenuCommand(new EventHandler(ShowPendingChangesWindow), cmd);
@@ -188,6 +186,7 @@ namespace GitScc
             }
 
 
+
             ThreadHelper.ThrowIfNotOnUIThread();
             // Register the provider with the source control manager
             // If the package is to become active, this will also callback on OnActiveStateChange and the menu commands will be enabled
@@ -196,9 +195,21 @@ namespace GitScc
 
             _OnIdleEvent.RegisterForIdleTimeCallbacks(GetGlobalService(typeof(SOleComponentManager)) as IOleComponentManager);
             //_OnIdleEvent.OnIdleEvent += new OnIdleEvent(sccService.UpdateNodesGlyphs);
+            SetupStatusMenu();
 
         }
 
+
+        private void SetupStatusMenu()
+        {
+            sccService.RepositoryIcon = KnownMonikers.GitNoColor;
+            sccService.BranchIcon = KnownMonikers.BranchNoColor;
+        }
+
+        public string ProviderName
+        {
+            get { return _strProviderName; }
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -556,6 +567,12 @@ namespace GitScc
            //ShowToolWindow(typeof(PendingChangesToolWindow));
         }
 
+        public async Task ShowPendingChangesWindow()
+        {
+            RepositoryManager.Instance.ActiveTracker = sccService.CurrentTracker;
+            await ShowToolWindow<PendingChangesToolWindow>();
+        }
+
         private void ShowHistoryWindow(object sender, EventArgs e)
         {
             var workingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -677,9 +694,9 @@ namespace GitScc
             
         }
 
-        private void OnCommitCommand(object sender, EventArgs e)
+        private async void OnCommitCommand(object sender, EventArgs e)
         {
-            GetToolWindowPane<PendingChangesToolWindow>().OnCommitCommand();
+            await GetToolWindowPane<PendingChangesToolWindow>().OnCommitCommand();
         }
 
         private void OnAmendCommitCommand(object sender, EventArgs e)
@@ -696,7 +713,7 @@ namespace GitScc
 
         // This function is called by the IVsSccProvider service implementation when the active state of the provider changes
         // The package needs to show or hide the scc-specific commands 
-        public virtual void OnActiveStateChange()
+        public void OnActiveStateChange()
         {
 
         }
@@ -714,25 +731,7 @@ namespace GitScc
             return (T)_SccProvider.GetService(typeof(T));
         }
 
-        //public Hashtable GetSolutionFoldersEnum()
-        //{
-        //    Hashtable mapHierarchies = new Hashtable();
 
-        //    IVsSolution sol = (IVsSolution)GetService(typeof(SVsSolution));
-        //    Guid rguidEnumOnlyThisType = SolutionExtensions.GuidSolutionFolderProject;
-        //    IEnumHierarchies ppenum = null;
-        //    ErrorHandler.ThrowOnFailure(sol.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref rguidEnumOnlyThisType, out ppenum));
-
-        //    IVsHierarchy[] rgelt = new IVsHierarchy[1];
-        //    uint pceltFetched = 0;
-        //    while (ppenum.Next(1, rgelt, out pceltFetched) == VSConstants.S_OK &&
-        //           pceltFetched == 1)
-        //    {
-        //        mapHierarchies[rgelt[0]] = true;
-        //    }
-
-        //    return mapHierarchies;
-        //}
 
         #region Run Command
         //internal void RunCommand(string cmd, string args)
@@ -790,14 +789,6 @@ namespace GitScc
         } 
         #endregion
 
-        //internal void OnSccStatusChanged()
-        //{
-        //    var pendingChangesToolWindow = GetToolWindowPane<PendingChangesToolWindow>();
-        //    if (pendingChangesToolWindow != null)
-        //    {
-        //        pendingChangesToolWindow.Refresh(sccService.CurrentTracker);
-        //    }
-        //}
 
         private T GetToolWindowPane<T>() where T : ToolWindowPane
         {

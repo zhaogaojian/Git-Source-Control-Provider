@@ -33,7 +33,7 @@ namespace GitScc
 
         private string workingDirectory;
         private readonly string _gitDirectory;
-        private List<GitFile> _changedFiles;
+        private Dictionary<string,GitFile> _changedFiles;
         private bool isGit;
         private string _branchDisplayName;
         private string _cachedBranchName;
@@ -60,8 +60,8 @@ namespace GitScc
         private event EventHandler _fileEvent;
 
 
-        private IObservable<EventPattern<object>> _gitEventObservable;
-        private IObservable<EventPattern<object>> _fileChangedEventObservable;
+        private readonly IObservable<EventPattern<object>> _gitEventObservable;
+        private readonly IObservable<EventPattern<object>> _fileChangedEventObservable;
 
         private readonly AsyncLock _statusMutex = new AsyncLock();
         private readonly AsyncLock _gitStatusMutex = new AsyncLock();
@@ -91,6 +91,8 @@ namespace GitScc
         {
             get { return workingDirectory; }
         }
+
+        public string Name => new DirectoryInfo(WorkingDirectory).Name;
 
         public bool IsGit
         {
@@ -241,21 +243,13 @@ namespace GitScc
             {
                 Debug.WriteLine("Git File Event Update");
                 bool supressBranchEvent = false;
-                var files = new List<GitFile>();
+                var files = new Dictionary<string, GitFile>();
                 Repository repository = null;
                 try
                 {
+                    //repository = _statusRepository;
                     repository = GetRepository();
-                    //get changed files
-                    var repoFiles = repository.RetrieveStatus(new StatusOptions()
-                    {
-                        IncludeUnaltered = false,
-                        RecurseIgnoredDirs = false
-                    });
-                    files.AddRange(
-                        repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
-                            .Select(item => new GitFile(repository, item)));
-
+                    files = GetCurrentChangedFiles();
 
                     //logic getting complicated time to break it out
                     if (_cachedBranchOperation != repository.Info.CurrentOperation)
@@ -296,7 +290,7 @@ namespace GitScc
                     repository?.Dispose();
                 }
                  _changedFiles = files;
-                 FireFileStatusUpdateEvent(files);
+                FireFileStatusUpdateEvent(files.Values.ToList());
             }
         }
 
@@ -306,13 +300,13 @@ namespace GitScc
             using (await _statusMutex.LockAsync())
             {
 
-                var changeFileStatus = await GetCurrentChangeSet();
+                var changeFileStatus =  GetCurrentChangedFiles();
                 //}
 
                 if (changeFileStatus != null)
                 {
                     _changedFiles = changeFileStatus;
-                    FireFileStatusUpdateEvent(changeFileStatus);
+                    FireFileStatusUpdateEvent(changeFileStatus.Values.ToList());
                 }
             }
 
@@ -321,19 +315,19 @@ namespace GitScc
         /// <summary>
         /// Update status when some file change is detected in the .git dir
         /// </summary>
-        private void HandleGitFileSystemChange()
-        {
-            //lock (_repoUpdateLock)
-            //{
-                var files = CreateRepositoryUpdateChangeSet();
-                SetBranchName();
-                _branchInfoList = null;
-                if (files != null && files.Count > 0)
-                {
-                    FireFilesChangedEvent(files);
-                }
-            //}
-        }
+        //private void HandleGitFileSystemChange()
+        //{
+        //    //lock (_repoUpdateLock)
+        //    //{
+        //        var files = CreateRepositoryUpdateChangeSet();
+        //        SetBranchName();
+        //        _branchInfoList = null;
+        //        if (files != null && files.Count > 0)
+        //        {
+        //            FireFilesChangedEvent(files);
+        //        }
+        //    //}
+        //}
 
         public void DisableRepositoryWatcher()
         {
@@ -377,7 +371,6 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-
                 var result = new GitActionResult<GitBranchInfo>();
 
                 CheckoutOptions options = new CheckoutOptions();
@@ -387,6 +380,7 @@ namespace GitScc
                 if (force)
                 {
                     options.CheckoutModifiers = CheckoutModifiers.Force;
+
                 }
                 try
                 {
@@ -476,21 +470,29 @@ namespace GitScc
         #region Commit Functions
 
 
-        public string Commit(string message, bool amend = false, bool signoff = false)
+        public GitActionResult<string> Commit(string message, bool amend = false, bool signoff = false)
         {
+            var result = new GitActionResult<string>();
             using (var repository = GetRepository())
             {
                 if (string.IsNullOrEmpty(message))
                 {
-                    throw new ArgumentException("Commit message must not be null or empty!", "message");
+                    result.Succeeded = false;
+                    result.ErrorMessage = "Commit message must not be null or empty!";
+                    //throw new ArgumentException("Commit message must not be null or empty!", "message");
                 }
-                Signature author = repository.Config.BuildSignature(DateTimeOffset.Now);
-                Signature committer = author;
+                else
+                {
+                    Signature author = repository.Config.BuildSignature(DateTimeOffset.Now);
+                    Signature committer = author;
 
-                CommitOptions opts = new CommitOptions();
-                opts.AmendPreviousCommit = amend;
-                var commit = repository.Commit(message, author, committer,opts);
-                return commit.Sha;
+                    CommitOptions opts = new CommitOptions();
+                    opts.AmendPreviousCommit = amend;
+                    var commit = repository.Commit(message, author, committer, opts);
+                    result.Succeeded = true;
+                    result.Item = commit.Sha;
+                }
+                return result;
             }
         }
 
@@ -575,14 +577,26 @@ namespace GitScc
         }
 
 
-        public GitActionResult<GitBranchInfo> CreateBranch(string branchName)
+        public void SetRemoteBranch(GitBranchInfo localBranch, string remoteName = "origin")
+        {
+            using (var repository = GetRepository())
+            {
+                Remote remote = repository.Network.Remotes[remoteName];
+                var branch = GetLib2GitBranch(localBranch);
+                repository.Branches.Update(branch,
+                    b => b.Remote = remote.Name,
+                    b => b.UpstreamBranch = localBranch.CanonicalName);
+            }
+        }
+
+        public GitActionResult<GitBranchInfo> CreateBranch(string branchName, string commitish = "HEAD")
         {
             var result = new GitActionResult<GitBranchInfo>();
             try
             {
                 using (var repository = GetRepository())
                 {
-                    var branch = repository.CreateBranch(branchName, "HEAD");
+                    var branch = repository.CreateBranch(branchName, commitish);
                     if (branch != null)
                     {
                         result.Item = new GitBranchInfo
@@ -721,10 +735,11 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                var diffTree = repository.Diff.Compare<Patch>(repository.Head?.Tip?.Tree,
-                    DiffTargets.Index | DiffTargets.WorkingDirectory);
+                //var diffTree = repository.Diff.Compare<Patch>(repository.Head?.Tip?.Tree,
+                //    DiffTargets.Index | DiffTargets.WorkingDirectory);
+                var patch = repository.Diff.Compare<Patch>(new List<string>() { fileName });
 
-                return diffTree?[fileName].Patch;
+                return patch.Content; //diffTree?[fileName].;
             }
 
         }
@@ -986,11 +1001,11 @@ namespace GitScc
                     }
                     catch
                     {
-                        _changedFiles = new List<GitFile>();
+                        _changedFiles = new Dictionary<string, GitFile>();
                     }
 
                 }
-                return _changedFiles;
+                return _changedFiles.Values.ToList();
 
             }
         }
@@ -1003,48 +1018,55 @@ namespace GitScc
         //    return changedFileCache;
         //}
 
-        private List<string> CreateRepositoryUpdateChangeSet()
-        {
-            var _lastChanged = _changedFiles;
-            //we have no idea what changes happened before.. so update everthing 
-            if (_lastChanged == null)
-            {
-                return GetFullPathForGitFiles(GetCurrentFilesStatus());
-            }
-            var changedFileCache = GetCurrentChangedFiles();
-            var currentChangeList = GetFullPathForGitFiles(changedFileCache);
-            var lastChangeList = GetFullPathForGitFiles(_lastChanged);
-            foreach (var path in lastChangeList)
-            {
-                if (!currentChangeList.Contains(path))
-                {
-                    currentChangeList.Add(path);
-                }
-            }
-            _changedFiles = changedFileCache;
-            return currentChangeList;
-        }
+        //private List<string> CreateRepositoryUpdateChangeSet()
+        //{
+        //    var _lastChanged = _changedFiles;
+        //    //we have no idea what changes happened before.. so update everthing 
+        //    if (_lastChanged == null)
+        //    {
+        //        return GetFullPathForGitFiles(GetCurrentFilesStatus());
+        //    }
+        //    var changedFileCache = GetCurrentChangedFiles();
+        //    var currentChangeList = GetFullPathForGitFiles(changedFileCache);
+        //    var lastChangeList = GetFullPathForGitFiles(_lastChanged);
+        //    foreach (var path in lastChangeList)
+        //    {
+        //        if (!currentChangeList.Contains(path))
+        //        {
+        //            currentChangeList.Add(path);
+        //        }
+        //    }
+        //    _changedFiles = changedFileCache;
+        //    return currentChangeList;
+        //}
 
         private List<string> GetFullPathForGitFiles(List<GitFile> files)
         {
             return files.Select(gitFile => gitFile.FilePath).ToList();
         }
 
-        private List<GitFile> GetCurrentChangedFiles(bool retryAllowed = true)
+        private Dictionary<string, GitFile> GetCurrentChangedFiles(bool retryAllowed = true, Repository repository = null)
         {
-            var files = new List<GitFile>();
-            Repository repository = null;
+            //var files = new List<GitFile>();
+            var files = new Dictionary<string, GitFile>();
+            //Repository repository = null;
             try
             {
-                repository = _statusRepository;
+                //let a function 
+                if (repository == null)
+                {
+                    repository = _statusRepository;
+                }
                 var repoFiles = repository.RetrieveStatus(new StatusOptions()
                 {
                     IncludeUnaltered = false,
                     RecurseIgnoredDirs = false
                 });
-                files.AddRange(
-                    repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
-                        .Select(item => new GitFile(repository, item)));
+
+                //files.AddRange(repoFiles.Modified.Select(item => new GitFile(repository, item)));
+                //files.AddRange(
+                files = repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
+                    .Select(item => new GitFile(repository, item)).ToDictionary(x=>x.FilePath,x =>x); //);
             }
             catch (Exception ex)
             {
@@ -1058,10 +1080,10 @@ namespace GitScc
 
         public async Task<List<GitFile>> GetCurrentChangeSet()
         {
-            List<GitFile> changedFileCache;
+            //ist<GitFile> changedFileCache;
 
-            changedFileCache = GetCurrentChangedFiles();
-            return changedFileCache;
+            var changedFileCache = GetCurrentChangedFiles();
+            return changedFileCache.Values.ToList();
         }
 
         private List<GitFile> GetCurrentFilesStatus()
@@ -1240,9 +1262,18 @@ namespace GitScc
         {
             try
             {
-                fileName = Path.GetFullPath(fileName);
-                var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
-                if (file != null) return file.Status;
+                fileName = Path.GetFullPath(fileName).ToLower();
+                GitFile file;
+                if (_changedFiles == null)
+                {
+                    _changedFiles = GetCurrentChangedFiles();
+                }
+                if (_changedFiles.TryGetValue(fileName, out file))
+                {
+                    return file.Status;
+                }
+                //var file = ChangedFiles.FirstOrDefault(f => string.Equals(f.FilePath, fileName, StringComparison.OrdinalIgnoreCase));
+                //if (file != null) return file.Status;
 
                 if (FileExistsInRepo(fileName)) return GitFileStatus.Tracked;
                 // did not check if the file is ignored for performance reason

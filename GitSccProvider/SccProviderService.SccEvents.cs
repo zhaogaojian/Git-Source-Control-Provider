@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace GitScc
 {
-    public partial class SccProviderService
+    public partial class SccProviderService : IVsSccManager3
     {
 
 
@@ -122,6 +122,14 @@ namespace GitScc
         /// </summary>
         public int RegisterSccProject([InAttribute] IVsSccProject2 pscp2Project, [InAttribute] string pszSccProjectName, [InAttribute] string pszSccAuxPath, [InAttribute] string pszSccLocalPath, [InAttribute] string pszProvider)
         {
+            //if (pszProvider.CompareTo(_sccProvider.ProviderName) != 0)
+            //{
+            //    // If the provider name controlling this project is not our provider, the user may be adding to a 
+            //    // solution controlled by this provider an existing project controlled by some other provider.
+            //    // We'll deny the registration with scc in such case.
+            //    return VSConstants.E_FAIL;
+            //}
+
             return VSConstants.S_OK;
         }
 

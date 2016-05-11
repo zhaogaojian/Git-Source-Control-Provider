@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace GitSccProvider {
+namespace GitScc {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace GitSccProvider {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("GitSccProvider.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("GitScc.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -123,6 +123,15 @@ namespace GitSccProvider {
         internal static string HistoryToolWindowCaption {
             get {
                 return ResourceManager.GetString("HistoryToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter comments for the commit..
+        /// </summary>
+        internal static string NoCommentErrorMessage {
+            get {
+                return ResourceManager.GetString("NoCommentErrorMessage", resourceCulture);
             }
         }
         

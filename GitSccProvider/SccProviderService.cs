@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -12,6 +13,7 @@ using System.Threading.Tasks.Schedulers;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using EnvDTE;
+using GitScc.StatusBar;
 using GitSccProvider;
 using GitSccProvider.Utilities;
 using Microsoft.VisualStudio;
@@ -29,12 +31,13 @@ using TaskCreationOptions = System.Threading.Tasks.TaskCreationOptions;
 using TaskScheduler = System.Threading.Tasks.TaskScheduler;
 using Thread = System.Threading.Thread;
 using ThreadPriority = System.Threading.ThreadPriority;
+using GitScc.Utilities;
 
 namespace GitScc
 {
     [Guid("C4128D99-1000-41D1-A6C3-704E6C1A3DE2")]
-    public partial class SccProviderService : IVsSccProvider,
-        IVsSccManager3,
+    public partial class SccProviderService : 
+        IVsSccProvider,
         IVsSccManagerTooltip,
         IVsSolutionEvents,
         IVsSolutionEvents2,
@@ -42,7 +45,7 @@ namespace GitScc
         IDisposable,
         IVsUpdateSolutionEvents2,
         IVsTrackProjectDocumentsEvents2
-        
+
     {
         private static readonly TimeSpan InitialRefreshDelay = TimeSpan.FromMilliseconds(500);
         
@@ -53,6 +56,7 @@ namespace GitScc
         private bool _updateQueued = false;
         private SccProviderSolutionCache _fileCache;
         private ConcurrentDictionary<GitRepository, GitChangesetManager> _fileChangesetManager;
+        private GitApiStatusBarManager _statusBarManager;
         //private List<GitFileStatusTracker> trackers;
 
 
@@ -66,6 +70,15 @@ namespace GitScc
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
             RepositoryManager.Instance.FileStatusUpdate += RepositoryManager_FileStatusUpdate;
             RepositoryManager.Instance.SolutionTrackerBranchChanged += RepositoryManager_SolutionTrackerBranchChanged;
+
+            //var mcs = sccProvider.GetService(typeof(IMenuCommandService)) as Microsoft.VisualStudio.Shell.OleMenuCommandService;
+            _statusBarManager = new StandardGitStatusBarManager(
+                GuidList.guidSccProviderCmdSet,
+                PackageIds.cmdidBranchmenuStart,
+                PackageIds.cmdidBranchMenuCommandStart,
+                PackageIds.cmdidRepositorymenuStart,
+                sccProvider,
+                this);
             //this.trackers = trackers;
             SetupSolutionEvents();
             SetupDocumentEvents();
@@ -123,7 +136,16 @@ namespace GitScc
 
         public int AnyItemsUnderSourceControl(out int pfResult)
         {
-            pfResult = 0;
+            if (!_active || RepositoryManager.Instance.SolutionTracker == null)
+            {
+                pfResult = 0;
+            }
+            else
+            {
+                    // Although the parameter is an int, it's in reality a BOOL value, so let's return 0/1 values
+                pfResult = 1; //RepositoryManager.Instance.Active ? 1 : 0;
+            }
+            //pfResult = 0;
             return VSConstants.S_OK;
         }
         #endregion
@@ -151,6 +173,8 @@ namespace GitScc
         {
             await RegisterEntireSolution();
             await SetSolutionExplorerTitle();
+            await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
+            //await _statusBarManager.
         }
 
         private void DisableSccForSolution()
@@ -446,8 +470,11 @@ namespace GitScc
             _fileChangesetManager = new ConcurrentDictionary<GitRepository, GitChangesetManager>();
 
             var solutionFileName = await GetSolutionFileName();
-            RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
-            SetSolutionExplorerTitle();
+            await RepositoryManager.Instance.SetSolutionTracker(solutionFileName);
+            await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
+            await SetSolutionExplorerTitle();
+            RepositoryName = RepositoryManager.Instance?.SolutionTracker?.Name;
+            PendingChangeCount = RepositoryManager.Instance?.SolutionTracker?.ChangedFiles.Count() ?? 0;
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {
@@ -502,17 +529,19 @@ namespace GitScc
         private async Task SetSolutionExplorerTitle()
         {
             var caption = "Solution Explorer";
-            string branch = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
-            if (!string.IsNullOrEmpty(branch))
+            BranchName = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
+            BranchDetail = "Test";
+            if (!string.IsNullOrEmpty(BranchName))
             {
-                caption += " (" + branch + ")";
+                caption += " (" + BranchName + ")";
                 await SetSolutionExplorerTitle(caption);
             }
         }
 
         private async Task RegisterEntireSolution()
         {
-            await _fileCache.RegisterSolution();
+            var registerSolution = _fileCache?.RegisterSolution();
+            if (registerSolution != null) await registerSolution;
         }
 
 
@@ -550,7 +579,7 @@ namespace GitScc
                 ////if (_fileCache.StatusChanged(file.Key.t, file.Status))
                 ////{
 
-                var items = _fileCache.GetProjectsSelectionForFile(file.Key.ToLower());
+                var items = _fileCache.GetProjectsSelectionForFile(file.Key);
                 if (items != null)
                 {
                     foreach (var vsitemselection in items)

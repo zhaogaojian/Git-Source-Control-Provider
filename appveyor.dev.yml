@@ -1,5 +1,5 @@
 -
-  os: Previous Visual Studio 2015 RC
+  os: Visual Studio 2015 
   configuration: Release
   skip_tags: true
   branches:
@@ -10,7 +10,7 @@
   environment:
     majorVersion: 1
     minorVersion: 5
-    patchVersion: 0
+    patchVersion: 1
     access_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
     gitHubUsername:

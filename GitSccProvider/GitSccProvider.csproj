@@ -24,7 +24,7 @@
     <ProjectGuid>{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GitSccProvider</RootNamespace>
+    <RootNamespace>GitScc</RootNamespace>
     <AssemblyName>GitSccProvider</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -70,10 +70,20 @@
     <Compile Include="PendingChangesView.xaml.cs">
       <DependentUpon>PendingChangesView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PkgCmd.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PkgCmd.vsct</DependentUpon>
+    </Compile>
     <Compile Include="PlatformUI\HeaderColors.cs" />
     <Compile Include="PlatformUI\PlatformColorHelper.cs" />
     <Compile Include="PlatformUI\TreeViewColors.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ErrorMessages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ErrorMessages.resx</DependentUpon>
+    </Compile>
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -91,6 +101,8 @@
     </Compile>
     <Compile Include="SccProviderService.cs" />
     <Compile Include="SccProviderService.DocumentEvents.cs" />
+    <Compile Include="SccProviderService.IVsSccCurrentBranch.cs" />
+    <Compile Include="SccProviderService.IVsSccPublish.cs" />
     <Compile Include="SccProviderService.SccEvents.cs" />
     <Compile Include="SccProviderService.SolutionEvents.cs" />
     <Compile Include="SccProviderSolutionCache.cs" />
@@ -98,9 +110,14 @@
     <Compile Include="source.extension.cs">
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
+    <Compile Include="StatusBar\GitApiStatusBarManager.cs" />
+    <Compile Include="StatusBar\GitStatusBarManager.cs" />
+    <Compile Include="StatusBar\IStatusBarService.cs" />
+    <Compile Include="StatusBar\StandardGitStatusBarManager.cs" />
     <Compile Include="UI\StatusBox.xaml.cs">
       <DependentUpon>StatusBox.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utilities\SwitchBranchInfo.cs" />
     <Compile Include="Utilities\GitCommandWrappers.cs" />
     <Compile Include="Utilities\IgnoreFileManager.cs" />
     <Compile Include="Utilities\SolutionExtensions.cs" />
@@ -140,6 +157,10 @@
     <Content Include="Resources\Images_24bit.bmp" />
     <Content Include="Resources\Images_32bit.bmp" />
     <Content Include="Resources\Images_32bit.png" />
+    <EmbeddedResource Include="ErrorMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorMessages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="source.extension.resx">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -169,6 +190,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Compile Include="SccProviderService.IVsSccCurrentRepository.cs" />
+    <Compile Include="SccProviderService.IVsSccChanges.cs" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>
@@ -183,6 +206,8 @@
     <VSCTCompile Include="PkgCmd.vsct">
       <ResourceName>1000</ResourceName>
       <SubType>Designer</SubType>
+      <Generator>VsctGenerator</Generator>
+      <LastGenOutput>PkgCmd.cs</LastGenOutput>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
@@ -236,8 +261,17 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Editor, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.ImageCatalog.14.2.25123\lib\net45\Microsoft.VisualStudio.ImageCatalog.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.Imaging.14.2.25123\lib\net45\Microsoft.VisualStudio.Imaging.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.14.2.25123\lib\Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -246,6 +280,11 @@
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.Shell.14.0.14.2.25123\lib\Microsoft.VisualStudio.Shell.14.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Embeddable, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.VisualStudio.Shell.Embeddable.14.2.25123\lib\net45\Microsoft.VisualStudio.Shell.Embeddable.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -316,7 +355,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Threading, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.VisualStudio.Threading.14.1.114\lib\net45\Microsoft.VisualStudio.Threading.dll</HintPath>
+      <HintPath>..\packages\Microsoft.VisualStudio.Threading.14.1.131\lib\net45\Microsoft.VisualStudio.Threading.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Utilities, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">

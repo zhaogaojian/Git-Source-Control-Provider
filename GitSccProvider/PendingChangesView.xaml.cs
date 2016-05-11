@@ -29,13 +29,11 @@ using Microsoft.VisualStudio.Threading;
 using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
+using GitScc.Utilities;
 
 namespace GitScc
 {
-    /// <summary>
-    /// Interaction logic for PendingChangesView.xaml
-    /// </summary>
-    public partial class PendingChangesView : UserControl, IDisposable  
+    public partial class PendingChangesView : UserControl, IDisposable
     {
         private SccProviderService service;
         private GitRepository _tracker;
@@ -64,7 +62,7 @@ namespace GitScc
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
         {
-           SetDiffCodeHightlighter(true);
+            SetDiffCodeHightlighter(true);
         }
 
         private void SetupTracker(GitRepository tracker)
@@ -116,7 +114,7 @@ namespace GitScc
             {
                 await UpdateRepositoryName();
             }
-          
+
         }
 
         private async void CurrentTracker_FilesChanged(object sender, GitFilesUpdateEventArgs e)
@@ -135,10 +133,8 @@ namespace GitScc
                    VsTaskRunContext.UIThreadBackgroundPriority,
                    async delegate
                    {
-                        // On caller's thread. Switch to main thread (if we're not already there).
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        // Now on UI thread via background priority.
-                        await Task.Yield();
+                       await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                       await Task.Yield();
                        var displayName = " (" + CurrentTracker.CurrentBranchDisplayName + ")";
                        _toolWindow.UpdateRepositoryName(displayName);
                        await Refresh();
@@ -164,19 +160,17 @@ namespace GitScc
                 var defaultForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
 
                 var theme = ThemeHelper.GetCurrentTheme();
-                var filename = "GitSccProvider.Resources.Patch-Mode-Blue.xshd";
+                var filename = "GitScc.Resources.Patch-Mode-Blue.xshd";
 
                 DiffEditor.Background = defaultBackground.ToBrush();
                 DiffEditor.Foreground = defaultForeground.ToBrush();
 
                 if (theme == VsTheme.Dark)
                 {
-                    //DiffEditor.Background = System.Windows.Media.Brushes.Black; //new SolidColorBrush((Color)ColorConverter.ConvertFromString("#242424"));
-                    //DiffEditor.Foreground = System.Windows.Media.Brushes.White;
-                    filename = "GitSccProvider.Resources.Patch-Mode-Dark.xshd";
+                    filename = "GitScc.Resources.Patch-Mode-Dark.xshd";
                 }
                 var assembly = Assembly.GetExecutingAssembly();
-                
+
                 using (Stream s = assembly.GetManifestResourceStream(filename))
                 {
                     using (XmlTextReader reader = new XmlTextReader(s))
@@ -187,7 +181,7 @@ namespace GitScc
                 _diffHightlighted = true;
             }
 
-            
+
         }
 
         #region Events
@@ -264,11 +258,8 @@ namespace GitScc
                  VsTaskRunContext.UIThreadBackgroundPriority,
                  async delegate
                  {
-                     // On caller's thread. Switch to main thread (if we're not already there).
                      await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                     // Now on UI thread via background priority.
                      await SetDiffEditorText();
-                     // Resumed on UI thread, also via background priority.
                  });
         }
 
@@ -303,11 +294,9 @@ namespace GitScc
 
         private void listView1_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // only enable double-click to open when exactly one item is selected
             if (listView1.SelectedItems.Count != 1)
                 return;
 
-            // disable double-click to open for the checkbox
             var checkBox = FindAncestorOfType<CheckBox>(e.OriginalSource as DependencyObject);
             if (checkBox != null)
                 return;
@@ -370,9 +359,9 @@ namespace GitScc
             List<string> files = new List<string>();
             try
             {
-                 files = this.listView1.SelectedItems.Cast<GitFile>()
-                    .Select(item => System.IO.Path.Combine(this.CurrentTracker.WorkingDirectory, item.FileName))
-                    .ToList();
+                files = this.listView1.SelectedItems.Cast<GitFile>()
+                   .Select(item => System.IO.Path.Combine(this.CurrentTracker.WorkingDirectory, item.FileName))
+                   .ToList();
 
                 foreach (var fileName in files)
                 {
@@ -415,7 +404,6 @@ namespace GitScc
         internal async Task Refresh(List<GitFile> files)
         {
             var updatedFiles = files;
-            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (!_refreshing)
             {
                 if (_showOnlySolutionFiles)
@@ -436,13 +424,10 @@ namespace GitScc
                     VsTaskRunContext.UIThreadBackgroundPriority,
                     async delegate
                     {
-                        // On caller's thread. Switch to main thread (if we're not already there).
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        // Now on UI thread via background priority.
                         await Task.Yield();
                         await RefreshInternal(updatedFiles);
                     });
-                //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _refreshing = false;
             }
         }
@@ -459,16 +444,13 @@ namespace GitScc
             }
             else
             {
-                ShowStatusMessage("Getting changed files ...");;
+                ShowStatusMessage("Getting changed files ..."); ;
                 await UpdateFileListUI(files);
             }
         }
 
         private async Task<List<GitFile>> GetFileList()
         {
-            //await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            //ShowStatusMessage("Getting changed files ...");
-            //await TaskScheduler.Default;
             if (CurrentTracker != null)
             {
                 return await CurrentTracker.GetCurrentChangeSet();
@@ -521,10 +503,9 @@ namespace GitScc
             }
 
             this.listView1.EndInit();
-            //Debug.WriteLine("**** PendingChangesView Refresh: ");
         }
 
-       
+
 
         internal void ClearUI()
         {
@@ -567,37 +548,29 @@ namespace GitScc
                 return true;
         }
 
-        internal void Commit()
+        internal async Task Commit()
         {
-            //using (service.DisableRefresh())
-            //{
-                if (HasComments() && StageSelectedFiles(true))
+            StageSelectedFiles();
+            try
+            {
+                ShowStatusMessage("Committing ...");
+                var commitResult = await GitCommandWrappers.Commit(CurrentTracker, Comments, chkSignOff.IsChecked == true);
+                if (commitResult.Succeeded)
                 {
-                    string errorMessage = null;
-                    try
-                    {
-                        ShowStatusMessage("Committing ...");
-                        var id = CurrentTracker.Commit(Comments, false, chkSignOff.IsChecked == true);
-                        if (!string.IsNullOrWhiteSpace(id))
-                        {
-                            ClearUI();
-                        } 
-                    }
-                    catch (Exception ex)
-                    {
-                        errorMessage = ex.Message;
-                    }
-
-                    if (!String.IsNullOrEmpty(errorMessage))
-                        MessageBox.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    ClearUI();
                 }
-           // }
-
-            //service.MarkDirty(false);
+                else
+                {
+                    MessageBox.Show(commitResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
         }
 
-        //Todo UPdate
-        internal void AmendCommit()
+        internal async Task AmendCommit()
         {
             const string amendMsg = @"You are about to amend a commit that has tags or remotes, which could cause issues in local and remote repositories.
 
@@ -610,7 +583,7 @@ Are you sure you want to continue?";
             }
             else
             {
-                if (CurrentTracker.CurrentCommitHasRefs() && MessageBox.Show(amendMsg, "Amend Last Commit", 
+                if (CurrentTracker.CurrentCommitHasRefs() && MessageBox.Show(amendMsg, "Amend Last Commit",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
                 {
                     return;
@@ -619,90 +592,45 @@ Are you sure you want to continue?";
                 var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
                 if (dte.ItemOperations.PromptToSave == EnvDTE.vsPromptResult.vsPromptResultCancelled) return;
 
-                //using (service.DisableRefresh())
-                //{
-                    StageSelectedFiles(false);
+                StageSelectedFiles();
 
-                    try
+                try
+                {
+                    ShowStatusMessage("Amending last Commit ...");
+                    var commitResult = await GitCommandWrappers.AmendCommit(CurrentTracker, Comments, chkSignOff.IsChecked == true);
+                    if (commitResult.Succeeded)
                     {
-                        ShowStatusMessage("Amending last Commit ...");
-                        var id = CurrentTracker.Commit(Comments, true, chkSignOff.IsChecked == true);
-                        ShowStatusMessage("Amend last commit successfully. Commit Hash: " + id);
                         ClearUI();
+                        ShowStatusMessage("Amend last commit successfully. Commit Hash: " + commitResult.Item);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        ShowStatusMessage(ex.Message);
+                        MessageBox.Show(commitResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                     }
-               // }
 
-               // service.MarkDirty(false);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    ShowStatusMessage(ex.Message);
+                }
             }
         }
 
-        //TODO.. Move this and Commit. I sorta hate it all! 
-        internal async Task SwitchCommand(BranchPickerResult result)
+        internal async Task SwitchCommand(SwitchBranchInfo branchInfo)
         {
-            if (!result.CreateBranch && !result.Switch)
+            var switchResult = await GitCommandWrappers.SwitchCommand(branchInfo);
+            if (switchResult.Succeeded)
             {
-                return;
-            }
-
-            bool inError = false;
-            var branch = result.BranchInfo;
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            SolutionExtensions.WriteMessageToOutputPane("Branch Operation Started");
-            if (result.CreateBranch)
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                SolutionExtensions.WriteMessageToOutputPane("Creating Branch");
-                //await status.SetMessage("Creating Branch");
-              await TaskScheduler.Default;
-              var branchResult = result.Repository.CreateBranch(result.BranchName);
-                if (branchResult.Succeeded)
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    SolutionExtensions.WriteMessageToOutputPane("Branch: ' "+ branchResult.Item.Name + "' Created" );
-                    branch = branchResult.Item;
-                }
-                else
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    inError = true;
-                    //status.Hide();
-                    SolutionExtensions.WriteMessageToOutputPane(branchResult.ErrorMessage);
-                    MessageBox.Show(branchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                }
-            }
-            if (result.Switch && ! inError)
-            {
-                if (branch != null)
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    SolutionExtensions.WriteMessageToOutputPane("Switching Branch");
-                    await TaskScheduler.Default;
-                    var switchResult = result.Repository.Checkout(branch);
-                    if (!switchResult.Succeeded)
-                    {
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        inError = true;
-                        SolutionExtensions.WriteMessageToOutputPane(switchResult.ErrorMessage);
-                        MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK,
-                            MessageBoxImage.Exclamation);
-                    }
-                }
-            }
-
-            if (!inError)
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                SolutionExtensions.WriteMessageToOutputPane("Branch Operation Complete");
                 await UpdateRepositoryName();
             }
+            else
+            {
+                MessageBox.Show(switchResult.ErrorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            }
         }
 
-        private bool StageSelectedFiles(bool showWarning)
+        private void StageSelectedFiles()
         {
             var unstaged = this.listView1.Items.Cast<GitFile>()
                                .Where(item => item.IsSelected && !item.IsStaged)
@@ -716,16 +644,6 @@ Are you sure you want to continue?";
             }
 
             CurrentTracker.Refresh();
-
-            bool hasStaged = CurrentTracker == null ? false :
-                             CurrentTracker.ChangedFiles.Any(f => f.IsStaged);
-
-            if (!hasStaged && showWarning)
-            {
-                MessageBox.Show("No file has been staged for commit.", "Commit",
-                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
-            }
-            return hasStaged;
         }
 
         private void ShowStatusMessage(string msg)
@@ -797,7 +715,7 @@ Are you sure you want to continue?";
             {
                 var service = BasicSccProvider.GetServiceEx<SccProviderService>();
                 service.UndoFileChanges(fileName);
-            }, false); // file must exists check flag is false
+            }, false);        
         }
 
 
@@ -878,16 +796,15 @@ Note: if the file is included project, you need to delete the file from project 
         {
             if (string.IsNullOrWhiteSpace(fileName)) return;
 
-            //fileName = fileName.Replace("/", "\\");
             var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
             dte.ExecuteCommand("File.OpenFile", $"\"{fileName}\"");
         }
 
-        private void UserControl_KeyDown(object sender, KeyEventArgs e)
+        private async void UserControl_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                this.Commit();
+                await Commit();
             }
         }
 
@@ -934,7 +851,6 @@ Note: if the file is included project, you need to delete the file from project 
 
         private void UpdateColumnHeaderTemplate(GridViewColumnHeader header, ListSortDirection direction)
         {
-            // don't change the template if we're sorting by the check state
             GridViewColumn checkStateColumn = ((GridView)listView1.View).Columns[0];
             if (header.Column != checkStateColumn)
             {
@@ -950,7 +866,7 @@ Note: if the file is included project, you need to delete the file from project 
 
         internal void OnSettings()
         {
-             Settings.Show();
+            Settings.Show();
         }
 
         public void Dispose()
@@ -968,6 +884,60 @@ Note: if the file is included project, you need to delete the file from project 
         {
             _showOnlySolutionFiles = false;
             await Refresh();
+        }
+
+        private async void DiffEditor_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            await HandleDiffOpenFile();
+        }
+
+        private async Task HandleDiffOpenFile()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            int start = 1, column = 1;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(DiffEditor.Text))
+                {
+                    var doc = DiffEditor.Document;
+                    var line = DiffEditor.TextArea.Caret.Line - 1;
+
+
+
+                    while (line >= 0)
+                    {
+                        var text = doc.GetText(doc.Lines[line].Offset, doc.Lines[line].Length);
+                        var match = Regex.Match(text, "^@@(.+)@@");
+                        if (match.Success)
+                        {
+                            var s = match.Groups[1].Value;
+                            s = s.Substring(s.IndexOf('+') + 1);
+                            s = s.Substring(0, s.IndexOf(','));
+                            start += Convert.ToInt32(s) - 2;
+                            break;
+                        }
+                        else if (text.StartsWith("-"))
+                        {
+                            start--;
+                        }
+                        start++;
+                        line--;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage(ex.Message);
+                Log.WriteLine("Pending Changes View - DiffEditor_MouseDoubleClick: {0}", ex.ToString());
+            }
+
+            GetSelectedFileFullName((fileName) =>
+            {
+                OpenFile(fileName);
+                var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
+                var selection = dte.ActiveDocument.Selection as EnvDTE.TextSelection;
+                selection.MoveToLineAndOffset(start, column);
+            });
         }
     }
 

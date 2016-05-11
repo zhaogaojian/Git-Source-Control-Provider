@@ -6,9 +6,11 @@ Introduction
 ------------
 [![Join the chat at https://gitter.im/jzoss/Git-Source-Control-Provider](https://badges.gitter.im/jzoss/Git-Source-Control-Provider.svg)](https://gitter.im/jzoss/Git-Source-Control-Provider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-** This Visual Studio Extensions integrates Git with Visual Studio solution explorer. ** 
+** This Visual Studio Extensions integrates Git with Visual Studio solution explorer and the status bar ** 
 
 ![solution explorer](http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874)
+
+![Status Bar](https://cloud.githubusercontent.com/assets/3586254/15159754/d5b40796-16bb-11e6-97bb-25ecdd6f42ef.png)
 
 Features
 --------
@@ -74,6 +76,15 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 ## Change Logs -- Visual Studio 2015
 
 **V-Next** 
+*   Add more features to the status bar.
+*   Work on integrating gitflow.
+
+
+**V1.6.0*
+*   Added Repository controls on the status bar!
+*   Clicking on line in diff window now opens the file to that line.
+*   Improved performance with larger projects.
+*   Can now initialize new projects from the status bar. 
 
 **V1.5**
 
