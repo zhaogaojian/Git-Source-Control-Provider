@@ -6,7 +6,7 @@ namespace GitScc
         public const string Name = "Git Source Control Provider 2015";
         public const string Description = "Git Source Control Provider is a plug-in that integrates git with Visual Studio.";
         public const string Language = "en-US";
-        public const string Version = "1.5.0.0";
+        public const string Version = "1.6.0.0";
         public const string Author = "Jon Zoss";
         public const string Tags = "";
     }

@@ -6,9 +6,11 @@ Introduction
 ------------
 [![Join the chat at https://gitter.im/jzoss/Git-Source-Control-Provider](https://badges.gitter.im/jzoss/Git-Source-Control-Provider.svg)](https://gitter.im/jzoss/Git-Source-Control-Provider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-** This Visual Studio Extensions integrates Git with Visual Studio solution explorer. ** 
+** This Visual Studio Extensions integrates Git with Visual Studio solution explorer and the status bar ** 
 
 ![solution explorer](http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874)
+
+![Status Bar](https://cloud.githubusercontent.com/assets/3586254/15159754/d5b40796-16bb-11e6-97bb-25ecdd6f42ef.png)
 
 Features
 --------
