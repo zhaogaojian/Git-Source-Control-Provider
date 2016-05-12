@@ -21,6 +21,8 @@ namespace GitScc
             _uiName = uiName;
     	}
 
+        public bool IsPublishSupported { get; set; }
+
         /// <summary>
         /// Get the friendly name of the provider (written in registry)
         /// </summary>
@@ -79,6 +81,7 @@ namespace GitScc
                 {
                     sccProviderKey.SetValue("", RegName);
                     sccProviderKey.SetValue("Service", SccProviderService.ToString("B"));
+                    sccProviderKey.SetValue("IsPublishSupported", (object)Convert.ToInt32(this.IsPublishSupported));
 
                     using (Key sccProviderNameKey = sccProviderKey.CreateSubkey("Name"))
                     {
