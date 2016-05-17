@@ -584,15 +584,14 @@ namespace GitScc
                 {
                     foreach (var vsitemselection in items)
                     {
-
                         nodes.Add(vsitemselection);
                     }
                 }
-                await Task.Run(async delegate
-                {
-                    await RefreshProjectGlyphs(nodes.ToList());
-                });
             }
+            await Task.Run(async delegate
+            {
+                await RefreshProjectGlyphs(nodes.ToList());
+            });
         }
 
         private async Task ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)
