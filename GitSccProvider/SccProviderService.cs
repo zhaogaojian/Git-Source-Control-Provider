@@ -530,7 +530,6 @@ namespace GitScc
         {
             var caption = "Solution Explorer";
             BranchName = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
-            BranchDetail = "Test";
             if (!string.IsNullOrEmpty(BranchName))
             {
                 caption += " (" + BranchName + ")";

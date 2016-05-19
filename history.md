@@ -1,7 +1,17 @@
 ## Change Logs -- Visual Studio 2015
 
-**V1.6.0**
+
+**V1.6.2*
+*   Fix to make work with Visual Studio Update 1
+
+**V1.6.1*
+*   Bug Fixes
+
+**V1.6.0*
 *   Added Repository controls on the status bar!
+*   Clicking on line in diff window now opens the file to that line.
+*   Improved performance with larger projects.
+*   Can now initialize new projects from the status bar. 
 
 **V1.5.1**
 *   Fixed Issues #33,#34,#36,#38,#39-#42

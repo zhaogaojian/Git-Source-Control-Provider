@@ -901,9 +901,7 @@ Note: if the file is included project, you need to delete the file from project 
                 {
                     var doc = DiffEditor.Document;
                     var line = DiffEditor.TextArea.Caret.Line - 1;
-
-
-
+                    column = DiffEditor.TextArea.Caret.Column;
                     while (line >= 0)
                     {
                         var text = doc.GetText(doc.Lines[line].Offset, doc.Lines[line].Length);

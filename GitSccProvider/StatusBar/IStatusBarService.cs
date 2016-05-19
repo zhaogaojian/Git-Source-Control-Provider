@@ -13,6 +13,13 @@ namespace GitScc.StatusBar
 
         new string RepositoryName { get; set; }
 
+        new string BranchDetail { get; set; }
+
+        new string RepositoryDetail { get; set; }
+
+        new string PendingChangeDetail { get; set; }
+        
+
         new int PendingChangeCount { get; set; }
     }
 }
