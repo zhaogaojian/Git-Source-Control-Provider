@@ -474,7 +474,6 @@ namespace GitScc
             await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
             await SetSolutionExplorerTitle();
             RepositoryName = RepositoryManager.Instance?.SolutionTracker?.Name;
-            PendingChangeCount = RepositoryManager.Instance?.SolutionTracker?.ChangedFiles.Count() ?? 0;
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {
@@ -530,7 +529,6 @@ namespace GitScc
         {
             var caption = "Solution Explorer";
             BranchName = RepositoryManager.Instance?.SolutionTracker?.CurrentBranchDisplayName;
-            BranchDetail = "Test";
             if (!string.IsNullOrEmpty(BranchName))
             {
                 caption += " (" + BranchName + ")";
@@ -584,15 +582,14 @@ namespace GitScc
                 {
                     foreach (var vsitemselection in items)
                     {
-
                         nodes.Add(vsitemselection);
                     }
                 }
-                await Task.Run(async delegate
-                {
-                    await RefreshProjectGlyphs(nodes.ToList());
-                });
             }
+            await Task.Run(async delegate
+            {
+                await RefreshProjectGlyphs(nodes.ToList());
+            });
         }
 
         private async Task ProcessMultiFileChange(GitRepository repo, GitFilesUpdateEventArgs e)

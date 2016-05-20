@@ -15,6 +15,7 @@ namespace GitScc.StatusBar
 {
     public sealed class StandardGitStatusBarManager : GitApiStatusBarManager
     {
+
         private List<string> _branchMenuCommands = new List<string>() {"Create Branch"};
         public StandardGitStatusBarManager(Guid commandSetGuid, int branchMenuCmId, int branchCommandMenuCmId, int repositoryCommandMenuCmId, IServiceContainer serviceProvider, IStatusBarService statusBarService) 
             : base(commandSetGuid, branchMenuCmId, branchCommandMenuCmId, repositoryCommandMenuCmId, serviceProvider, statusBarService)
@@ -25,12 +26,17 @@ namespace GitScc.StatusBar
         {
             await LoadBranches(CurrentRepository.LocalBranchNames);
             await LoadBranchCommands(_branchMenuCommands);
+            StatusBarService.BranchName = CurrentRepository.CurrentBranchDisplayName;
+            StatusBarService.BranchDetail = string.Format(MenuResources.BranchMenuTooltip,
+                CurrentRepository?.CurrentBranchDisplayName);
         }
 
         protected override async Task UpdateRepsitoryCommands()
         {
            var repos =  RepositoryManager.Instance.Repositories.Select(x => x.Name).ToList();
            await LoadRepositoryCommands(repos);
+            StatusBarService.RepositoryDetail = string.Format(MenuResources.RepositoryMenuTooltip,
+                CurrentRepository?.WorkingDirectory);
         }
 
         protected override async Task OnBranchSelection(string command)
