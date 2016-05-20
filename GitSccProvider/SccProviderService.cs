@@ -474,7 +474,6 @@ namespace GitScc
             await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
             await SetSolutionExplorerTitle();
             RepositoryName = RepositoryManager.Instance?.SolutionTracker?.Name;
-            PendingChangeCount = RepositoryManager.Instance?.SolutionTracker?.ChangedFiles.Count() ?? 0;
 
             if (!string.IsNullOrEmpty(solutionFileName))
             {

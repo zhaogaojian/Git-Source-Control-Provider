@@ -37,7 +37,7 @@ namespace GitScc.StatusBar
             {
                 CurrentRepository = repository;
                 StatusBarService.RepositoryName = CurrentRepository.Name;
-                StatusBarService.PendingChangeCount = CurrentRepository.ChangedFiles.Count();
+                PendingChangeCount = CurrentRepository.ChangedFiles.Count();
                 await UpdateBranchMenu();
                 await UpdateRepsitoryCommands();
             }
@@ -78,7 +78,7 @@ namespace GitScc.StatusBar
 
         protected virtual async Task OnFileStatusUpdate(List<GitFile> files)
         {
-            StatusBarService.PendingChangeCount = files.Count;
+            PendingChangeCount = files.Count;
         }
 
         protected virtual async Task OnBranchChanged(string branchName)
@@ -91,7 +91,19 @@ namespace GitScc.StatusBar
             var newRepo =
                 RepositoryManager.Instance.Repositories.FirstOrDefault(
                     x => string.Equals(x.Name, command, StringComparison.OrdinalIgnoreCase));
+            RepositoryManager.Instance.ActiveTracker = newRepo;
             await SetActiveRepository(newRepo);
         }
+
+        public virtual int PendingChangeCount
+        {
+            set
+            {
+                StatusBarService.PendingChangeCount = value;
+                StatusBarService.PendingChangeDetail = string.Format(MenuResources.ChangesMenuTooltip,value);
+                
+            }
+        }
+
     }
 }
