@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.VSSDK.BuildTools.14.2.25123\build\Microsoft.VSSDK.BuildTools.props" Condition="Exists('..\packages\Microsoft.VSSDK.BuildTools.14.2.25123\build\Microsoft.VSSDK.BuildTools.props')" />
+  
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -33,6 +34,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -55,7 +57,8 @@
     <DeployExtension>True</DeployExtension>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
-    <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+	
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BasicSccProvider.cs" />
@@ -472,7 +475,79 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
+      <Target Name="AfterBuild">
+	    <ItemGroup>
+        <FilesToDelete Include="$(OutDir)NativeBinaries\**\*.pdb"/>
+    </ItemGroup>   
+    <Delete Files="@(FilesToDelete)" />   
   </Target>
   -->
+  
+  
+<PropertyGroup>
+  <EnableCompressVsix Condition=" '$(EnableCompressVsix)'=='' ">true</EnableCompressVsix>
+  <BuildLib Condition=" '$(BuildLib)'=='' ">$(MSBuildProjectDirectory)\..\BuildScripts\Lib\</BuildLib>
+
+</PropertyGroup>
+<UsingTask AssemblyFile="$(BuildLib)MSBuild.ExtensionPack.dll" TaskName="MSBuild.ExtensionPack.Compression.Zip"/>
+
+<Target Name="CompressVsix" 
+        AfterTargets="CreateVsixContainer" 
+        DependsOnTargets="PrepareReplceVsixTemp" 
+        Condition=" '$(EnableCompressVsix)'=='true' ">
+    
+  <!-- copy the file to the obj folder and then party on it -->
+  <MakeDir Directories="$(_TmpVsixDir);$(_TmpVsixDir)\Extracted\"/>
+
+  <Copy SourceFiles="$(TargetVsixContainer)"
+        DestinationFolder="$(_TmpVsixDir)">
+    <Output TaskParameter="CopiedFiles" ItemName="_TmpVsixCopy"/>
+  </Copy>
+    
+  <!-- extract out the .zip file -->
+  <MSBuild.ExtensionPack.Compression.Zip 
+    TaskAction="Extract" 
+    ExtractPath="$(_TmpVsixDir)Extracted\" 
+    ZipFileName="@(_TmpVsixCopy->'%(FullPath)')"/>
+
+	   <ItemGroup>
+        <FilesToDelete Include="$(_TmpVsixDir)Extracted\NativeBinaries\**\*.pdb"/>
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />  
+
+  <ItemGroup>
+    <_FilesToZip Remove="@(_FilesToZip)"/>
+    <_FilesToZip Include="$(_TmpVsixDir)Extracted\**\*"/>
+  </ItemGroup>
+  
+
+  <MSBuild.ExtensionPack.Compression.Zip
+    TaskAction="Create"
+    CompressFiles="@(_FilesToZip)"
+    ZipFileName="%(_TmpVsixCopy.FullPath)"
+    RemoveRoot="$(_TmpVsixDir)Extracted\"
+    CompressionLevel="BestCompression" />
+
+  <Delete Files ="$(TargetVsixContainer)"/>
+  <Copy SourceFiles="%(_TmpVsixCopy.FullPath)" DestinationFiles="$(TargetVsixContainer)" />
+</Target>
+
+<Target Name="PrepareReplceVsixTemp" DependsOnTargets="CreateVsixContainer">
+  <ItemGroup>
+    <_VsixItem Remove="@(_VsixItem)"/>
+    <_VsixItem Include="$(TargetVsixContainer)" />
+
+    <_TmpVsixPathItem Include="$(IntermediateOutputPath)VsixTemp\%(_VsixItem.Filename)%(_VsixItem.Extension)"/>
+  </ItemGroup>
+    
+  <PropertyGroup>
+    <_TmpVsixDir>%(_TmpVsixPathItem.RootDir)%(_TmpVsixPathItem.Directory)</_TmpVsixDir>
+  </PropertyGroup>
+
+  <RemoveDir Directories="$(_TmpVsixDir)"/>  
+</Target>  
+
+ 
+
+
 </Project>

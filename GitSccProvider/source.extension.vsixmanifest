@@ -7,7 +7,6 @@
     <MoreInfo>https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d</MoreInfo>
     <License>License.txt</License>
     <GettingStartedGuide>https://github.com/jzoss/Git-Source-Control-Provider</GettingStartedGuide>
-    <ReleaseNotes>https://github.com/jzoss/Git-Source-Control-Provider/blob/master/history.md</ReleaseNotes>
     <Icon>Resources\git.png</Icon>
     <PreviewImage>solution explorer.png</PreviewImage>
   </Metadata>
