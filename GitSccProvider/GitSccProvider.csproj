@@ -514,7 +514,7 @@
         <FilesToDelete Include="$(_TmpVsixDir)Extracted\NativeBinaries\**\*.pdb"/>
 		<FilesToDelete2 Include="$(_TmpVsixDir)Extracted\NativeBinaries\osx\**\*.*"/>
 		<FilesToDelete3 Include="$(_TmpVsixDir)Extracted\NativeBinaries\linux\**\*.*"/>
-		<FilesToDelete4 Include="$(_TmpVsixDir)Extracted\NativeBinaries\GitUI.exe"/>
+		<FilesToDelete4 Include="$(_TmpVsixDir)Extracted\GitUI.exe"/>
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" />  
 	<Delete Files="@(FilesToDelete2)" /> 
