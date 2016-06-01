@@ -4,11 +4,11 @@
     <Identity Id="GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a" Version="1.6.0.0" Language="en-US" Publisher="Jon Zoss" />
     <DisplayName>Git Source Control Provider 2015</DisplayName>
     <Description xml:space="preserve">Git Source Control Provider is a plug-in that integrates git with Visual Studio.</Description>
-    <MoreInfo>https://github.com/jzoss/Git-Source-Control-Provider</MoreInfo>
     <License>License.txt</License>
+    <GettingStartedGuide>https://github.com/jzoss/Git-Source-Control-Provider</GettingStartedGuide>
     <ReleaseNotes>https://github.com/jzoss/Git-Source-Control-Provider/blob/master/history.md</ReleaseNotes>
     <Icon>Resources\git.png</Icon>
-    <PreviewImage>solution explorer.png</PreviewImage>
+    <PreviewImage>Resources\git.png</PreviewImage>
   </Metadata>
   <Installation>
     <InstallationTarget Version="[14.0,15.0)" Id="Microsoft.VisualStudio.Pro" />
