@@ -273,6 +273,7 @@ namespace GitScc
                 diffLines = new string[0];
                 return;
             }
+            
             if (!_refreshing)
             {
                 try

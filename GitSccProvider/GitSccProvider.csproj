@@ -55,7 +55,7 @@
     <DeployExtension>True</DeployExtension>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
-    <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BasicSccProvider.cs" />
@@ -413,6 +413,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ListViewStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="PendingChangesView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -472,7 +476,53 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
+      <Target Name="AfterBuild">
+	    <ItemGroup>
+        <FilesToDelete Include="$(OutDir)NativeBinaries\**\*.pdb"/>
+    </ItemGroup>   
+    <Delete Files="@(FilesToDelete)" />   
   </Target>
   -->
+  <PropertyGroup>
+    <EnableCompressVsix Condition=" '$(EnableCompressVsix)'=='' ">true</EnableCompressVsix>
+    <BuildLib Condition=" '$(BuildLib)'=='' ">$(MSBuildProjectDirectory)\..\BuildScripts\Lib\</BuildLib>
+  </PropertyGroup>
+  <UsingTask AssemblyFile="$(BuildLib)MSBuild.ExtensionPack.dll" TaskName="MSBuild.ExtensionPack.Compression.Zip" />
+  <Target Name="CompressVsix" AfterTargets="CreateVsixContainer" DependsOnTargets="PrepareReplceVsixTemp" Condition=" '$(EnableCompressVsix)'=='true' ">
+    <!-- copy the file to the obj folder and then party on it -->
+    <MakeDir Directories="$(_TmpVsixDir);$(_TmpVsixDir)\Extracted\" />
+    <Copy SourceFiles="$(TargetVsixContainer)" DestinationFolder="$(_TmpVsixDir)">
+      <Output TaskParameter="CopiedFiles" ItemName="_TmpVsixCopy" />
+    </Copy>
+    <!-- extract out the .zip file -->
+    <MSBuild.ExtensionPack.Compression.Zip TaskAction="Extract" ExtractPath="$(_TmpVsixDir)Extracted\" ZipFileName="@(_TmpVsixCopy->'%(FullPath)')" />
+    <ItemGroup>
+      <FilesToDelete Include="$(_TmpVsixDir)Extracted\NativeBinaries\**\*.pdb" />
+      <FilesToDelete2 Include="$(_TmpVsixDir)Extracted\NativeBinaries\osx\**\*.*" />
+      <FilesToDelete3 Include="$(_TmpVsixDir)Extracted\NativeBinaries\linux\**\*.*" />
+      <FilesToDelete4 Include="$(_TmpVsixDir)Extracted\GitUI.exe" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+    <Delete Files="@(FilesToDelete2)" />
+    <Delete Files="@(FilesToDelete3)" />
+    <Delete Files="@(FilesToDelete4)" />
+    <ItemGroup>
+      <_FilesToZip Remove="@(_FilesToZip)" />
+      <_FilesToZip Include="$(_TmpVsixDir)Extracted\**\*" />
+    </ItemGroup>
+    <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" CompressFiles="@(_FilesToZip)" ZipFileName="%(_TmpVsixCopy.FullPath)" RemoveRoot="$(_TmpVsixDir)Extracted\" CompressionLevel="BestCompression" />
+    <Delete Files="$(TargetVsixContainer)" />
+    <Copy SourceFiles="%(_TmpVsixCopy.FullPath)" DestinationFiles="$(TargetVsixContainer)" />
+  </Target>
+  <Target Name="PrepareReplceVsixTemp" DependsOnTargets="CreateVsixContainer">
+    <ItemGroup>
+      <_VsixItem Remove="@(_VsixItem)" />
+      <_VsixItem Include="$(TargetVsixContainer)" />
+      <_TmpVsixPathItem Include="$(IntermediateOutputPath)VsixTemp\%(_VsixItem.Filename)%(_VsixItem.Extension)" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_TmpVsixDir>%(_TmpVsixPathItem.RootDir)%(_TmpVsixPathItem.Directory)</_TmpVsixDir>
+    </PropertyGroup>
+    <RemoveDir Directories="$(_TmpVsixDir)" />
+  </Target>
 </Project>

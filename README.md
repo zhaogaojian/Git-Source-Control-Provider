@@ -79,16 +79,24 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
+**V1.6.4**
+
+* Reduced Install Package Size by 65% - Same Taste - Less Filling!
+* Fix bug #45 - Changed files pane is not properly highlighting the selected item.
+
 **V1.6.3**
+
 *   Vastly Improved performance explicitly for larger projects
 *   Added Tooltips on the status bar.
 *   Clicking in the diffview now opens the line and column. 
 *   Switching active git repistories from the status bar now updates the pending changes view.
 
 **V1.6.2**
+
 *   Fix to make work with Visual Studio Update 1
 
 **V1.6.1**
+
 *   Bug Fixes
 
 **V1.6.0**
