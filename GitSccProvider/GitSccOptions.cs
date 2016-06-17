@@ -30,6 +30,7 @@ namespace GitScc
         public bool NotUseUTF8FileNames { get; set; }
         public bool DisableDiffMargin { get; set; }
         public bool UseVsDiff { get; set; }
+        public bool AutoAddFiles { get; set; }
         public DiffTools DiffTool { get; set; }
 
         public bool TrackActiveGitRepo { get; set; }
@@ -73,6 +74,7 @@ namespace GitScc
             //Default settings
             TrackActiveGitRepo = true;
             DisableAutoRefresh = true;
+            AutoAddFiles = true;
         }
 
         internal static GitSccOptions LoadFromConfig()

@@ -1,4 +1,6 @@
-﻿namespace GitScc
+﻿using Microsoft.VisualStudio.Imaging;
+
+namespace GitScc
 {
     using GitSccProvider;
     using Color = System.Drawing.Color;
@@ -62,7 +64,7 @@
             {
                 if (UsingVisualStudio2010Icons)
                     return (VsStateIcon)(_customSccGlyphBaseIndex + (uint)CustomSccGlyphs2010.Untracked);
-
+                //KnownMonikers QuestionMark
                 return (VsStateIcon)(_customSccGlyphBaseIndex + (uint)CustomSccGlyphs2012.New);
             }
         }
