@@ -806,7 +806,9 @@ Note: if the file is included project, you need to delete the file from project 
             if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 await Commit();
-            }
+            } else if (e.Key == Key.Enter && listView1.SelectedItems.Count > 0){
+				GetSelectedFileFullName( OpenFile );
+			}
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
