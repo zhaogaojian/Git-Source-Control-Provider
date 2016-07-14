@@ -1,5 +1,11 @@
 ## Change Logs -- Visual Studio 2015
 
+**V1.6.5**
+
+- [x] Changed the icon for added files.
+- [x] Added option to auto-add files to repository when you add them to a project.
+- [x] Publishing the solution from the status bar now adds all the projects and files to the repository.
+
 **V1.6.4**
 
 * Reduced Install Package Size by 65% - Same Taste - Less Filling!

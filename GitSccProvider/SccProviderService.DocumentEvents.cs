@@ -34,10 +34,11 @@ namespace GitScc
             //activeIde.Events.SolutionItemsEvents.
             _windowEvents = activeIde.Events.WindowEvents;
             _solutionEvents = activeIde.Events.SolutionEvents;
-            _solutionEvents.Opened += _solutionEvents_Opened;
             _windowEvents.WindowActivated += _windowEvents_WindowActivated;
 
         }
+
+
 
         private void UnRegisterDocumentEvents()
         {
@@ -129,7 +130,7 @@ namespace GitScc
             string[] rgpszMkDocuments, VSADDFILEFLAGS[] rgFlags)
         {
 
-            if (GitSccOptions.Current.AutoAddFiles)
+            if (GitSccOptions.Current.AutoAddFiles && Active)
             {
                 // Start by iterating through all projects calling this function
                 for (int iProject = 0; iProject < cProjects; iProject++)

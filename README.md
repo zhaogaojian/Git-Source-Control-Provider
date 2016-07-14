@@ -53,6 +53,11 @@ If you like this plugin there is a few way you can help out.
 * Test It - Check out the [Releases](https://github.com/jzoss/Git-Source-Control-Provider/releases). If there is a early release try it out and let me know if you find any bugs!
 * Code - Check out the code, play with it. maybe fix a bug while you are there.. It fun and educational. It also makes you super cool, better looking and possibly give you superpowers.
 
+#### Help Wanted - Features/Fixes 
+* Options Page - Settings are stored in a user folder, this is not how it is supposed to work. The UI the UI is ugly does not look right on high dpi monitors. See [Example](https://github.com/Microsoft/VSSDK-Extensibility-Samples/tree/master/Options_Page)
+* Localization - I woudl be nice to support a few other  languages.
+* Button commands - This part is a bit messy right now. It would be sweet if this coudl be cleaned up.
+* 
 
 #### Building
 

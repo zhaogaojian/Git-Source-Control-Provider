@@ -1016,10 +1016,34 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             await GitCommandWrappers.InitRepo(await GetSolutionFileName());
             SolutionExtensions.WriteMessageToOutputPane("Enabling SCC Provider");
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var projects = await SolutionExtensions.GetLoadedControllableProjects();
+            SolutionExtensions.WriteMessageToOutputPane("Adding Projects To git");
+            foreach (var vsSccProject2 in projects)
+            {
+               await AddProjectToSourceControl(vsSccProject2);
+            }
             await OpenTracker();
             await EnableSccForSolution();
             await ReloadAllGlyphs();
             SolutionExtensions.WriteMessageToOutputPane("Done");
+        }
+        
+        internal async Task AddProjectToSourceControl(IVsSccProject2 project)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            string projectName = await GetProjectFileName(project as IVsHierarchy);
+
+            if (string.IsNullOrEmpty(projectName)) return;
+            string projectDirecotry = Path.GetDirectoryName(projectName);
+            var repo = RepositoryManager.Instance.GetTrackerForPath(projectDirecotry);
+            repo.AddFile(projectName);
+            var files = await SolutionExtensions.GetProjectFiles(project);
+            foreach (var file in files)
+            {
+                repo.AddFile(file);
+            }
         } 
         #endregion
     }
