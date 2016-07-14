@@ -63,6 +63,98 @@ namespace GitSccProvider.Utilities
             return false;
         }
 
+        public static bool CanAddSelectedProjectToGitRepoitory()
+        {
+            var project = GetSelectedProject();
+            return !IsProjectInGit(project.FullName);
+        }
+
+        private static bool IsProjectInGit(string filename)
+        {
+            if (!string.IsNullOrWhiteSpace(filename))
+            {
+                var repo = RepositoryManager.Instance.GetTrackerForPath(filename);
+                if (repo != null)
+                {
+                    if (repo.GetFileStatus(filename) != GitFileStatus.New &&
+                        repo.GetFileStatus(filename) != GitFileStatus.NotControlled)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static  Project GetSelectedProject()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            IntPtr hierarchyPointer, selectionContainerPointer;
+            Object selectedObject = null;
+            IVsMultiItemSelect multiItemSelect;
+            uint projectItemId;
+            IVsMonitorSelection monitorSelection =
+                    (IVsMonitorSelection)Package.GetGlobalService(
+                    typeof(SVsShellMonitorSelection));
+
+            monitorSelection.GetCurrentSelection(out hierarchyPointer,
+                                                 out projectItemId,
+                                                 out multiItemSelect,
+                                                 out selectionContainerPointer);
+
+            IVsHierarchy selectedHierarchy = null;
+            try
+            {
+                selectedHierarchy = Marshal.GetTypedObjectForIUnknown(
+                                                     hierarchyPointer,
+                                                     typeof(IVsHierarchy)) as IVsHierarchy;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            if (selectedHierarchy != null)
+            {
+                ErrorHandler.ThrowOnFailure(selectedHierarchy.GetProperty(
+                                                  projectItemId,
+                                                  (int)__VSHPROPID.VSHPROPID_ExtObject,
+                                                  out selectedObject));
+            }
+
+            Project selectedProject = selectedObject as Project;
+
+            return selectedProject;
+        }
+
+        public static IVsHierarchy GetSelectedProjectHierarchy()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            IntPtr hierarchyPointer, selectionContainerPointer;
+            IVsMultiItemSelect multiItemSelect;
+            uint projectItemId;
+            IVsMonitorSelection monitorSelection =
+                    (IVsMonitorSelection)Package.GetGlobalService(
+                    typeof(SVsShellMonitorSelection));
+
+            monitorSelection.GetCurrentSelection(out hierarchyPointer,
+                                                 out projectItemId,
+                                                 out multiItemSelect,
+                                                 out selectionContainerPointer);
+            try
+            {
+                return Marshal.GetTypedObjectForIUnknown(
+                                                     hierarchyPointer,
+                                                     typeof(IVsHierarchy)) as IVsHierarchy;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+
+        }
+
         /// <summary>
         /// Gets the list of source controllable files in the specified project
         /// </summary>

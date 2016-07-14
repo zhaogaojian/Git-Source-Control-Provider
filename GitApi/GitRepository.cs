@@ -1099,6 +1099,7 @@ namespace GitScc
         }
 
 
+
         private void SetBranchName(bool supressEvent = false)
         {
             using (var repository = GetRepository())
