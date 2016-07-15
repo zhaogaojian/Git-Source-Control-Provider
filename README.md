@@ -84,6 +84,13 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
+**V1.6.5**
+
+- [x] Changed the icon for added files.
+- [x] Added option to auto-add files to repository when you add them to a project.
+- [x] Publishing the solution from the status bar now adds all the projects and files to the repository.
+- [x] Updated to Reactive Extensions 3.0. Should fix bug #54 
+
 **V1.6.4**
 
 * Reduced Install Package Size by 65% - Same Taste - Less Filling!

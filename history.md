@@ -5,6 +5,7 @@
 - [x] Changed the icon for added files.
 - [x] Added option to auto-add files to repository when you add them to a project.
 - [x] Publishing the solution from the status bar now adds all the projects and files to the repository.
+- [x] Updated to Reactive Extensions 3.0. Should fix bug #54 
 
 **V1.6.4**
 
