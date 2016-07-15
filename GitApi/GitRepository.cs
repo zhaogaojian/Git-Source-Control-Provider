@@ -45,9 +45,6 @@ namespace GitScc
         FileSystemWatcher _watcher;
         private MemoryCache _fileCache;
         private List<GitBranchInfo> _branchInfoList;
-        private static int _fileEventDelay = 1;
-        private static int _gitEventDelay = 2;
-        private bool _instantUpdating = false;
 
         private GitHeadState _savedState;
 
