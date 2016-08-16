@@ -1,4 +1,14 @@
-﻿<h2>Change Logs -- Visual Studio 2015</h2>
+﻿<h2 id="change-logs-visual-studio-2015">Change Logs -- Visual Studio 2015</h2>
+<p><strong>V1.6.5</strong></p>
+<ul class="contains-task-list">
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Changed the icon for added files.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Added right click option to projects, to add them to the git repository, if not already added.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Added option to auto-add files to repository when you add them to a project.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Publishing the solution from the status bar now adds all the projects and files to the repository.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Updated to Reactive Extensions 3.0. Should fix bug #54</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Options are now stored in the registry</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Options Page should look better on high dpi screens.</li>
+</ul>
 <p><strong>V1.6.4</strong></p>
 <ul>
 <li>Reduced Install Package Size by 65% - Same Taste - Less Filling!</li>
@@ -8,7 +18,7 @@
 <ul>
 <li>Vastly Improved performance explicitly for larger projects</li>
 <li>Added Tooltips on the status bar.</li>
-<li>Clicking in the diffview now opens the line and column. </li>
+<li>Clicking in the diffview now opens the line and column.</li>
 <li>Switching active git repistories from the status bar now updates the pending changes view.</li>
 </ul>
 <p><strong>V1.6.2</strong></p>
@@ -24,29 +34,31 @@
 <li>Added Repository controls on the status bar!</li>
 <li>Clicking on line in diff window now opens the file to that line.</li>
 <li>Improved performance with larger projects.</li>
-<li>Can now initialize new projects from the status bar. </li>
+<li>Can now initialize new projects from the status bar.</li>
 </ul>
-<p><strong>V1.5.1</strong>
-*   Fixed Issues #33,#34,#36,#38,#39-#42</p>
+<p><strong>V1.5.1</strong></p>
+<ul>
+<li>Fixed Issues #33,#34,#36,#38,#39-#42</li>
+</ul>
 <p><strong>V1.5</strong></p>
-<h5>---New Features---</h5>
+<p>#####---New Features---</p>
 <ul>
 <li>Added ability to update your .gitingore file to latest version from github</li>
-<li>Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.  </li>
+<li>Added Track Active Item In Pending Changes - This will help those who have multiple repositories in one solution. It switch the pending changes to the repo for the active file.</li>
 <li>Added ability Filter Pending Changes To Only Show Solution Files</li>
 </ul>
-<h5>---Fixes---</h5>
+<p>#####---Fixes---</p>
 <ul>
 <li>Fixed issue where plugin could periodically crash Visual Studio.</li>
 <li>Theme now switches with the need to resart.</li>
-<li>Double clicking on files in Pending Changes now opens/switches to the file. </li>
+<li>Double clicking on files in Pending Changes now opens/switches to the file.</li>
 <li>No longer slows down when used with Resharper</li>
-<li>Fixed issue #15, #21 where sometimes the plugin caused Visual Studio to crash. </li>
-<li>Fixed issue #16, Solution Explorer glyphs not updating. </li>
+<li>Fixed issue #15, #21 where sometimes the plugin caused Visual Studio to crash.</li>
+<li>Fixed issue #16, Solution Explorer glyphs not updating.</li>
 </ul>
 <p><strong>V1.4.3</strong></p>
 <ul>
-<li>Fixed Issues #14 -- Theme for Diff window now switches properly </li>
+<li>Fixed Issues #14 -- Theme for Diff window now switches properly</li>
 </ul>
 <p><strong>V1.4.2</strong></p>
 <ul>
@@ -57,8 +69,8 @@
 <p><strong>V1.4.1</strong></p>
 <ul>
 <li>Fixed Settings Error</li>
-<li>Fix bugs #5 + #6. -Thanks </li>
-<li>Thanks To  teebee76 (You Rock) for his help, mnadel, PureKrome + NightOwl888, you guys are also super cool. Keep finidng bugs and I will fix them as fast as I can.  </li>
+<li>Fix bugs #5 + #6. -Thanks</li>
+<li>Thanks To  teebee76 (You Rock) for his help, mnadel, PureKrome + NightOwl888, you guys are also super cool. Keep finidng bugs and I will fix them as fast as I can.</li>
 </ul>
 <p><strong>V1.4</strong></p>
 <ul>
@@ -66,7 +78,7 @@
 <li>Fix Pending changes window.</li>
 <li>Fixed reported bug 2 + 3</li>
 <li>Refactored external diff tools.. Should be able to extend them in the future</li>
-<li>Cleaned out lots of dead code. </li>
+<li>Cleaned out lots of dead code.</li>
 <li>Fix lot's of bugs</li>
 <li>Removed Git Diff Margin(https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )</li>
 <li>Fixed file missing exceptions.</li>
@@ -76,7 +88,7 @@
 <li>Converted Solution to VS 2015</li>
 <li>Created new project for plug-in, update all references to Visual Studio 14.0</li>
 </ul>
-<h2>Change Logs -- Visual Studio 2013 and below</h2>
+<h2 id="change-logs-visual-studio-2013-and-below">Change Logs -- Visual Studio 2013 and below</h2>
 <p><strong>V1.3</strong></p>
 <ul>
 <li>Added Settings button to the Pending change tool window</li>
@@ -89,17 +101,21 @@
 </ul>
 <p><strong>V1.1</strong></p>
 <ul>
-<li>
-<p>Add the <a href="https://github.com/laurentkempe/GitDiffMargin">Laurent Kempe's GitDiffMargin</a> by <a href="http://tunnelvisionlabs.com/research">Sam Harwell</a>  
-</p>
-<p><img src="https://a248.e.akamai.net/camo.github.com/efde11e7acc8e77f3da08bb8e30d14567c29e3c6/687474703a2f2f6661726d392e737461746963666c69636b722e636f6d2f383332392f383131363839353032355f656339353139623562625f6f2e706e67" /></p>
+<li><p>Add the <a href="https://github.com/laurentkempe/GitDiffMargin">Laurent Kempe's GitDiffMargin</a> by <a href="http://tunnelvisionlabs.com/research">Sam Harwell</a></p>
+<p><img src="https://a248.e.akamai.net/camo.github.com/efde11e7acc8e77f3da08bb8e30d14567c29e3c6/687474703a2f2f6661726d392e737461746963666c69636b722e636f6d2f383332392f383131363839353032355f656339353139623562625f6f2e706e67" alt="" /></p>
 </li>
-<li>Performance Improvement (by Sam Harwell)</li>
-<li>UI de-clutter and cleanup (by Sam Harwell)</li>
-<li>Various bugs fixes (by Sam Harwell)</li>
-<li>Visual Studio 2012 dark theme support (by Sam Harwell)</li>
-<li>Refresh Git status using the solution refresh button (by Sam Harwell)</li>
-<li>Use Visual Studio code editor to view the diff in pending changes window (by Sam Harwell)</li>
+<li><p>Performance Improvement (by Sam Harwell)</p>
+</li>
+<li><p>UI de-clutter and cleanup (by Sam Harwell)</p>
+</li>
+<li><p>Various bugs fixes (by Sam Harwell)</p>
+</li>
+<li><p>Visual Studio 2012 dark theme support (by Sam Harwell)</p>
+</li>
+<li><p>Refresh Git status using the solution refresh button (by Sam Harwell)</p>
+</li>
+<li><p>Use Visual Studio code editor to view the diff in pending changes window (by Sam Harwell)</p>
+</li>
 </ul>
 <p><strong>V1.0.1-V1.0.2</strong></p>
 <ul>
@@ -174,8 +190,7 @@
 </ul>
 <p><strong>V0.9.1 (1def890)</strong></p>
 <ul>
-<li>
-Change History Window to be a stand alone program - Dragon
+<li>Change History Window to be a stand alone program - Dragon
 <ul>
 <li>add/delete tag</li>
 <li>add/delete/checkout branch</li>

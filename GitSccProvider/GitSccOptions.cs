@@ -20,6 +20,8 @@ namespace GitScc
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "gitscc.config");
 
+       const string CollectionPath = "GitExtreme";
+        //Ok lame, but when you add a setting now, remember to add it to the load and save function
         public string GitBashPath       { get; set; }
         public string GitExtensionPath  { get; set; }
         public string DifftoolPath      { get; set; }
@@ -70,11 +72,14 @@ namespace GitScc
             }
         }
 
-        public static WritableSettingsStore GetWritableSettingsStore()
+        private static WritableSettingsStore WritableSettingsStore
         {
-            var service = BasicSccProvider.GetServiceEx<SVsServiceProvider>();
-            var shellSettingsManager = new ShellSettingsManager(service);
-            return shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            get
+            {
+                //var service = BasicSccProvider.GetServiceEx<SVsServiceProvider>();
+                var shellSettingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
+                return shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            }
         }
 
         private GitSccOptions()
@@ -88,26 +93,24 @@ namespace GitScc
 
         internal static GitSccOptions LoadFromConfig()
         {
-            GitSccOptions options = null;
+            var options = new GitSccOptions();
+            options.GitBashPath = LoadStringFromConfig("GitBashPath");
+            options.GitExtensionPath = LoadStringFromConfig("GitExtensionPath");
+            options.DifftoolPath = LoadStringFromConfig("DifftoolPath");
+            options.TortoiseGitPath = LoadStringFromConfig("TortoiseGitPath");
 
-            
-            if (File.Exists(configFileName))
-            {
-                try
-                {
-                    XmlSerializer serializer = new XmlSerializer(typeof(GitSccOptions));
-                    using (TextReader tr = new StreamReader(configFileName))
-                    {
-                        options = (GitSccOptions)serializer.Deserialize(tr);
-                    }
-                }
-                catch
-                {
-                }
-            }
+            //get bools
+            options.NotExpandTortoiseGit = LoadBoolFromConfig("NotExpandTortoiseGit");
+            options.NotExpandGitExtensions = LoadBoolFromConfig("NotExpandGitExtensions");
+            options.UseTGitIconSet = LoadBoolFromConfig("UseTGitIconSet");
+            options.DisableAutoRefresh = LoadBoolFromConfig("DisableAutoRefresh",true);
+            options.DisableAutoLoad = LoadBoolFromConfig("DisableAutoLoad",true);
+            options.NotUseUTF8FileNames = LoadBoolFromConfig("NotUseUTF8FileNames");
+            options.DisableDiffMargin = LoadBoolFromConfig("DisableDiffMargin",true);
+            options.UseVsDiff = LoadBoolFromConfig("UseVsDiff");
+            options.AutoAddFiles = LoadBoolFromConfig("AutoAddFiles");
 
-            if(options == null) options = new GitSccOptions();
-
+            options.DiffTool = (DiffTools) LoadIntFromConfig("DiffTool");
             options.Init();
 
             return options;
@@ -152,15 +155,55 @@ namespace GitScc
 
         internal void SaveConfig()
         {
-            try
+            if (!WritableSettingsStore.CollectionExists(CollectionPath))
             {
-                XmlSerializer x = new XmlSerializer(typeof(GitSccOptions));
-                using (TextWriter tw = new StreamWriter(configFileName))
-                {
-                    x.Serialize(tw, this);
-                }
+                WritableSettingsStore.CreateCollection(CollectionPath);
             }
-            catch { }
+
+            //Save Strings
+            WritableSettingsStore.SetString(CollectionPath, "GitBashPath", GitBashPath);
+            WritableSettingsStore.SetString(CollectionPath, "GitExtensionPath", GitExtensionPath);
+            WritableSettingsStore.SetString(CollectionPath, "DifftoolPath", DifftoolPath);
+            WritableSettingsStore.SetString(CollectionPath, "TortoiseGitPath", TortoiseGitPath);
+
+            //save bool
+            WritableSettingsStore.SetBoolean(CollectionPath, "NotExpandTortoiseGit", NotExpandTortoiseGit);
+            WritableSettingsStore.SetBoolean(CollectionPath, "NotExpandGitExtensions", NotExpandGitExtensions);
+            WritableSettingsStore.SetBoolean(CollectionPath, "UseTGitIconSet", UseTGitIconSet);
+            WritableSettingsStore.SetBoolean(CollectionPath, "DisableAutoRefresh", DisableAutoRefresh);
+            WritableSettingsStore.SetBoolean(CollectionPath, "DisableAutoLoad", DisableAutoLoad);
+            WritableSettingsStore.SetBoolean(CollectionPath, "NotUseUTF8FileNames", NotUseUTF8FileNames);
+            WritableSettingsStore.SetBoolean(CollectionPath, "DisableDiffMargin", DisableDiffMargin);
+            WritableSettingsStore.SetBoolean(CollectionPath, "UseVsDiff", UseVsDiff);
+            WritableSettingsStore.SetBoolean(CollectionPath, "AutoAddFiles", AutoAddFiles);
+
+            //save int
+            WritableSettingsStore.SetInt32(CollectionPath,"DiffTool",(int)DiffTool);
+
+        //try
+        //{
+        //    XmlSerializer x = new XmlSerializer(typeof(GitSccOptions));
+        //    using (TextWriter tw = new StreamWriter(configFileName))
+        //    {
+        //        x.Serialize(tw, this);
+        //    }
+        //}
+        //catch { }
+    }
+
+       private static string LoadStringFromConfig(string propertyName, string defaultValue = "")
+       {
+          return WritableSettingsStore.GetString(CollectionPath, propertyName, defaultValue);
+       }
+
+        private static bool LoadBoolFromConfig(string propertyName, bool defaultValue = false)
+        {
+            return WritableSettingsStore.GetBoolean(CollectionPath, propertyName, defaultValue);
+        }
+
+        private static int LoadIntFromConfig(string propertyName, int defaultValue = 0)
+        {
+            return WritableSettingsStore.GetInt32(CollectionPath, propertyName, defaultValue);
         }
 
         private string TryFindFile(string[] paths)
