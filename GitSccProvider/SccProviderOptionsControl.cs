@@ -71,7 +71,8 @@ namespace GitScc
         {
             // This call is required by the Windows.Forms Form Designer.
             InitializeComponent();
-
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             // TODO: Add any initialization after the InitializeComponent call
 
         }

@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Xml.Serialization;
 using GitSccProvider;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.Settings;
 
 namespace GitScc
 {
-
 
 
    [Serializable]
@@ -66,6 +68,13 @@ namespace GitScc
             {
                 return BasicSccProvider.GetGlobalService(typeof(SVsDifferenceService)) != null;
             }
+        }
+
+        public static WritableSettingsStore GetWritableSettingsStore()
+        {
+            var service = BasicSccProvider.GetServiceEx<SVsServiceProvider>();
+            var shellSettingsManager = new ShellSettingsManager(service);
+            return shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
         }
 
         private GitSccOptions()
