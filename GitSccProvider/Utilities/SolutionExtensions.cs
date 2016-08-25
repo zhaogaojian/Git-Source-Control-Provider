@@ -69,15 +69,15 @@ namespace GitSccProvider.Utilities
             return !IsProjectInGit(project.FullName);
         }
 
-        private static bool IsProjectInGit(string filename)
+        public static bool IsProjectInGit(string filename)
         {
             if (!string.IsNullOrWhiteSpace(filename))
             {
                 var repo = RepositoryManager.Instance.GetTrackerForPath(filename);
                 if (repo != null)
                 {
-                    if (repo.GetFileStatus(filename) != GitFileStatus.New &&
-                        repo.GetFileStatus(filename) != GitFileStatus.NotControlled)
+                    var status = repo.GetFileStatus(filename, true);
+                    if(status != GitFileStatus.New && status != GitFileStatus.NotControlled)
                     {
                         return true;
                     }
@@ -153,6 +153,19 @@ namespace GitSccProvider.Utilities
             }
 
 
+        }
+
+        public static async Task<IVsHierarchy> GetIVsHierarchy(Project project)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var solutionService = await GetActiveSolution();
+            IVsHierarchy projectHierarchy = null;
+
+            if (solutionService.GetProjectOfUniqueName(project.UniqueName, out projectHierarchy) == VSConstants.S_OK)
+            {
+                return projectHierarchy;
+            }
+            return null;
         }
 
         /// <summary>

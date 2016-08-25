@@ -36,11 +36,7 @@ namespace GitScc
     /// </summary>
     public class SccProviderOptionsControl : System.Windows.Forms.UserControl
     {
-
-        /// <summary> 
-        /// Required designer variable.
-        /// </summary>
-        private System.ComponentModel.Container components = null;
+        private IContainer components;
         private OpenFileDialog openFileDialog1;
         private Label label1;
         private TextBox textBox1;
@@ -63,6 +59,8 @@ namespace GitScc
         private Label label5;
         private CheckBox _cbrepoTrack;
         private CheckBox _cbAutoAddFiles;
+        private CheckBox _cbAutoAddProject;
+        private System.Windows.Forms.ToolTip _ttAddProjects;
 
         // The parent page, use to persist data
         private SccProviderOptions _customPage;
@@ -100,6 +98,7 @@ namespace GitScc
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.label1 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
@@ -122,6 +121,8 @@ namespace GitScc
             this.label5 = new System.Windows.Forms.Label();
             this._cbrepoTrack = new System.Windows.Forms.CheckBox();
             this._cbAutoAddFiles = new System.Windows.Forms.CheckBox();
+            this._cbAutoAddProject = new System.Windows.Forms.CheckBox();
+            this._ttAddProjects = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // openFileDialog1
@@ -133,7 +134,7 @@ namespace GitScc
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(3, 5);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(197, 16);
+            this.label1.Size = new System.Drawing.Size(162, 13);
             this.label1.TabIndex = 11;
             this.label1.Text = "Path to Git for Windows (git.exe):";
             // 
@@ -141,7 +142,7 @@ namespace GitScc
             // 
             this.textBox1.Location = new System.Drawing.Point(6, 21);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(364, 22);
+            this.textBox1.Size = new System.Drawing.Size(364, 20);
             this.textBox1.TabIndex = 12;
             // 
             // label2
@@ -149,7 +150,7 @@ namespace GitScc
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(3, 44);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(139, 16);
+            this.label2.Size = new System.Drawing.Size(114, 13);
             this.label2.TabIndex = 13;
             this.label2.Text = "Path to Git Extensions:";
             // 
@@ -157,14 +158,14 @@ namespace GitScc
             // 
             this.textBox2.Location = new System.Drawing.Point(6, 60);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(364, 22);
+            this.textBox2.Size = new System.Drawing.Size(364, 20);
             this.textBox2.TabIndex = 14;
             // 
             // textBox3
             // 
             this.textBox3.Location = new System.Drawing.Point(6, 229);
             this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(364, 22);
+            this.textBox3.Size = new System.Drawing.Size(364, 20);
             this.textBox3.TabIndex = 16;
             this.textBox3.Visible = false;
             // 
@@ -204,7 +205,7 @@ namespace GitScc
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(3, 106);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(121, 16);
+            this.label4.Size = new System.Drawing.Size(98, 13);
             this.label4.TabIndex = 20;
             this.label4.Text = "Path to TortoiseGit:";
             // 
@@ -212,7 +213,7 @@ namespace GitScc
             // 
             this.textBox4.Location = new System.Drawing.Point(6, 122);
             this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(364, 22);
+            this.textBox4.Size = new System.Drawing.Size(364, 20);
             this.textBox4.TabIndex = 21;
             // 
             // button4
@@ -230,7 +231,7 @@ namespace GitScc
             this.checkBox1.AutoSize = true;
             this.checkBox1.Location = new System.Drawing.Point(66, 86);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(271, 20);
+            this.checkBox1.Size = new System.Drawing.Size(220, 17);
             this.checkBox1.TabIndex = 23;
             this.checkBox1.Text = "Do not expand Git Extensions commands";
             this.checkBox1.UseVisualStyleBackColor = true;
@@ -240,7 +241,7 @@ namespace GitScc
             this.checkBox2.AutoSize = true;
             this.checkBox2.Location = new System.Drawing.Point(66, 148);
             this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(253, 20);
+            this.checkBox2.Size = new System.Drawing.Size(204, 17);
             this.checkBox2.TabIndex = 24;
             this.checkBox2.Text = "Do not expand TortoiseGit commands";
             this.checkBox2.UseVisualStyleBackColor = true;
@@ -251,7 +252,7 @@ namespace GitScc
             this.checkBox3.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.checkBox3.Location = new System.Drawing.Point(6, 359);
             this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(201, 20);
+            this.checkBox3.Size = new System.Drawing.Size(163, 17);
             this.checkBox3.TabIndex = 25;
             this.checkBox3.Text = "Use TortoiseGit style icon set";
             this.checkBox3.UseVisualStyleBackColor = true;
@@ -262,7 +263,7 @@ namespace GitScc
             this.checkBox5.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.checkBox5.Location = new System.Drawing.Point(6, 309);
             this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(372, 20);
+            this.checkBox5.Size = new System.Drawing.Size(303, 17);
             this.checkBox5.TabIndex = 27;
             this.checkBox5.Text = "Disable auto switch to this plug-in for Git controlled projects";
             this.checkBox5.UseVisualStyleBackColor = true;
@@ -273,7 +274,7 @@ namespace GitScc
             this.checkBox6.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.checkBox6.Location = new System.Drawing.Point(6, 333);
             this.checkBox6.Name = "checkBox6";
-            this.checkBox6.Size = new System.Drawing.Size(250, 20);
+            this.checkBox6.Size = new System.Drawing.Size(205, 17);
             this.checkBox6.TabIndex = 28;
             this.checkBox6.Text = "Disable UTF-8 file names (Git 1.7.10+)";
             this.checkBox6.UseVisualStyleBackColor = true;
@@ -284,7 +285,7 @@ namespace GitScc
             this.cbDiffTool.FormattingEnabled = true;
             this.cbDiffTool.Location = new System.Drawing.Point(113, 170);
             this.cbDiffTool.Name = "cbDiffTool";
-            this.cbDiffTool.Size = new System.Drawing.Size(341, 24);
+            this.cbDiffTool.Size = new System.Drawing.Size(341, 21);
             this.cbDiffTool.TabIndex = 30;
             this.cbDiffTool.Tag = "Tag";
             this.cbDiffTool.SelectedIndexChanged += new System.EventHandler(this.cbDiffTool_SelectedIndexChanged);
@@ -294,7 +295,7 @@ namespace GitScc
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(3, 207);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(400, 16);
+            this.label3.Size = new System.Drawing.Size(321, 13);
             this.label3.TabIndex = 15;
             this.label3.Text = "Path to external diff tool (optional, by default diffmerge.exe is used):";
             this.label3.Visible = false;
@@ -304,7 +305,7 @@ namespace GitScc
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(3, 173);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(99, 16);
+            this.label5.Size = new System.Drawing.Size(80, 13);
             this.label5.TabIndex = 31;
             this.label5.Text = "Select Diff Tool";
             // 
@@ -314,10 +315,12 @@ namespace GitScc
             this._cbrepoTrack.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
             this._cbrepoTrack.Location = new System.Drawing.Point(6, 286);
             this._cbrepoTrack.Name = "_cbrepoTrack";
-            this._cbrepoTrack.Size = new System.Drawing.Size(139, 20);
+            this._cbrepoTrack.Size = new System.Drawing.Size(234, 17);
             this._cbrepoTrack.TabIndex = 32;
-            this._cbrepoTrack.Text = "Track Active Repo";
+            this._cbrepoTrack.Text = "Track Active Repository In Solution Explorer";
             this._cbrepoTrack.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
+            this._ttAddProjects.SetToolTip(this._cbrepoTrack, "If your project has multiple repositories you can enable this to synchronize the " +
+        "current selected file in the Solution Explorer with the Pending Changes Window");
             this._cbrepoTrack.UseVisualStyleBackColor = true;
             this._cbrepoTrack.CheckedChanged += new System.EventHandler(this._cbrepoTrack_CheckedChanged);
             // 
@@ -325,19 +328,34 @@ namespace GitScc
             // 
             this._cbAutoAddFiles.AutoSize = true;
             this._cbAutoAddFiles.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this._cbAutoAddFiles.Location = new System.Drawing.Point(6, 260);
+            this._cbAutoAddFiles.Location = new System.Drawing.Point(200, 263);
             this._cbAutoAddFiles.Name = "_cbAutoAddFiles";
-            this._cbAutoAddFiles.Size = new System.Drawing.Size(242, 20);
+            this._cbAutoAddFiles.Size = new System.Drawing.Size(196, 17);
             this._cbAutoAddFiles.TabIndex = 33;
             this._cbAutoAddFiles.Text = "Automatically Add New Files To GIT";
             this._cbAutoAddFiles.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
             this._cbAutoAddFiles.UseVisualStyleBackColor = true;
+            // 
+            // _cbAutoAddProject
+            // 
+            this._cbAutoAddProject.AutoSize = true;
+            this._cbAutoAddProject.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this._cbAutoAddProject.Location = new System.Drawing.Point(6, 263);
+            this._cbAutoAddProject.Name = "_cbAutoAddProject";
+            this._cbAutoAddProject.Size = new System.Drawing.Size(188, 17);
+            this._cbAutoAddProject.TabIndex = 34;
+            this._cbAutoAddProject.Text = "Automatically Add Projects To GIT";
+            this._cbAutoAddProject.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
+            this._ttAddProjects.SetToolTip(this._cbAutoAddProject, "Enabled to Automatically Add Project to GIT if not already added and are in an ex" +
+        "isting repository.");
+            this._cbAutoAddProject.UseVisualStyleBackColor = true;
             // 
             // SccProviderOptionsControl
             // 
             this.AllowDrop = true;
             this.AutoScroll = true;
             this.AutoSize = true;
+            this.Controls.Add(this._cbAutoAddProject);
             this.Controls.Add(this._cbAutoAddFiles);
             this.Controls.Add(this._cbrepoTrack);
             this.Controls.Add(this.label5);
@@ -391,6 +409,7 @@ namespace GitScc
             //this.useVsDiffChk.Checked = GitSccOptions.Current.UseVsDiff;
             _cbrepoTrack.Checked = GitSccOptions.Current.TrackActiveGitRepo;
             _cbAutoAddFiles.Checked = GitSccOptions.Current.AutoAddFiles;
+            _cbAutoAddProject.Checked = GitSccOptions.Current.AutoAddProjects;
             cbDiffTool.Items.Clear();
             PopulateDiffTools();
 
@@ -443,6 +462,7 @@ namespace GitScc
             GitSccOptions.Current.DisableAutoLoad = this.checkBox5.Checked;
             GitSccOptions.Current.TrackActiveGitRepo = _cbrepoTrack.Checked;
             GitSccOptions.Current.AutoAddFiles = _cbAutoAddFiles.Checked;
+            GitSccOptions.Current.AutoAddProjects = _cbAutoAddProject.Checked;
             GitSccOptions.Current.NotUseUTF8FileNames = this.checkBox6.Checked;
             GitSccOptions.Current.DisableDiffMargin = true;
             GitSccOptions.Current.UseVsDiff = false;

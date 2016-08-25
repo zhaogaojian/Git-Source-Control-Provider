@@ -35,6 +35,7 @@ namespace GitScc
         public bool DisableDiffMargin { get; set; }
         public bool UseVsDiff { get; set; }
         public bool AutoAddFiles { get; set; }
+        public bool AutoAddProjects { get; set; }
         public DiffTools DiffTool { get; set; }
 
         public bool TrackActiveGitRepo { get; set; }
@@ -109,6 +110,7 @@ namespace GitScc
             options.DisableDiffMargin = LoadBoolFromConfig("DisableDiffMargin",true);
             options.UseVsDiff = LoadBoolFromConfig("UseVsDiff");
             options.AutoAddFiles = LoadBoolFromConfig("AutoAddFiles");
+            options.AutoAddProjects = LoadBoolFromConfig("AutoAddProjects");
 
             options.DiffTool = (DiffTools) LoadIntFromConfig("DiffTool");
             options.Init();
@@ -176,6 +178,7 @@ namespace GitScc
             WritableSettingsStore.SetBoolean(CollectionPath, "DisableDiffMargin", DisableDiffMargin);
             WritableSettingsStore.SetBoolean(CollectionPath, "UseVsDiff", UseVsDiff);
             WritableSettingsStore.SetBoolean(CollectionPath, "AutoAddFiles", AutoAddFiles);
+            WritableSettingsStore.SetBoolean(CollectionPath, "AutoAddProjects", AutoAddProjects);
 
             //save int
             WritableSettingsStore.SetInt32(CollectionPath,"DiffTool",(int)DiffTool);

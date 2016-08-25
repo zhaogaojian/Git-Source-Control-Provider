@@ -34,11 +34,39 @@ namespace GitScc
             //activeIde.Events.SolutionItemsEvents.
             _windowEvents = activeIde.Events.WindowEvents;
             _solutionEvents = activeIde.Events.SolutionEvents;
+            _solutionEvents.ProjectAdded += _solutionEvents_ProjectAdded;
             _windowEvents.WindowActivated += _windowEvents_WindowActivated;
 
         }
 
+        private async void _solutionEvents_ProjectAdded(Project dteProject)
+        {
+            try
+            {
+               await AutoAddProject(dteProject);
+            }
+            catch (Exception)
+            {
+                //TODO 
+            }
+        }
 
+        private async Task AutoAddProject(Project dteProject)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var project = await SolutionExtensions.GetIVsHierarchy(dteProject) as IVsSccProject2;
+            if (GitSccOptions.Current.AutoAddProjects) 
+            {
+                if (project !=null && !SolutionExtensions.IsProjectInGit(dteProject.FullName))
+                {
+                    await AddProjectToSourceControl(project);
+                }
+            }
+            if (!_fileCache.ProjectAddedToCache(project))
+            {
+                await _fileCache.AddProject(project);
+            }
+        }
 
         private void UnRegisterDocumentEvents()
         {
@@ -51,6 +79,7 @@ namespace GitScc
             }
             _windowEvents.WindowActivated -= _windowEvents_WindowActivated;
             _solutionEvents.Opened -= _solutionEvents_Opened;
+            _solutionEvents.ProjectAdded -= _solutionEvents_ProjectAdded;
         }
 
         private async void _solutionEvents_Opened()

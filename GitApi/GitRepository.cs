@@ -1060,8 +1060,6 @@ namespace GitScc
                     RecurseIgnoredDirs = false
                 });
 
-                //files.AddRange(repoFiles.Modified.Select(item => new GitFile(repository, item)));
-                //files.AddRange(
                 files = repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
                     .Select(item => new GitFile(repository, item)).ToDictionary(x=>x.FilePath,x =>x); //);
             }
@@ -1256,13 +1254,13 @@ namespace GitScc
             }
         }
 
-        public GitFileStatus GetFileStatus(string fileName)
+        public GitFileStatus GetFileStatus(string fileName, bool forceRefresh = false)
         {
             try
             {
                 fileName = Path.GetFullPath(fileName).ToLower();
                 GitFile file;
-                if (_changedFiles == null)
+                if (_changedFiles == null || forceRefresh)
                 {
                     _changedFiles = GetCurrentChangedFiles();
                 }
