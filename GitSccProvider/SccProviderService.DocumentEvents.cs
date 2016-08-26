@@ -14,13 +14,14 @@ using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace GitScc
 {
-    public partial class SccProviderService
+    public partial class SccProviderService : IVsSolutionLoadEvents
     {
         // The cookie for project document events
         private uint _tpdTrackProjectDocumentsCookie;
        // private DTE2 _activeIde;
         private WindowEvents _windowEvents;
         private SolutionEvents _solutionEvents;
+        private bool _solutionLoaded = false;
 
         private void SetupDocumentEvents()
         {
@@ -39,6 +40,20 @@ namespace GitScc
 
         }
 
+        private void UnRegisterDocumentEvents()
+        {
+            if (VSConstants.VSCOOKIE_NIL != _tpdTrackProjectDocumentsCookie)
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+                IVsTrackProjectDocuments2 tpdService = (IVsTrackProjectDocuments2)_sccProvider.GetService(typeof(SVsTrackProjectDocuments));
+                tpdService.UnadviseTrackProjectDocumentsEvents(_tpdTrackProjectDocumentsCookie);
+                _tpdTrackProjectDocumentsCookie = VSConstants.VSCOOKIE_NIL;
+            }
+            _windowEvents.WindowActivated -= _windowEvents_WindowActivated;
+            _solutionEvents.ProjectAdded -= _solutionEvents_ProjectAdded;
+            _windowEvents.WindowActivated -= _windowEvents_WindowActivated;
+        }
+
         private async void _solutionEvents_ProjectAdded(Project dteProject)
         {
             try
@@ -55,32 +70,24 @@ namespace GitScc
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var project = await SolutionExtensions.GetIVsHierarchy(dteProject) as IVsSccProject2;
-            if (GitSccOptions.Current.AutoAddProjects) 
+            if (_solutionLoaded) 
             {
-                if (project !=null && !SolutionExtensions.IsProjectInGit(dteProject.FullName))
+                if (GitSccOptions.Current.AutoAddProjects && project != null && !SolutionExtensions.IsProjectInGit(dteProject.FullName))
                 {
                     await AddProjectToSourceControl(project);
                 }
+                //ok To be safe rebuild cache 
+                await EnableSccForSolution();
+                await ReloadAllGlyphs();
+                //if (!_fileCache.ProjectAddedToCache(project))
+                //{
+                //    await _fileCache.AddProject(project);
+                //}
             }
-            if (!_fileCache.ProjectAddedToCache(project))
-            {
-                await _fileCache.AddProject(project);
-            }
+           
         }
 
-        private void UnRegisterDocumentEvents()
-        {
-            if (VSConstants.VSCOOKIE_NIL != _tpdTrackProjectDocumentsCookie)
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-                IVsTrackProjectDocuments2 tpdService = (IVsTrackProjectDocuments2)_sccProvider.GetService(typeof(SVsTrackProjectDocuments));
-                tpdService.UnadviseTrackProjectDocumentsEvents(_tpdTrackProjectDocumentsCookie);
-                _tpdTrackProjectDocumentsCookie = VSConstants.VSCOOKIE_NIL;
-            }
-            _windowEvents.WindowActivated -= _windowEvents_WindowActivated;
-            _solutionEvents.Opened -= _solutionEvents_Opened;
-            _solutionEvents.ProjectAdded -= _solutionEvents_ProjectAdded;
-        }
+
 
         private async void _solutionEvents_Opened()
         {
@@ -159,7 +166,7 @@ namespace GitScc
             string[] rgpszMkDocuments, VSADDFILEFLAGS[] rgFlags)
         {
 
-            if (GitSccOptions.Current.AutoAddFiles && Active)
+            if (Active)
             {
                 // Start by iterating through all projects calling this function
                 for (int iProject = 0; iProject < cProjects; iProject++)
@@ -185,8 +192,12 @@ namespace GitScc
                     for (int iFile = iProjectFilesStart; iFile < iNextProjecFilesStart; iFile++)
                     {
                         var fileName = rgpszMkDocuments[iFile];
-                        var repo = RepositoryManager.Instance.GetTrackerForPath(fileName);
-                        repo.AddFile(fileName);
+                        _fileCache.AddFile(fileName,sccProject);
+                        if (GitSccOptions.Current.AutoAddFiles)
+                        {
+                            var repo = RepositoryManager.Instance.GetTrackerForPath(fileName);
+                            repo.AddFile(fileName);
+                        }
                         // Refresh the solution explorer glyphs for all projects containing this file
                         //IList<VSITEMSELECTION> nodes = GetControlledProjectsContainingFile(rgpszMkDocuments[iFile]);
                         //_sccProvider.RefreshNodesGlyphs(nodes);
@@ -267,5 +278,45 @@ namespace GitScc
         }
 
         #endregion
+
+        public int OnBeforeOpenSolution(string pszSolutionFilename)
+        {
+            _solutionLoaded = false;
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeBackgroundSolutionLoadBegins()
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+        {
+            pfShouldDelayLoadToNextIdle = false;
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterBackgroundSolutionLoadComplete()
+        {
+            _solutionLoaded = true;
+
+            ThreadHelper.JoinableTaskFactory.Run(async delegate
+            {
+                await EnableSccForSolution();
+                await ReloadAllGlyphs();
+            });
+
+            return VSConstants.S_OK;
+        }
     }
 }
