@@ -86,7 +86,8 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 **V1.6.5**
 
 - [x] Changed the icon for added files.
-- [x] Added right click option to projects, to add them to the git repository, if not already added. 
+- [x] Added right click option to projects, to add them to the git repository, if not already added
+- [x] Added option to auto-add projects to repository when you add them to the solution.
 - [x] Added option to auto-add files to repository when you add them to a project.
 - [x] Publishing the solution from the status bar now adds all the projects and files to the repository.
 - [x] Updated to Reactive Extensions 3.0. Should fix bug #54 
