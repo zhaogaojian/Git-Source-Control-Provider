@@ -271,7 +271,7 @@ namespace GitScc
                     break;
 
                 case PackageIds.cmdIdAddProjectToSCC:
-                    if (SolutionExtensions.CanAddSelectedProjectToGitRepoitory())
+                    if (SolutionExtensions.CanAddSelectedProjectToGitRepoitory() && sccService.Active)
                     {
                         cmdf |= OLECMDF.OLECMDF_ENABLED;
                     }

@@ -28,10 +28,10 @@ namespace GitScc
         private event GitFilesUpdateEventHandler _onFilesUpdateEventHandler;
 
         private event GitRepositoryEventHandler _onActiveTrackerUpdateEventHandler;
+        private event GitRepositoryEventHandler _onTrackerCommitChanged;
         private event GitFilesStatusUpdateEventHandler _onFilesStatusUpdateEventHandler;
 
         private event EventHandler<string> _onActiveTrackerBranchChanged;
-
         private event EventHandler<string> _onSolutionTrackerBranchChanged;
 
         private DateTime _pauseTime = DateTime.MinValue;
@@ -136,6 +136,7 @@ namespace GitScc
             {
                 repo.FilesChanged -= Repo_FilesChanged;
                 repo.FileStatusUpdate -= Repo_FileStatusUpdate;
+                repo.OnCommitChanged -= Repo_OnCommitChanged;
             }
 
             if (_solutionTracker != null)
@@ -149,7 +150,6 @@ namespace GitScc
             _fileRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
             _basePathRepoLookup = new ConcurrentDictionary<string, GitFileStatusTracker>();
         }
-
 
         public async Task SetSolutionTracker(string solutionFilePath)
         {
@@ -186,6 +186,7 @@ namespace GitScc
                     repo.EnableRepositoryWatcher();
                     repo.FilesChanged += Repo_FilesChanged;
                     repo.FileStatusUpdate += Repo_FileStatusUpdate;
+                    repo.OnCommitChanged += Repo_OnCommitChanged;
                     //repo.BranchChanged += Repo_BranchChanged;
 
                     //add our refrences so we can do a quick lookup later
@@ -209,6 +210,8 @@ namespace GitScc
             return repo;
         }
 
+
+
         public async Task<GitFileStatusTracker> GetTrackerForPathAsync(string filename,bool setActiveTracker = false ,bool createTracker = true)
         {
             if (string.IsNullOrWhiteSpace(filename)) return null;
@@ -226,6 +229,7 @@ namespace GitScc
                     repo.EnableRepositoryWatcher();
                     repo.FilesChanged += Repo_FilesChanged;
                     repo.FileStatusUpdate += Repo_FileStatusUpdate;
+                    repo.OnCommitChanged += Repo_OnCommitChanged;
                     //repo.BranchChanged += Repo_BranchChanged;
 
                     //add our refrences so we can do a quick lookup later
@@ -324,6 +328,19 @@ namespace GitScc
             }
         }
 
+
+        public event GitRepositoryEventHandler CommitChanged
+        {
+            add
+            {
+                _onTrackerCommitChanged += value;
+            }
+            remove
+            {
+                _onTrackerCommitChanged -= value;
+            }
+        }
+
         #endregion
 
         #region Event Handlers
@@ -336,6 +353,13 @@ namespace GitScc
         private void Repo_FilesChanged(object sender, GitFilesUpdateEventArgs e)
         {
             FireFilesChangedEvent(sender, e);
+        }
+
+        private void Repo_OnCommitChanged(object sender, string e)
+        {
+            var repo = sender as GitFileStatusTracker;
+            FireOnCommitChangedEvent(repo);
+
         }
 
 
@@ -376,6 +400,12 @@ namespace GitScc
             _onActiveTrackerBranchChanged?.Invoke(sender, name);
         }
 
+
+        private void FireOnCommitChangedEvent(GitFileStatusTracker repository)
+        {
+            var eventArgs = new GitRepositoryEvent(repository);
+            _onTrackerCommitChanged?.Invoke(this, eventArgs);
+        }
         #endregion
 
         #region Public Static Helper Methods

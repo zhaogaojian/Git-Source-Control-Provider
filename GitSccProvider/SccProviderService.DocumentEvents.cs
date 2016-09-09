@@ -77,8 +77,7 @@ namespace GitScc
                     await AddProjectToSourceControl(project);
                 }
                 //ok To be safe rebuild cache 
-                await EnableSccForSolution();
-                await ReloadAllGlyphs();
+                await RefreshSolution();
                 //if (!_fileCache.ProjectAddedToCache(project))
                 //{
                 //    await _fileCache.AddProject(project);
@@ -92,8 +91,7 @@ namespace GitScc
         private async void _solutionEvents_Opened()
         {
             await _statusBarManager.SetActiveRepository(RepositoryManager.Instance.SolutionTracker);
-            await EnableSccForSolution();
-            await ReloadAllGlyphs();
+            await RefreshSolution();
         }
 
         private async void _windowEvents_WindowActivated(Window GotFocus, Window LostFocus)
@@ -312,8 +310,7 @@ namespace GitScc
 
             ThreadHelper.JoinableTaskFactory.Run(async delegate
             {
-                await EnableSccForSolution();
-                await ReloadAllGlyphs();
+                await RefreshSolution();
             });
 
             return VSConstants.S_OK;
