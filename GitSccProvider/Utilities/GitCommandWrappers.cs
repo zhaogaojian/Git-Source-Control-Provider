@@ -36,8 +36,8 @@ namespace GitScc.Utilities
             {
                 repo.AddFile(Path.Combine(solutionPath, ".gitignore"));
                 repo.AddFile(solutionFile);
+                repo.Commit("Repo Created");
             }
-
         }
 
         internal static async Task<GitActionResult<string>> Commit(GitRepository repository, string message, bool signoff = false)

@@ -182,7 +182,11 @@ namespace GitScc
                 cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdPendingChangesSettings);
                 menu = new MenuCommand(new EventHandler(OnSettings), cmd);
                 mcs.AddCommand(menu);
-                
+
+                cmd = new CommandID(GuidList.guidSccProviderCmdSet, PackageIds.cmdIdAddProjectToSCC);
+                menu = new MenuCommand(new EventHandler(OnAddProjectToSCC), cmd);
+                mcs.AddCommand(menu);
+
             }
 
 
@@ -263,6 +267,17 @@ namespace GitScc
                             "Git" : "Git (" + branchName + ")";
 
                         SetOleCmdText(pCmdText, menuText);
+                    }
+                    break;
+
+                case PackageIds.cmdIdAddProjectToSCC:
+                    if (SolutionExtensions.CanAddSelectedProjectToGitRepoitory() && sccService.Active)
+                    {
+                        cmdf |= OLECMDF.OLECMDF_ENABLED;
+                    }
+                    else
+                    {
+                        cmdf |= OLECMDF.OLECMDF_INVISIBLE;
                     }
                     break;
 
@@ -707,6 +722,17 @@ namespace GitScc
         private void OnSettings(object sender, EventArgs e)
         {
             GetToolWindowPane<PendingChangesToolWindow>().OnSettings();
+        }
+
+        private async void OnAddProjectToSCC(object sender, EventArgs e)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var project = SolutionExtensions.GetSelectedProjectHierarchy() as IVsSccProject2;
+            if (project != null)
+            {
+                await sccService.AddProjectToSourceControl(project);
+            }
+
         }
 
         #endregion

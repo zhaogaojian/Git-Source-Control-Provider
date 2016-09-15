@@ -126,6 +126,11 @@ namespace GitSccProvider
             }
         }
 
+        public bool ProjectAddedToCache(IVsSccProject2 project)
+        {
+            return _projects.Contains(project);
+        }
+
         public async Task AddProject(EnvDTE.Project envProject)
         {
             IVsHierarchy projectHierarchy = null;

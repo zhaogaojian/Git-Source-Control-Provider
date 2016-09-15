@@ -1,7 +1,6 @@
 Git Source Control Provider 2015
 ================================
 
-
 Introduction
 ------------
 [![Join the chat at https://gitter.im/jzoss/Git-Source-Control-Provider](https://badges.gitter.im/jzoss/Git-Source-Control-Provider.svg)](https://gitter.im/jzoss/Git-Source-Control-Provider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -11,6 +10,15 @@ Introduction
 ![solution explorer](http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874)
 
 ![Status Bar](https://cloud.githubusercontent.com/assets/3586254/15159754/d5b40796-16bb-11e6-97bb-25ecdd6f42ef.png)
+
+
+New Feature Highlights
+-------------
+
+* Added option to auto-add projects and to the git repository when you add them to the project!
+* Switch and create branches, switch git repositories, and open the pending changes window all from the status bar!
+* Initialize new projects from the status bar.
+
 
 Features
 --------
@@ -23,8 +31,8 @@ Features
 * Integrates with [Git for Windows](http://code.google.com/p/msysgit)
 * Integrates with [Git Extensions](http://code.google.com/p/gitextensions)
 * Integrates with [TortoiseGit](http://code.google.com/p/tortoisegit)
-* [Git - Pending Changes Tool Window] (http://gitscc.codeplex.com/wikipage?title=Commit%20Changes)
-* [Git - View History Tool Window] (http://gitscc.codeplex.com/wikipage?title=View%20History)
+* [Git - Pending Changes Tool Window](http://gitscc.codeplex.com/wikipage?title=Commit%20Changes)
+* [Git - View History Tool Window](http://gitscc.codeplex.com/wikipage?title=View%20History)
 * Options page
 
 How to use
@@ -53,6 +61,10 @@ If you like this plugin there is a few way you can help out.
 * Test It - Check out the [Releases](https://github.com/jzoss/Git-Source-Control-Provider/releases). If there is a early release try it out and let me know if you find any bugs!
 * Code - Check out the code, play with it. maybe fix a bug while you are there.. It fun and educational. It also makes you super cool, better looking and possibly give you superpowers.
 
+#### Help Wanted - Features/Fixes 
+* Options Page - Settings are stored in a user folder, this is not how it is supposed to work. The UI the UI is ugly does not look right on high dpi monitors. See [Example](https://github.com/Microsoft/VSSDK-Extensibility-Samples/tree/master/Options_Page)
+* Localization - I woudl be nice to support a few other  languages.
+* Button commands - This part is a bit messy right now. It would be sweet if this could be cleaned up.
 
 #### Building
 
@@ -78,6 +90,23 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 **V-Next** 
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
+
+**V1.6.5**
+
+
+***Features*** 
+
+- [x] Changed the icon for added files.
+- [x] Added right click option to projects, to add them to the git repository, if not already added
+- [x] Added option to auto-add projects to repository when you add them to the solution.
+- [x] Added option to auto-add files to repository when you add them to a project.
+- [x] Publishing the solution from the status bar now adds all the projects and files to the repository.
+- [x] Options are now stored in the registry
+- [x] Options Page should look better on high dpi screens. 
+
+***Bug Fixes*** 
+- [x] Updated to Reactive Extensions 3.0. Should fix bug #54 
+- [x] Solution refreshes all glyps on commit fixing #58
 
 **V1.6.4**
 
@@ -122,28 +151,7 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Fixed issue #16, Solution Explorer glyphs not updating. 
 
 
-**V1.4.2**
 
-*   Fixed Issues #1, #7, #8, #9, #10, #11 and #12
-*   Fixed Switch command
-*   Added dark theme form diff window
-
-**V1.4.1**
-
-*   Fixed Settings Error
-*   Fix bugs #5 + #6. -Thanks 
-*   Thanks To  teebee76 (You Rock) for his help, mnadel, PureKrome + NightOwl888, you guys are also super cool. Keep finidng bugs and I will fix them as fast as I can.  
-
-**V1.4**
-
-*   Switch to using LibGit2Sharp, should see a large performace boost.
-*   Fix Pending changes window.
-*   Fixed reported bug 2 + 3
-*   Refactored external diff tools.. Should be able to extend them in the future
-*   Cleaned out lots of dead code. 
-*   Fix lot's of bugs
-*   Removed Git Diff Margin(use https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )
-*   Fixed file missing exceptions.
 
 ## Notice : Initial Visual Studio 2015 Upgrade
 This is a fork of the super awesome [git SCC plugin](https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c) by [Yiyi Sun](https://visualstudiogallery.msdn.microsoft.com/site/search?f[0].Type=User&f[0].Value=yysun)

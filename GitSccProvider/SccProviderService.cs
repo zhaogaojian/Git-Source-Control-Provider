@@ -70,6 +70,7 @@ namespace GitScc
             RepositoryManager.Instance.FilesChanged += RepositoryManager_FilesChanged;
             RepositoryManager.Instance.FileStatusUpdate += RepositoryManager_FileStatusUpdate;
             RepositoryManager.Instance.SolutionTrackerBranchChanged += RepositoryManager_SolutionTrackerBranchChanged;
+            RepositoryManager.Instance.CommitChanged += RepositoryManager_CommitChanged;
 
             //var mcs = sccProvider.GetService(typeof(IMenuCommandService)) as Microsoft.VisualStudio.Shell.OleMenuCommandService;
             _statusBarManager = new StandardGitStatusBarManager(
@@ -84,7 +85,6 @@ namespace GitScc
             SetupDocumentEvents();
         }
 
-     
 
         public void Dispose()
         {
@@ -115,8 +115,7 @@ namespace GitScc
             ThreadHelper.JoinableTaskFactory.Run(async delegate
             {
                 await OpenTracker();
-                await EnableSccForSolution();
-                await ReloadAllGlyphs();
+                await RefreshSolution();
             });
             //MarkDirty(false);
             return VSConstants.S_OK;
@@ -150,14 +149,16 @@ namespace GitScc
         }
         #endregion
 
+        private async Task RefreshSolution()
+        {
+            await EnableSccForSolution();
+            await ReloadAllGlyphs();
+        }
+
         //TODO : FIX!!!!!
         private async void HandleSolutionRefresh(object sender, EventArgs e)
         {
-
-            //await ReloadAllGlyphs();
-            await EnableSccForSolution();
-            await ReloadAllGlyphs();
-
+           await RefreshSolution();
         }
 
         private async Task ReloadAllGlyphs()
@@ -518,10 +519,26 @@ namespace GitScc
         {
             try
             {
+                //TODO LOG
                 await SetSolutionExplorerTitle();
             }
             catch (Exception)
             {
+            }
+        }
+
+
+        private async void RepositoryManager_CommitChanged(object sender, GitRepositoryEvent e)
+        {
+            try
+            {
+                //TODO LOG
+                await RefreshSolution();
+            }
+            catch (Exception)
+            {
+
+                throw;
             }
         }
 
@@ -1016,10 +1033,33 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
         {
             await GitCommandWrappers.InitRepo(await GetSolutionFileName());
             SolutionExtensions.WriteMessageToOutputPane("Enabling SCC Provider");
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var projects = await SolutionExtensions.GetLoadedControllableProjects();
+            SolutionExtensions.WriteMessageToOutputPane("Adding Projects To git");
+            foreach (var vsSccProject2 in projects)
+            {
+               await AddProjectToSourceControl(vsSccProject2);
+            }
             await OpenTracker();
-            await EnableSccForSolution();
-            await ReloadAllGlyphs();
+            await RefreshSolution();
             SolutionExtensions.WriteMessageToOutputPane("Done");
+        }
+        
+        internal async Task AddProjectToSourceControl(IVsSccProject2 project)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            string projectName = await GetProjectFileName(project as IVsHierarchy);
+
+            if (string.IsNullOrEmpty(projectName)) return;
+            string projectDirecotry = Path.GetDirectoryName(projectName);
+            var repo = RepositoryManager.Instance.GetTrackerForPath(projectDirecotry);
+            repo.AddFile(projectName);
+            var files = await SolutionExtensions.GetProjectFiles(project);
+            foreach (var file in files)
+            {
+                repo.AddFile(file);
+            }
         } 
         #endregion
     }

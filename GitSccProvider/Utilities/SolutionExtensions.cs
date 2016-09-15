@@ -63,6 +63,111 @@ namespace GitSccProvider.Utilities
             return false;
         }
 
+        public static bool CanAddSelectedProjectToGitRepoitory()
+        {
+            var project = GetSelectedProject();
+            return !IsProjectInGit(project.FullName);
+        }
+
+        public static bool IsProjectInGit(string filename)
+        {
+            if (!string.IsNullOrWhiteSpace(filename))
+            {
+                var repo = RepositoryManager.Instance.GetTrackerForPath(filename);
+                if (repo != null)
+                {
+                    var status = repo.GetFileStatus(filename, true);
+                    if(status != GitFileStatus.New && status != GitFileStatus.NotControlled)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static  Project GetSelectedProject()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            IntPtr hierarchyPointer, selectionContainerPointer;
+            Object selectedObject = null;
+            IVsMultiItemSelect multiItemSelect;
+            uint projectItemId;
+            IVsMonitorSelection monitorSelection =
+                    (IVsMonitorSelection)Package.GetGlobalService(
+                    typeof(SVsShellMonitorSelection));
+
+            monitorSelection.GetCurrentSelection(out hierarchyPointer,
+                                                 out projectItemId,
+                                                 out multiItemSelect,
+                                                 out selectionContainerPointer);
+
+            IVsHierarchy selectedHierarchy = null;
+            try
+            {
+                selectedHierarchy = Marshal.GetTypedObjectForIUnknown(
+                                                     hierarchyPointer,
+                                                     typeof(IVsHierarchy)) as IVsHierarchy;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            if (selectedHierarchy != null)
+            {
+                ErrorHandler.ThrowOnFailure(selectedHierarchy.GetProperty(
+                                                  projectItemId,
+                                                  (int)__VSHPROPID.VSHPROPID_ExtObject,
+                                                  out selectedObject));
+            }
+
+            Project selectedProject = selectedObject as Project;
+
+            return selectedProject;
+        }
+
+        public static IVsHierarchy GetSelectedProjectHierarchy()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            IntPtr hierarchyPointer, selectionContainerPointer;
+            IVsMultiItemSelect multiItemSelect;
+            uint projectItemId;
+            IVsMonitorSelection monitorSelection =
+                    (IVsMonitorSelection)Package.GetGlobalService(
+                    typeof(SVsShellMonitorSelection));
+
+            monitorSelection.GetCurrentSelection(out hierarchyPointer,
+                                                 out projectItemId,
+                                                 out multiItemSelect,
+                                                 out selectionContainerPointer);
+            try
+            {
+                return Marshal.GetTypedObjectForIUnknown(
+                                                     hierarchyPointer,
+                                                     typeof(IVsHierarchy)) as IVsHierarchy;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+
+        }
+
+        public static async Task<IVsHierarchy> GetIVsHierarchy(Project project)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var solutionService = await GetActiveSolution();
+            IVsHierarchy projectHierarchy = null;
+
+            if (solutionService.GetProjectOfUniqueName(project.UniqueName, out projectHierarchy) == VSConstants.S_OK)
+            {
+                return projectHierarchy;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Gets the list of source controllable files in the specified project
         /// </summary>

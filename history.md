@@ -1,5 +1,23 @@
 ## Change Logs -- Visual Studio 2015
 
+**V1.6.5**
+
+
+***Features*** 
+
+- [x] Changed the icon for added files.
+- [x] Added right click option to projects, to add them to the git repository, if not already added
+- [x] Added option to auto-add projects to repository when you add them to the solution.
+- [x] Added option to auto-add files to repository when you add them to a project.
+- [x] Publishing the solution from the status bar now adds all the projects and files to the repository.
+- [x] Options are now stored in the registry
+- [x] Options Page should look better on high dpi screens. 
+
+***Bug Fixes*** 
+- [x] Updated to Reactive Extensions 3.0. Should fix bug #54 
+- [x] Solution refreshes all glyps on commit fixing #58
+
+
 **V1.6.4**
 
 * Reduced Install Package Size by 65% - Same Taste - Less Filling!

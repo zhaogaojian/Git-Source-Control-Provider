@@ -36,8 +36,9 @@ namespace GitScc
         private Dictionary<string,GitFile> _changedFiles;
         private bool isGit;
         private string _branchDisplayName;
-        private string _cachedBranchName;
-        private CurrentOperation _cachedBranchOperation;
+        //private string _cachedBranchName;
+        //private string _cachedHeadSha;
+        //private CurrentOperation _cachedBranchOperation;
         private readonly string _repositoryPath;
         private readonly string _objectPath;
         private IEnumerable<string> remotes;
@@ -45,9 +46,6 @@ namespace GitScc
         FileSystemWatcher _watcher;
         private MemoryCache _fileCache;
         private List<GitBranchInfo> _branchInfoList;
-        private static int _fileEventDelay = 1;
-        private static int _gitEventDelay = 2;
-        private bool _instantUpdating = false;
 
         private GitHeadState _savedState;
 
@@ -55,6 +53,7 @@ namespace GitScc
 
         private event GitFilesStatusUpdateEventHandler _onFilesStatusUpdateEventHandler;
         private event EventHandler<string> _onBranchChanged;
+        private event EventHandler<string> _onCommitChanged;
         private event EventHandler _gitfileEvent;
 
         private event EventHandler _fileEvent;
@@ -84,6 +83,12 @@ namespace GitScc
             remove { _onBranchChanged -= value; }
         }
 
+        public event EventHandler<string> OnCommitChanged
+        {
+            add { _onCommitChanged += value; }
+            remove { _onCommitChanged -= value; }
+        }
+
         private Repository _statusRepository;
 
 
@@ -108,7 +113,7 @@ namespace GitScc
             _repositoryPath = _statusRepository.Info.Path;
             _objectPath = _repositoryPath + "objects\\";
 
-            _cachedBranchOperation = CurrentOperation.None;
+            //_cachedBranchOperation = CurrentOperation.None;
             Refresh();
             _gitEventObservable = Observable.FromEventPattern(ev => _gitfileEvent += ev, ev => _gitfileEvent -= ev)
                 .Throttle(TimeSpan.FromMilliseconds(2000));
@@ -252,30 +257,39 @@ namespace GitScc
                     files = GetCurrentChangedFiles();
 
                     //logic getting complicated time to break it out
-                    if (_cachedBranchOperation != repository.Info.CurrentOperation)
+                    if (_savedState.Operation != repository.Info.CurrentOperation)
                     {
-                        _cachedBranchOperation = repository.Info.CurrentOperation;
-                        _cachedBranchName = null;
+                        _savedState.Operation = repository.Info.CurrentOperation;
+                        _savedState.Sha = null;
+                        _savedState.BranchName = null;
                     }
-                    if (string.IsNullOrWhiteSpace(_cachedBranchName) ||
-                        !string.Equals(_cachedBranchName, repository.Head.FriendlyName))
+
+                    if (string.IsNullOrWhiteSpace(_savedState.Sha) ||
+                        !string.Equals(_savedState.Sha, repository.Head.Tip.Sha))
+                    {
+                        _savedState.Sha = repository.Head.Tip.Sha;
+                        FireCommitShaChangedEvent(_savedState.Sha);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(_savedState.BranchName) ||
+                        !string.Equals(_savedState.BranchName, repository.Head.FriendlyName))
                     {
                         var newBranchName = string.IsNullOrWhiteSpace(repository.Head.FriendlyName)
                             ? "master"
                             : repository.Head.FriendlyName;
-                        if (string.Equals(_cachedBranchName, newBranchName))
+                        if (string.Equals(_savedState.BranchName, newBranchName))
                         {
                             supressBranchEvent = true;
                         }
                         else
                         {
-                            _cachedBranchName = newBranchName;
+                            _savedState.BranchName = newBranchName;
                             _branchDisplayName = null;
                         }
 
                         if (!supressBranchEvent)
                         {
-                            FireBranchChangedEvent(_cachedBranchName);
+                            FireBranchChangedEvent(_savedState.BranchName);
                         }
 
                     }
@@ -341,8 +355,6 @@ namespace GitScc
             this.repositoryGraph = null;
             this._changedFiles = null;
             this._branchDisplayName = null;
-            _cachedBranchName = null;
-            _cachedBranchOperation = CurrentOperation.None;
             this.remotes = null;
             this.configs = null;
             _branchInfoList = null;
@@ -355,7 +367,7 @@ namespace GitScc
             using (var repository = GetRepository())
             {
                 _savedState.Sha = repository.Head?.Tip?.Sha;
-                _savedState.BranchName = repository.Head?.CanonicalName;
+                _savedState.BranchName = repository.Head?.FriendlyName;
                 _savedState.Operation = repository.Info.CurrentOperation;
             } 
         }
@@ -1063,8 +1075,6 @@ namespace GitScc
                     RecurseIgnoredDirs = false
                 });
 
-                //files.AddRange(repoFiles.Modified.Select(item => new GitFile(repository, item)));
-                //files.AddRange(
                 files = repoFiles.Where(item => IsChangedStatus(item.State) && !(FileIgnored(item.FilePath)))
                     .Select(item => new GitFile(repository, item)).ToDictionary(x=>x.FilePath,x =>x); //);
             }
@@ -1099,18 +1109,19 @@ namespace GitScc
         }
 
 
+
         private void SetBranchName(bool supressEvent = false)
         {
             using (var repository = GetRepository())
             {
                 //logic getting complicated time to break it out
-                if (_cachedBranchOperation != repository.Info.CurrentOperation)
+                if (_savedState.Operation != repository.Info.CurrentOperation)
                 {
-                    _cachedBranchOperation = repository.Info.CurrentOperation;
-                    _cachedBranchName = null;
+                    _savedState.Operation = repository.Info.CurrentOperation;
+                    _savedState.BranchName = null;
                 }
-                if (string.IsNullOrWhiteSpace(_cachedBranchName) ||
-                    !string.Equals(_cachedBranchName, repository.Head.FriendlyName))
+                if (string.IsNullOrWhiteSpace(_savedState.BranchName) ||
+                    !string.Equals(_savedState.BranchName, repository.Head.FriendlyName))
                 {
                     //if ((string.IsNullOrWhiteSpace(repository.Head.FriendlyName) && string.Equals(_cachedBranchName, "master")) )
                     //{
@@ -1118,19 +1129,19 @@ namespace GitScc
                     var newBranchName = string.IsNullOrWhiteSpace(repository.Head.FriendlyName)
                         ? "master"
                         : repository.Head.FriendlyName;
-                    if (string.Equals(_cachedBranchName, newBranchName))
+                    if (string.Equals(_savedState.BranchName, newBranchName))
                     {
                         supressEvent = true;
                     }
                     else
                     {
-                        _cachedBranchName = newBranchName;
+                        _savedState.BranchName = newBranchName;
                         _branchDisplayName = null;
                     }
 
                     if (!supressEvent)
                     {
-                        FireBranchChangedEvent(_cachedBranchName);
+                        FireBranchChangedEvent(_savedState.BranchName);
                     }
                     //}
 
@@ -1144,7 +1155,7 @@ namespace GitScc
         {
             get
             {
-                if (_cachedBranchName == null)
+                if (_savedState.BranchName == null)
                 {
                     SetBranchName(true);
                 }
@@ -1152,7 +1163,7 @@ namespace GitScc
                 {
                     using (var repository = GetRepository())
                     {
-                        _branchDisplayName = _cachedBranchName;
+                        _branchDisplayName = _savedState.BranchName;
                         var repoState = repository.Info.CurrentOperation;
 
                         switch (repoState)
@@ -1228,6 +1239,11 @@ namespace GitScc
             _onBranchChanged?.Invoke(this, name);
         }
 
+        private void FireCommitShaChangedEvent(string name)
+        {
+            _onCommitChanged?.Invoke(this, name);
+        }
+
         private void FireFilesChangedEvent(List<string> files)
         {
             _onFilesUpdateEventHandler?.Invoke(this, new GitFilesUpdateEventArgs(files));
@@ -1258,13 +1274,13 @@ namespace GitScc
             }
         }
 
-        public GitFileStatus GetFileStatus(string fileName)
+        public GitFileStatus GetFileStatus(string fileName, bool forceRefresh = false)
         {
             try
             {
                 fileName = Path.GetFullPath(fileName).ToLower();
                 GitFile file;
-                if (_changedFiles == null)
+                if (_changedFiles == null || forceRefresh)
                 {
                     _changedFiles = GetCurrentChangedFiles();
                 }

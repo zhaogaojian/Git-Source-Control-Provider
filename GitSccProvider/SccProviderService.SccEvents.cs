@@ -64,19 +64,19 @@ namespace GitScc
                         sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER;
                         break;
 
-                    case GitFileStatus.New:
+                    case GitFileStatus.Added:
                         rgsiGlyphs[i] = SccGlyphsHelper.New;
                         sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER;
                         break;
 
-                    case GitFileStatus.Added:
                     case GitFileStatus.Staged:
                         rgsiGlyphs[i] = status == GitFileStatus.Added ? SccGlyphsHelper.Added : SccGlyphsHelper.Staged;
                         sccStatus = __SccStatus.SCC_STATUS_CONTROLLED | __SccStatus.SCC_STATUS_CHECKEDOUT | __SccStatus.SCC_STATUS_OUTBYUSER;
                         break;
 
+                    case GitFileStatus.New:
                     case GitFileStatus.NotControlled:
-                        rgsiGlyphs[i] = SccGlyphsHelper.NotControlled;
+                        rgsiGlyphs[i] =  SccGlyphsHelper.NotControlled;
                         sccStatus = __SccStatus.SCC_STATUS_NOTCONTROLLED;
                         break;
 

@@ -80,6 +80,10 @@
     
     <Groups>
       
+      <Group guid="guidSccProviderCmdSet" id="igrpTopLevelProjectCommands" priority="0x0000">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_SCC"/>
+      </Group>
+      
       <Group guid="guidSccProviderCmdSet" id="igrpSourceControlCommands" priority="0x0000">
         <Parent guid="guidSccProviderCmdSet" id="imnuGitSourceControlMenu"/>
       </Group>
@@ -397,6 +401,16 @@
         </Strings>
       </Button>
 
+      <Button guid="guidSccProviderCmdSet" id="cmdIdAddProjectToSCC" priority="0x0100" >
+        <Parent guid="guidSccProviderCmdSet" id="igrpTopLevelProjectCommands" />
+        <CommandFlag>DynamicItemStart</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <!-- This text does not appear. -->
+        <Strings>
+          <ButtonText>Add Project To Git</ButtonText>
+        </Strings>
+      </Button>
+
       <!--<Button guid="guidSccProviderCmdSet" id="cmdidSampleBranch2" priority="0x0100" type="Button">
         <Parent guid="guidSccProviderCmdSet" id="BranchGroup" />
         <Strings>
@@ -460,9 +474,17 @@
     <CommandPlacement guid="guidSccProviderCmdSet" id="imnuGitSourceControlMenu" priority="0x0002">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_ITEM_SCC"/>
     </CommandPlacement>
+    
     <CommandPlacement guid="guidSccProviderCmdSet" id="imnuGitSourceControlMenu" priority="0x0002">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_SCC"/>
     </CommandPlacement>
+
+    <CommandPlacement guid="guidSccProviderCmdSet" id="cmdIdAddProjectToSCC" priority="0x0002">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_SCC"/>
+    </CommandPlacement>
+
+    
+
     <CommandPlacement guid="guidSccProviderCmdSet" id="imnuGitSourceControlMenu" priority="0x0002">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLUTION_SCC"/>
     </CommandPlacement>
@@ -587,6 +609,12 @@
       <IDSymbol name="RepositoryMenu"             value="0x3200" />
       <IDSymbol name="RepositoryCommandGroup"            value="0x3210" />
       <IDSymbol name="cmdidRepositorymenuStart" value="0x3211" />
+
+
+      <!--Extra Menu Commands--> 
+      <IDSymbol name="igrpTopLevelProjectCommands" value="0x500" />
+      
+      <IDSymbol name="cmdIdAddProjectToSCC" value="0x510" />
 
 
 
