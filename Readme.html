@@ -4,6 +4,12 @@
 <p>** This Visual Studio Extensions integrates Git with Visual Studio solution explorer and the status bar **</p>
 <p><img src="http://gitscc.codeplex.com/Project/Download/FileDownload.aspx?DownloadId=123874" alt="solution explorer" /></p>
 <p><img src="https://cloud.githubusercontent.com/assets/3586254/15159754/d5b40796-16bb-11e6-97bb-25ecdd6f42ef.png" alt="Status Bar" /></p>
+<h2 id="new-feature-highlights">New Feature Highlights</h2>
+<ul>
+<li>Added option to auto-add projects and to the git repository when you add them to the project!</li>
+<li>Switch and create branches, switch git repositories, and open the pending changes window all from the status bar!</li>
+<li>Initialize new projects from the status bar.</li>
+</ul>
 <h2 id="features">Features</h2>
 <ul>
 <li>Display file status in solution explorer and solution navigator</li>
@@ -15,8 +21,8 @@
 <li>Integrates with <a href="http://code.google.com/p/msysgit">Git for Windows</a></li>
 <li>Integrates with <a href="http://code.google.com/p/gitextensions">Git Extensions</a></li>
 <li>Integrates with <a href="http://code.google.com/p/tortoisegit">TortoiseGit</a></li>
-<li>[Git - Pending Changes Tool Window] (http://gitscc.codeplex.com/wikipage?title=Commit%20Changes)</li>
-<li>[Git - View History Tool Window] (http://gitscc.codeplex.com/wikipage?title=View%20History)</li>
+<li><a href="http://gitscc.codeplex.com/wikipage?title=Commit%20Changes">Git - Pending Changes Tool Window</a></li>
+<li><a href="http://gitscc.codeplex.com/wikipage?title=View%20History">Git - View History Tool Window</a></li>
 <li>Options page</li>
 </ul>
 <h2 id="how-to-use">How to use</h2>
@@ -44,8 +50,7 @@
 <ul>
 <li>Options Page - Settings are stored in a user folder, this is not how it is supposed to work. The UI the UI is ugly does not look right on high dpi monitors. See <a href="https://github.com/Microsoft/VSSDK-Extensibility-Samples/tree/master/Options_Page">Example</a></li>
 <li>Localization - I woudl be nice to support a few other  languages.</li>
-<li>Button commands - This part is a bit messy right now. It would be sweet if this coudl be cleaned up.</li>
-<li></li>
+<li>Button commands - This part is a bit messy right now. It would be sweet if this could be cleaned up.</li>
 </ul>
 <h4 id="building">Building</h4>
 <p>All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibility Tools installed. It's <strong>THAT</strong> easy!</p>
@@ -75,15 +80,20 @@
 <li>Work on integrating gitflow.</li>
 </ul>
 <p><strong>V1.6.5</strong></p>
+<p><strong><em>Features</em></strong></p>
 <ul class="contains-task-list">
 <li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Changed the icon for added files.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Added right click option to projects, to add them to the git repository, if not already added</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Added option to auto-add projects to repository when you add them to the solution.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Added option to auto-add files to repository when you add them to a project.</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Publishing the solution from the status bar now adds all the projects and files to the repository.</li>
-<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Updated to Reactive Extensions 3.0. Should fix bug #54</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Options are now stored in the registry</li>
 <li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Options Page should look better on high dpi screens.</li>
+</ul>
+<p><strong><em>Bug Fixes</em></strong></p>
+<ul class="contains-task-list">
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Updated to Reactive Extensions 3.0. Should fix bug #54</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked="checked" /> Solution refreshes all glyps on commit fixing #58</li>
 </ul>
 <p><strong>V1.6.4</strong></p>
 <ul>
@@ -127,29 +137,6 @@
 <li>No longer slows down when used with Resharper</li>
 <li>Fixed issue #15, #21 where sometimes the plugin caused Visual Studio to crash.</li>
 <li>Fixed issue #16, Solution Explorer glyphs not updating.</li>
-</ul>
-<p><strong>V1.4.2</strong></p>
-<ul>
-<li>Fixed Issues #1, #7, #8, #9, #10, #11 and #12</li>
-<li>Fixed Switch command</li>
-<li>Added dark theme form diff window</li>
-</ul>
-<p><strong>V1.4.1</strong></p>
-<ul>
-<li>Fixed Settings Error</li>
-<li>Fix bugs #5 + #6. -Thanks</li>
-<li>Thanks To  teebee76 (You Rock) for his help, mnadel, PureKrome + NightOwl888, you guys are also super cool. Keep finidng bugs and I will fix them as fast as I can.</li>
-</ul>
-<p><strong>V1.4</strong></p>
-<ul>
-<li>Switch to using LibGit2Sharp, should see a large performace boost.</li>
-<li>Fix Pending changes window.</li>
-<li>Fixed reported bug 2 + 3</li>
-<li>Refactored external diff tools.. Should be able to extend them in the future</li>
-<li>Cleaned out lots of dead code.</li>
-<li>Fix lot's of bugs</li>
-<li>Removed Git Diff Margin(use https://visualstudiogallery.msdn.microsoft.com/cf49cf30-2ca6-4ea0-b7cc-6a8e0dadc1a8 )</li>
-<li>Fixed file missing exceptions.</li>
 </ul>
 <h2 id="notice-initial-visual-studio-2015-upgrade">Notice : Initial Visual Studio 2015 Upgrade</h2>
 <p>This is a fork of the super awesome <a href="https://visualstudiogallery.msdn.microsoft.com/63a7e40d-4d71-4fbb-a23b-d262124b8f4c">git SCC plugin</a> by <a href="https://visualstudiogallery.msdn.microsoft.com/site/search?f%5B0%5D.Type=User&amp;f%5B0%5D.Value=yysun">Yiyi Sun</a></p>
