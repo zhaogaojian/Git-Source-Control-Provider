@@ -163,10 +163,10 @@ namespace GitScc
             }
 
             //Save Strings
-            WritableSettingsStore.SetString(CollectionPath, "GitBashPath", GitBashPath);
-            WritableSettingsStore.SetString(CollectionPath, "GitExtensionPath", GitExtensionPath);
-            WritableSettingsStore.SetString(CollectionPath, "DifftoolPath", DifftoolPath);
-            WritableSettingsStore.SetString(CollectionPath, "TortoiseGitPath", TortoiseGitPath);
+            WritableSettingsStore.SetString(CollectionPath, "GitBashPath", GitBashPath ?? "");
+            WritableSettingsStore.SetString(CollectionPath, "GitExtensionPath", GitExtensionPath ?? "");
+            WritableSettingsStore.SetString(CollectionPath, "DifftoolPath", DifftoolPath ?? "");
+            WritableSettingsStore.SetString(CollectionPath, "TortoiseGitPath", TortoiseGitPath ?? "");
 
             //save bool
             WritableSettingsStore.SetBoolean(CollectionPath, "NotExpandTortoiseGit", NotExpandTortoiseGit);
