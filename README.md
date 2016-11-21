@@ -1,4 +1,4 @@
-Git Source Control Provider 2015
+Easy Git Integration Tools (EZ-GIT)
 ================================
 
 Introduction

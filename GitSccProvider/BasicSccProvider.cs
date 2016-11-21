@@ -43,8 +43,8 @@ namespace GitScc
     // Everytime the version number changes VS will automatically update the menus on startup; if the version doesn't change, you will need to run manually "devenv /setup /rootsuffix:Exp" to see VSCT changes reflected in IDE
     [MsVsShell.ProvideMenuResource(1000, 1)]
     // Register a sample options page visible as Tools/Options/SourceControl/SampleOptionsPage when the provider is active
-    [MsVsShell.ProvideOptionPageAttribute(typeof(SccProviderOptions), "Source Control", "Git Source Control Provider Options", 106, 107, false)]
-    [ProvideToolsOptionsPageVisibility("Source Control", "Git Source Control Provider Options", "C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
+    [MsVsShell.ProvideOptionPageAttribute(typeof(SccProviderOptions), "Source Control", "EZ-GIT Options", 106, 107, false)]
+    [ProvideToolsOptionsPageVisibility("Source Control", "EZ-GIT Options", "C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
     // Register a sample tool window visible only when the provider is active
     [MsVsShell.ProvideToolWindow(typeof(PendingChangesToolWindow), Style = VsDockStyle.Tabbed, Orientation = ToolWindowOrientation.Bottom)]
     [MsVsShell.ProvideToolWindowVisibility(typeof(PendingChangesToolWindow), "C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
@@ -53,7 +53,7 @@ namespace GitScc
     //Register the source control provider's service (implementing IVsScciProvider interface)
     [MsVsShell.ProvideService(typeof(SccProviderService), ServiceName = "Git Source Control Service")]
     // Register the source control provider to be visible in Tools/Options/SourceControl/Plugin dropdown selector
-    [GitScc.ProvideSourceControlProvider("Git Source Control Provider", "#100", IsPublishSupported = true)]
+    [GitScc.ProvideSourceControlProvider("EZ-GIT", "#100", IsPublishSupported = true)]
     //[MsVsShell.ProvideSourceControlProvider("Git Source Control Provider 2015", "#100", "{C4128D99-0000-41D1-A6C3-704E6C1A3DE2}",
     //    "{C4128D99-2000-41D1-A6C3-704E6C1A3DE2}", "{C4128D99-1000-41D1-A6C3-704E6C1A3DE2}", IsPublishSupported = true)]
     // Pre-load the package when the command UI context is asserted (the provider will be automatically loaded after restarting the shell if it was active last time the shell was shutdown)
