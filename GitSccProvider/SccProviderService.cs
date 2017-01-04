@@ -107,7 +107,7 @@ namespace GitScc
         // Make visible and enable if necessary scc related menu commands
         public int SetActive()
         {
-            Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Git Source Control Provider set active"));
+            Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "EZ-GIT set active"));
             _active = true;
             GlobalCommandHook hook = GlobalCommandHook.GetInstance(_sccProvider);
             hook.HookCommand(new CommandID(VSConstants.VSStd2K, (int)VSConstants.VSStd2KCmdID.SLNREFRESH), HandleSolutionRefresh);
@@ -125,7 +125,7 @@ namespace GitScc
         // Hides and disable scc related menu commands
         public int SetInactive()
         {
-            Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Git Source Control Provider set inactive"));
+            Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "EZ-GIT set inactive"));
             _active = false;
             DisableSccForSolution();
             GlobalCommandHook hook = GlobalCommandHook.GetInstance(_sccProvider);

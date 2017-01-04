@@ -61,7 +61,7 @@ namespace GitScc {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Git Source Control Provider.
+        ///   Looks up a localized string similar to EZ-GIT.
         /// </summary>
         internal static string _100 {
             get {
@@ -145,7 +145,7 @@ namespace GitScc {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Git Source Control Provider.
+        ///   Looks up a localized string similar to EZ-GIT.
         /// </summary>
         internal static string ProviderName {
             get {

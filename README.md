@@ -1,4 +1,4 @@
-Git Source Control Provider 2015
+Easy Git Integration Tools (EZ-GIT)
 ================================
 
 Introduction
@@ -90,6 +90,10 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 **V-Next** 
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
+
+**V1.6.6**
+* New Year, New Name Name has been changed to Easy Git Integration Tools (EZ-GIT).
+* Minor Bug Fixes.
 
 **V1.6.5**
 
