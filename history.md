@@ -1,5 +1,9 @@
 ## Change Logs -- Visual Studio 2015
 
+**V1.6.6**
+* New Year, New Name Name has been changed to Easy Git Integration Tools (EZ-GIT).
+* Minor Bug Fixes.
+
 **V1.6.5**
 
 
