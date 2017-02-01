@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26127.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9B2F3727-28C1-4D1B-951E-BA1AB452DA67}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{18163F1B-3192-4F2B-9A52-40FAC3DD337C}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiffClassifier", "DiffClassifier\DiffClassifier.csproj", "{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitApi", "GitApi\GitApi.csproj", "{161E81E2-25E5-4134-8D2D-595419B1265B}"
@@ -22,8 +24,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitSccProvider", "GitSccPro
 	ProjectSection(ProjectDependencies) = postProject
 		{C756204F-28E1-473A-8160-E697E3303F1B} = {C756204F-28E1-473A-8160-E697E3303F1B}
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{18163F1B-3192-4F2B-9A52-40FAC3DD337C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitTools", "GitTools\GitTools.csproj", "{3A4524D2-7D17-4176-8701-8EB8AC7598ED}"
 EndProject
