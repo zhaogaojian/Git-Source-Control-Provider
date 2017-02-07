@@ -91,6 +91,11 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
+**V1.7.0**
+* Updated solution to Visual Studio 2017
+* Pluging now supports Visual Studio 2015 and 2017
+
+
 **V1.6.6**
 * New Year, New Name Name has been changed to Easy Git Integration Tools (EZ-GIT).
 * Minor Bug Fixes.
