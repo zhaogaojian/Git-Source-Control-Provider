@@ -18,6 +18,15 @@
 - [x] Solution refreshes all glyps on commit fixing #58
 
 
+**V1.7.0**
+* Updated solution to Visual Studio 2017
+* Plugin now supports Visual Studio 2015 and 2017
+
+
+**V1.6.6**
+* New Year, New Name Name has been changed to Easy Git Integration Tools (EZ-GIT).
+* Minor Bug Fixes.
+
 **V1.6.4**
 
 * Reduced Install Package Size by 65% - Same Taste - Less Filling!
