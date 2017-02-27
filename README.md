@@ -93,7 +93,7 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 
 **V1.7.0**
 * Updated solution to Visual Studio 2017
-* Pluging now supports Visual Studio 2015 and 2017
+* Plugin now supports Visual Studio 2015 and 2017
 
 
 **V1.6.6**
