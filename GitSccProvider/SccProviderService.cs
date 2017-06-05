@@ -318,20 +318,20 @@ namespace GitScc
         {
             if (fileName == null) return fileName;
 
-            if (Directory.Exists(fileName) || File.Exists(fileName))
-            {
-                try
-                {
-                    StringBuilder sb = new StringBuilder(1024);
-                    GetShortPathName(fileName.ToUpper(), sb, 1024);
-                    GetLongPathName(sb.ToString(), sb, 1024);
-                    var fn = sb.ToString();
-                    return string.IsNullOrWhiteSpace(fn) ? fileName : fn;
-                }
-                catch { }
-            }
+            return GetExactPathName(fileName);
+        }
 
-            return fileName;
+        private static string GetExactPathName(string pathName)
+        {
+            if (!(File.Exists(pathName) || Directory.Exists(pathName)))
+                return pathName;
+
+            var directoryInfo = new DirectoryInfo(pathName);
+
+            if (directoryInfo.Parent != null)
+                return Path.Combine(GetExactPathName(directoryInfo.Parent.FullName), directoryInfo.Parent.GetFileSystemInfos(directoryInfo.Name)[0].Name);
+            else
+                return directoryInfo.Name.ToUpper();
         }
 
         #endregion
@@ -353,18 +353,6 @@ namespace GitScc
                 return GetCaseSensitiveFileName(fileName);
             }
         }
-
-
-
-        [DllImport("kernel32.dll")]
-        static extern uint GetShortPathName(string longpath, StringBuilder sb, int buffer);
-
-        [DllImport("kernel32.dll")]
-        static extern uint GetLongPathName(string shortpath, StringBuilder sb, int buffer);
-
-
-       
-
 
         /// <summary>
         /// Gets the list of directly selected VSITEMSELECTION objects

@@ -121,7 +121,7 @@
     <value>Easy Git Integration Tools</value>
   </data>
   <data name="112" xml:space="preserve">
-    <value>Easy Git Integration Tools (EZ-GIT) is a plug-in that integrates git with Visual Studio.</value>
+    <value>EZ-GIT (Easy Git Integration Tools) is a plug-in that integrates git with Visual Studio.</value>
   </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="400" type="System.Resources.ResXFileRef, System.Windows.Forms">
