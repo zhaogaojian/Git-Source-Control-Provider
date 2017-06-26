@@ -9,8 +9,8 @@
   
   environment:
     majorVersion: 1
-    minorVersion: 6
-    patchVersion: 8
+    minorVersion: 7
+    patchVersion: 1
     access_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
     gitHubUsername:
