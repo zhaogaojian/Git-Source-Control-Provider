@@ -179,7 +179,7 @@ xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.Visual
               Background="{DynamicResource {x:Static vsfx:VsBrushes.WindowKey}}">
 
 
-            <avalonEdit:TextEditor x:Name="DiffEditor" FontFamily="Consolas" FontSize="10pt" MouseDoubleClick="DiffEditor_MouseDoubleClick"/>
+            <avalonEdit:TextEditor IsEnabled="False" x:Name="DiffEditor" FontFamily="Consolas" FontSize="10pt" MouseDoubleClick="DiffEditor_MouseDoubleClick"/>
             <!--<ContentControl x:Name="DiffEditor" MouseDoubleClick="DiffEditor_MouseDoubleClick"></ContentControl>-->
             
             <!--<TabControl Name="tabControl1">
