@@ -91,6 +91,9 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
+**V1.7.2**
+* Bug Fix: #74,#77,#78, #79
+
 **V1.7.0**
 * Updated solution to Visual Studio 2017
 * Plugin now supports Visual Studio 2015 and 2017

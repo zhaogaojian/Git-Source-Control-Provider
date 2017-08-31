@@ -18,6 +18,11 @@
 - [x] Solution refreshes all glyps on commit fixing #58
 
 
+**V1.7.2**
+* Bug Fix: #74,#77,#78, #79
+
+
+
 **V1.7.0**
 * Updated solution to Visual Studio 2017
 * Plugin now supports Visual Studio 2015 and 2017
