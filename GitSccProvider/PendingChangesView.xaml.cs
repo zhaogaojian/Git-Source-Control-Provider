@@ -47,6 +47,9 @@ namespace GitScc
         private GridViewColumnHeader _currentSortedColumn;
         private ListSortDirection _lastSortDirection;
 
+        //fix for Bug #79
+        FileSystemWatcher watcher;
+
         public PendingChangesView(ToolWindowWithEditor<PendingChangesView> toolWindow)
         {
             InitializeComponent();
@@ -56,6 +59,9 @@ namespace GitScc
             VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
             CurrentTracker = RepositoryManager.Instance.ActiveTracker;
             RepositoryManager.Instance.ActiveTrackerChanged += Instance_ActiveTrackerChanged;
+
+            //Fix for bug #78  : Commit comment text field shouldn't allow formatting
+            DataObject.AddPastingHandler(textBoxComments, new DataObjectPastingEventHandler(TextBoxPasting));
         }
 
 
@@ -99,6 +105,7 @@ namespace GitScc
         private async void CurrentTracker_FileStatusUpdate(object sender, GitFilesStatusUpdateEventArgs e)
         {
             await Refresh(e.Files);
+            await SetDiffEditorText();
         }
 
         private async void Instance_ActiveTrackerChanged(object sender, GitRepositoryEvent e)
@@ -263,6 +270,7 @@ namespace GitScc
                  });
         }
 
+
         private async Task SetDiffEditorText()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -327,6 +335,16 @@ namespace GitScc
             this.DiffEditor.Text = null;
         }
 
+
+        private void TextBoxPasting(object sender, DataObjectPastingEventArgs e)
+        {
+            if (sender is RichTextBox)
+            {
+                string lPastingText = e.DataObject.GetData(DataFormats.Text) as string;
+                (sender as RichTextBox).Document.ContentEnd.InsertTextInRun(lPastingText);
+                e.CancelCommand();
+            }
+        }
 
         #endregion
 
@@ -481,7 +499,9 @@ namespace GitScc
                         .Where(i => i.FileName == fn)
                         .FirstOrDefault();
                     if (item != null)
+                    {
                         item.IsSelected = true;
+                    }
                 });
 
                 ShowStatusMessage("");
