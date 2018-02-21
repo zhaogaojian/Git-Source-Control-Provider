@@ -1042,7 +1042,10 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             if (string.IsNullOrEmpty(projectName)) return;
             string projectDirecotry = Path.GetDirectoryName(projectName);
             var repo = RepositoryManager.Instance.GetTrackerForPath(projectDirecotry);
-            repo.AddFile(projectName);
+            if (repo != null)
+            {
+                repo.AddFile(projectName);
+            }
             var files = await SolutionExtensions.GetProjectFiles(project);
             foreach (var file in files)
             {

@@ -147,7 +147,10 @@ namespace GitScc
                 {
                    for (int iFile = 0; iFile < cFiles; iFile++)
 					{
-                        _fileCache.AddFile(rgpszMkDocuments[iFile], sccProject);
+                        if (_fileCache != null)
+                        {
+                            _fileCache.AddFile(rgpszMkDocuments[iFile], sccProject);
+                        }
                     } 
                 }
              
@@ -194,7 +197,10 @@ namespace GitScc
                         if (GitSccOptions.Current.AutoAddFiles)
                         {
                             var repo = RepositoryManager.Instance.GetTrackerForPath(fileName);
-                            repo.AddFile(fileName);
+                            if (repo != null)
+                            {
+                                repo.AddFile(fileName);
+                            }
                         }
                         // Refresh the solution explorer glyphs for all projects containing this file
                         //IList<VSITEMSELECTION> nodes = GetControlledProjectsContainingFile(rgpszMkDocuments[iFile]);
@@ -233,6 +239,44 @@ namespace GitScc
         public int OnAfterRenameFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
             string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
         {
+            if (Active)
+            {
+                // Start by iterating through all projects calling this function
+                for (int iProject = 0; iProject < cProjects; iProject++)
+                {
+                    IVsSccProject2 sccProject = rgpProjects[iProject] as IVsSccProject2;
+                    IVsHierarchy pHier = rgpProjects[iProject] as IVsHierarchy;
+
+                    // If the project is not controllable, or is not controlled, skip it
+                    if (sccProject == null)
+                    {
+                        continue;
+                    }
+
+                    // Files in this project are in rgszMkOldNames, rgszMkNewNames arrays starting with iProjectFilesStart index and ending at iNextProjecFilesStart-1
+                    int iProjectFilesStart = rgFirstIndices[iProject];
+                    int iNextProjecFilesStart = cFiles;
+                    if (iProject < cProjects - 1)
+                    {
+                        iNextProjecFilesStart = rgFirstIndices[iProject + 1];
+                    }
+
+                    // Now that we know which files belong to this project, iterate the project files
+                    for (int iFile = iProjectFilesStart; iFile < iNextProjecFilesStart; iFile++)
+                    {
+                        var fileName = rgszMkNewNames[iFile];
+                        _fileCache.AddFile(fileName, sccProject);
+                        if (GitSccOptions.Current.AutoAddFiles)
+                        {
+                            var repo = RepositoryManager.Instance.GetTrackerForPath(fileName);
+                            if (repo != null)
+                            {
+                                repo.AddFile(fileName);
+                            }
+                        }
+                    }
+                }
+            }
             return VSConstants.E_NOTIMPL;
         }
 

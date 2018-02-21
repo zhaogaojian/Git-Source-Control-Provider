@@ -498,17 +498,6 @@ namespace GitScc
                 string arguments = cmd.Substring(fileName.Length);
                 ProcessStartInfo startInfo = new ProcessStartInfo(fileName, arguments);
                 Process.Start(startInfo);
-                //var difftoolPath = GitSccOptions.Current.DifftoolPath;
-                //if (string.IsNullOrWhiteSpace(difftoolPath)) difftoolPath = "diffmerge.exe";
-
-                //try
-                //{
-                //    RunCommand(difftoolPath, "\"" + fileInfo.UnmodifiedFilePath + "\" \"" + fileInfo.ModifiedFilePath + "\"");
-                //}
-                //catch (FileNotFoundException ex)
-                //{
-                //    throw new FileNotFoundException(string.Format("Diff tool '{0}' is not available.", difftoolPath), difftoolPath, ex);
-                //}
             }
           
         }
@@ -578,8 +567,6 @@ namespace GitScc
         {
             RepositoryManager.Instance.ActiveTracker = sccService.CurrentTracker;
             ShowToolWindow<PendingChangesToolWindow>();
-            //window.Refresh(sccService.CurrentTracker);
-           //ShowToolWindow(typeof(PendingChangesToolWindow));
         }
 
         public async Task ShowPendingChangesWindow()
@@ -594,34 +581,6 @@ namespace GitScc
 
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             path = Path.Combine(path, "Dragon.exe");
-            //path = Path.Combine(path, "Resources\\Dragon.exe");
-            //var tmpPath = Path.Combine(Path.GetTempPath(), "Dragon.exe");
-            //var gitPath = Path.Combine(workingPath, "NativeBinaries"); 
-
-            //var needCopy = !File.Exists(tmpPath);
-            //if(!needCopy)
-            //{
-            //    var date1 = File.GetLastWriteTimeUtc(path);
-            //    var date2 = File.GetLastWriteTimeUtc(tmpPath);
-            //    needCopy = (date1>date2);
-            //}
-
-            //if (needCopy)
-            //{
-            //    try
-            //    {
-            //        File.Copy(path, tmpPath, true);
-            //        DirectoryCopy(gitPath, Path.GetTempPath() + "NativeBinaries",true);
-            //    }
-            //    catch // try copy file silently
-            //    {
-            //    }
-            //}
-
-            //if (File.Exists(tmpPath) && sccService.CurrentTracker != null)
-            //{
-            //    Process.Start(tmpPath, sccService.CurrentTracker.WorkingDirectory);
-            //}
 
             if (File.Exists(path) && sccService.CurrentTracker != null)
             {
