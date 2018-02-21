@@ -92,6 +92,9 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Work on integrating gitflow.
 
 **V1.7.2**
+* Bug Fix: #80,#83
+
+**V1.7.2**
 * Bug Fix: #74,#77,#78, #79
 
 **V1.7.0**

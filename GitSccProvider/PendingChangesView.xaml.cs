@@ -64,8 +64,6 @@ namespace GitScc
             DataObject.AddPastingHandler(textBoxComments, new DataObjectPastingEventHandler(TextBoxPasting));
         }
 
-
-
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
         {
             SetDiffCodeHightlighter(true);
@@ -959,6 +957,8 @@ Note: if the file is included project, you need to delete the file from project 
                 var selection = dte.ActiveDocument.Selection as EnvDTE.TextSelection;
                 selection.MoveToLineAndOffset(start, column);
             });
+            //Fix bug #80
+            DiffEditor.Focus();
         }
     }
 

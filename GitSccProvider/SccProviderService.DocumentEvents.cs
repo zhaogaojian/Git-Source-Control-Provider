@@ -147,7 +147,10 @@ namespace GitScc
                 {
                    for (int iFile = 0; iFile < cFiles; iFile++)
 					{
-                        _fileCache.AddFile(rgpszMkDocuments[iFile], sccProject);
+                        if (_fileCache != null)
+                        {
+                            _fileCache.AddFile(rgpszMkDocuments[iFile], sccProject);
+                        }
                     } 
                 }
              
