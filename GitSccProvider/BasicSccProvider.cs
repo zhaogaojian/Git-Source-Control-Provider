@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Threading;
 using IgnoreFileManager = GitSccProvider.Utilities.IgnoreFileManager;
 using Process = System.Diagnostics.Process;
 using Task = System.Threading.Tasks.Task;
+using System.Text;
 
 namespace GitScc
 {
@@ -760,11 +761,17 @@ namespace GitScc
                 process.StartInfo.FileName = cmd;
                 process.StartInfo.Arguments = arguments;
 
-                process.StartInfo.WorkingDirectory = ThreadHelper.JoinableTaskFactory.Run(async delegate
+                var workingDir = ThreadHelper.JoinableTaskFactory.Run(async delegate
                 {
                     return sccService.CurrentWorkingDirectory ??
                     Path.GetDirectoryName(await sccService.GetSolutionFileName());
                 });
+
+                string caseFixedWorkingDir;
+                if (GetCaseSensitivePath(workingDir, out caseFixedWorkingDir))
+                    process.StartInfo.WorkingDirectory = caseFixedWorkingDir;
+                else
+                    process.StartInfo.WorkingDirectory = workingDir;
 
                 process.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
                 process.StartInfo.LoadUserProfile = true;
@@ -778,6 +785,68 @@ namespace GitScc
         private T GetToolWindowPane<T>() where T : ToolWindowPane
         {
             return (T)this.FindToolWindow(typeof(T), 0, true);
+        }
+
+        // Based on https://stackoverflow.com/a/479198/213871
+        static bool GetCaseSensitivePath(string filepath, out string result)
+        {
+            return GetCaseSensitivePath(filepath, true, out result);
+        }
+
+        static bool GetCaseSensitivePath(string filepath, bool normalizeRoot, out string result)
+        {
+            var uri = new Uri(filepath);
+            if (uri.IsUnc)
+            {
+                // We don't support UNC paths like "\\hostname\..."
+                result = null;
+                return false;
+            }
+
+            DirectoryInfo dirInfo;
+            FileInfo fileInfo = null;
+            if (File.Exists(filepath))
+            {
+                fileInfo = new FileInfo(filepath);
+                dirInfo = fileInfo.Directory;
+            }
+            else if (Directory.Exists(filepath))
+            {
+                dirInfo = new DirectoryInfo(filepath);
+            }
+            else
+            {
+                result = null;
+                return false;
+            }
+
+            var dirSensitivePath = GetCaseSensitivePath(dirInfo, normalizeRoot);
+            if (fileInfo == null)
+            {
+                result = dirSensitivePath;
+            }
+            else
+            {
+                result = Path.Combine(GetCaseSensitivePath(dirInfo, normalizeRoot),
+                    dirInfo.GetFiles(fileInfo.Name)[0].Name);
+            }
+
+            return true;
+        }
+
+        static string GetCaseSensitivePath(DirectoryInfo dirInfo, bool normalizeRoot)
+        {
+            var parentDirInfo = dirInfo.Parent;
+            if (null == parentDirInfo)
+            {
+                if (normalizeRoot)
+                    return Char.ToUpper(dirInfo.Name[0]) + dirInfo.Name.Substring(1);
+                else
+                    return dirInfo.Name;
+            }
+
+            return Path.Combine(GetCaseSensitivePath(parentDirInfo, normalizeRoot),
+                parentDirInfo.GetDirectories(dirInfo.Name)[0].Name);
         }
     }
 }
