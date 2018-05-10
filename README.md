@@ -91,7 +91,11 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
-**V1.7.2**
+**V1.7.4**
+* Bug Fix: #89 - Big Thanks to ceztko for fixing this bug. 
+* Enhancement: #90,#91
+
+**V1.7.3**
 * Bug Fix: #80,#83
 
 **V1.7.2**
