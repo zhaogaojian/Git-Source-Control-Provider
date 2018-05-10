@@ -8,7 +8,7 @@
             
 xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
  xmlns:vsfxim="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.Immutable.14.0"
-xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
+xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
 			 xmlns:vsui="clr-namespace:GitScc.PlatformUI"
 			 mc:Ignorable="d" 
 			 d:DesignHeight="300" d:DesignWidth="800" KeyDown="UserControl_KeyDown"

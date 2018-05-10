@@ -21,7 +21,8 @@ namespace GitSccProvider.Utilities
     {
         public static readonly Guid GuidSolutionFolderProject = new Guid(0x2150e333, 0x8fdc, 0x42a3, 0x94, 0x74, 0x1a, 0x39, 0x56, 0xd4, 0x6d, 0xe8);
 
-
+        //todo.. I'm getting a embed error.. let just fix it with a string
+        const string vsProjectKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
         #region File Lists
 
 
@@ -193,7 +194,7 @@ namespace GitSccProvider.Utilities
             object objProj;
             hierProject.GetProperty(itemid, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
             var project = objProj as EnvDTE.Project;
-            if (project != null && project.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+            if (project != null && project.Kind != vsProjectKindSolutionFolder)
             {
                 try
                 {
@@ -211,7 +212,7 @@ namespace GitSccProvider.Utilities
         {
             IList<string> projectFiles = new List<string>();
 
-            if (project != null && project.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+            if (project != null && project.Kind != vsProjectKindSolutionFolder)
             {
                 try
                 {
@@ -229,7 +230,7 @@ namespace GitSccProvider.Utilities
         {
             foreach (ProjectItem projectItem in items)
             {
-                if (projectItem.Kind != ProjectKinds.vsProjectKindSolutionFolder)
+                if (projectItem.Kind != vsProjectKindSolutionFolder)
                 {
                     projectFiles.Add(projectItem.FileNames[0]);
                 }
@@ -527,7 +528,7 @@ namespace GitSccProvider.Utilities
                 }
 
                 // If this is another solution folder, do a recursive call, otherwise add
-                if (subProject.Kind == ProjectKinds.vsProjectKindSolutionFolder)
+                if (subProject.Kind == vsProjectKindSolutionFolder)
                 {
                     list.AddRange(GetSolutionFolderProjects(subProject));
                 }

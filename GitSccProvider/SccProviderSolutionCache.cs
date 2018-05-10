@@ -135,7 +135,7 @@ namespace GitSccProvider
         {
             IVsHierarchy projectHierarchy = null;
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
+            IVsSolution sol = await _sccProvider.GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
 
             if (sol.GetProjectOfUniqueName(envProject.UniqueName, out projectHierarchy) == 0)
             {

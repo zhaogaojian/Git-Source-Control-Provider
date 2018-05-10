@@ -32,6 +32,7 @@ using TaskScheduler = System.Threading.Tasks.TaskScheduler;
 using Thread = System.Threading.Thread;
 using ThreadPriority = System.Threading.ThreadPriority;
 using GitScc.Utilities;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
 namespace GitScc
 {
@@ -59,11 +60,24 @@ namespace GitScc
         private GitApiStatusBarManager _statusBarManager;
         //private List<GitFileStatusTracker> trackers;
 
+        //TEMp fix to deal with ENV 
+        const string vsWindowKindSolutionExplorer = "{3AE79031-E1BC-11D0-8F78-00A0C9110057}";
 
         #region SccProvider Service initialization/unitialization
         public SccProviderService(BasicSccProvider sccProvider)
         {
             this._sccProvider = sccProvider;
+        }
+
+        public async Task InitializeAsync(CancellationToken cancellationToken)
+        {
+            await TaskScheduler.Default;
+            // do background operations that involve IO or other async methods
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // query Visual Studio services on main thread unless they are documented as free threaded explicitly.
+            // The reason for this is the final cast to service interface (such as IVsShell) may involve COM operations to add/release references.
+
             _fileCache = new SccProviderSolutionCache(_sccProvider);
             _fileChangesetManager = new ConcurrentDictionary<GitRepository, GitChangesetManager>();
 
@@ -78,7 +92,7 @@ namespace GitScc
                 PackageIds.cmdidBranchmenuStart,
                 PackageIds.cmdidBranchMenuCommandStart,
                 PackageIds.cmdidRepositorymenuStart,
-                sccProvider,
+                _sccProvider,
                 this);
             //this.trackers = trackers;
             SetupSolutionEvents();
@@ -200,8 +214,8 @@ namespace GitScc
                     // Now on UI thread via background priority.
                     await Task.Yield();
                     // Resumed on UI thread, also via background priority.
-                    var dte = (DTE)_sccProvider.GetService(typeof(DTE));
-                    dte.Windows.Item(EnvDTE.Constants.vsWindowKindSolutionExplorer).Caption = message;
+                    var dte = await _sccProvider.GetServiceAsync(typeof(DTE)) as DTE;
+                    dte.Windows.Item(vsWindowKindSolutionExplorer).Caption = message;
                 });
         }
 
@@ -214,7 +228,7 @@ namespace GitScc
         public async Task<string> GetSolutionFileName()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            IVsSolution sol = (IVsSolution)_sccProvider.GetService(typeof(SVsSolution));
+            IVsSolution sol = await _sccProvider.GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
             string solutionDirectory, solutionFile, solutionUserOptions;
             if (sol.GetSolutionInfo(out solutionDirectory, out solutionFile, out solutionUserOptions) == VSConstants.S_OK)
             {
@@ -362,7 +376,7 @@ namespace GitScc
         {
             // Retrieve shell interface in order to get current selection
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            IVsMonitorSelection monitorSelection = _sccProvider.GetService(typeof(IVsMonitorSelection)) as IVsMonitorSelection;
+            IVsMonitorSelection monitorSelection = await _sccProvider.GetServiceAsync(typeof(IVsMonitorSelection)) as IVsMonitorSelection;
 
             Debug.Assert(monitorSelection != null, "Could not get the IVsMonitorSelection object from the services exposed by this project");
 
@@ -887,7 +901,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
             catch (Exception ex)
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                IVsActivityLog log = _sccProvider.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+                IVsActivityLog log = await _sccProvider.GetServiceAsync(typeof(SVsActivityLog)) as IVsActivityLog;
                 if (log == null) return;
 
                 int hr = log.LogEntry((UInt32)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
@@ -914,8 +928,8 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                     uint[] rgdwSccStatus = new uint[1];
                     GetSccGlyph(1, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
 
-                    // Set the solution's glyph directly in the hierarchy
-                    IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+                        // Set the solution's glyph directly in the hierarchy
+                        IVsHierarchy solHier = await _sccProvider.GetServiceAsync(typeof(SVsSolution)) as IVsHierarchy;
                     solHier.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_StateIconIndex, rgsiGlyphs[0]);
                 });
          
@@ -972,7 +986,7 @@ Note: you will need to click 'Show All Files' in solution explorer to see the fi
                         GetSccGlyph(1, rgpszFullPaths, rgsiGlyphs, rgdwSccStatus);
 
                         // Set the solution's glyph directly in the hierarchy
-                        IVsHierarchy solHier = (IVsHierarchy)_sccProvider.GetService(typeof(SVsSolution));
+                        IVsHierarchy solHier = await _sccProvider.GetServiceAsync(typeof(SVsSolution)) as IVsHierarchy;
                         solHier.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_StateIconIndex, rgsiGlyphs[0]);
                     }
                     else

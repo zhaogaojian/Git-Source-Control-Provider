@@ -28,6 +28,7 @@ using IgnoreFileManager = GitSccProvider.Utilities.IgnoreFileManager;
 using Process = System.Diagnostics.Process;
 using Task = System.Threading.Tasks.Task;
 using System.Text;
+using System.Threading;
 
 namespace GitScc
 {
@@ -38,7 +39,7 @@ namespace GitScc
     // Register the package to have information displayed in Help/About dialog box
     [MsVsShell.InstalledProductRegistration("#100", "#101", Vsix.Version, IconResourceID = CommandId.iiconProductIcon)]
     // Declare that resources for the package are to be found in the managed assembly resources, and not in a satellite dll
-    [MsVsShell.PackageRegistration(UseManagedResourcesOnly = true)]
+    [MsVsShell.PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     // Register the resource ID of the CTMENU section (generated from compiling the VSCT file), so the IDE will know how to merge this package's menus with the rest of the IDE when "devenv /setup" is run
     // The menu resource ID needs to match the ResourceName number defined in the csproj project file in the VSCTCompile section
     // Everytime the version number changes VS will automatically update the menus on startup; if the version doesn't change, you will need to run manually "devenv /setup /rootsuffix:Exp" to see VSCT changes reflected in IDE
@@ -52,17 +53,17 @@ namespace GitScc
     //[MsVsShell.ProvideToolWindow(typeof(HistoryToolWindow), Style = VsDockStyle.Tabbed, Orientation = ToolWindowOrientation.Bottom)]
     //[MsVsShell.ProvideToolWindowVisibility(typeof(HistoryToolWindow), "C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]  
     //Register the source control provider's service (implementing IVsScciProvider interface)
-    [MsVsShell.ProvideService(typeof(SccProviderService), ServiceName = "Git Source Control Service")]
+    [MsVsShell.ProvideService(typeof(SccProviderService), ServiceName = "Git Source Control Service", IsAsyncQueryable = true)]
     // Register the source control provider to be visible in Tools/Options/SourceControl/Plugin dropdown selector
     [GitScc.ProvideSourceControlProvider("EZ-GIT", "#100", IsPublishSupported = true)]
     //[MsVsShell.ProvideSourceControlProvider("Git Source Control Provider 2015", "#100", "{C4128D99-0000-41D1-A6C3-704E6C1A3DE2}",
     //    "{C4128D99-2000-41D1-A6C3-704E6C1A3DE2}", "{C4128D99-1000-41D1-A6C3-704E6C1A3DE2}", IsPublishSupported = true)]
     // Pre-load the package when the command UI context is asserted (the provider will be automatically loaded after restarting the shell if it was active last time the shell was shutdown)
-    [MsVsShell.ProvideAutoLoad("C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
+    [MsVsShell.ProvideAutoLoad("C4128D99-0000-41D1-A6C3-704E6C1A3DE2", PackageAutoLoadFlags.BackgroundLoad)]
     //[ProvideAutoLoad(UIContextGuids.SolutionExists)]
     // Declare the package guid
     [Guid("C4128D99-2000-41D1-A6C3-704E6C1A3DE2")]
-    public sealed class BasicSccProvider : MsVsShell.Package, IOleCommandTarget
+    public sealed class BasicSccProvider : MsVsShell.AsyncPackage, IOleCommandTarget
     {
         private SccOnIdleEvent _OnIdleEvent = new SccOnIdleEvent();
         // As a best practice, to be sure the provider has an unique name, a guid like the provider guid can be used as a part of the name
@@ -95,18 +96,20 @@ namespace GitScc
         // BasicSccProvider Package Implementation
         #region Package Members
 
-        protected override void Initialize()
+        protected override async Task InitializeAsync(System.Threading.CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Entering Initialize() of: {0}", this.ToString()));
-            base.Initialize();
+            //base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress);
 
             //projects = new List<GitFileStatusTracker>();
-            sccService = new SccProviderService(this);
+            
 
-            ((IServiceContainer)this).AddService(typeof(SccProviderService), sccService, true);
+            this.AddService(typeof(SccProviderService), CreateGitService, true);
 
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            MsVsShell.OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as MsVsShell.OleMenuCommandService;
+            MsVsShell.OleMenuCommandService mcs = await GetServiceAsync(typeof(IMenuCommandService)) as MsVsShell.OleMenuCommandService;
             if (mcs != null)
             {
                 CommandID cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdSccCommandRefresh);
@@ -195,15 +198,21 @@ namespace GitScc
             ThreadHelper.ThrowIfNotOnUIThread();
             // Register the provider with the source control manager
             // If the package is to become active, this will also callback on OnActiveStateChange and the menu commands will be enabled
-            IVsRegisterScciProvider rscp = (IVsRegisterScciProvider)GetService(typeof(IVsRegisterScciProvider));
+            IVsRegisterScciProvider rscp = await GetServiceAsync(typeof(IVsRegisterScciProvider)) as IVsRegisterScciProvider;
             rscp.RegisterSourceControlProvider(GuidList.guidSccProvider);
 
             _OnIdleEvent.RegisterForIdleTimeCallbacks(GetGlobalService(typeof(SOleComponentManager)) as IOleComponentManager);
             //_OnIdleEvent.OnIdleEvent += new OnIdleEvent(sccService.UpdateNodesGlyphs);
             SetupStatusMenu();
-
         }
 
+
+        public async Task<object> CreateGitService(IAsyncServiceContainer container, CancellationToken cancellationToken, Type serviceType)
+        {
+            sccService = new SccProviderService(this);
+            await sccService.InitializeAsync(cancellationToken);
+            return sccService;
+        }
 
         private void SetupStatusMenu()
         {
@@ -467,7 +476,7 @@ namespace GitScc
             if (GitSccOptions.Current.DiffTool == DiffTools.VisualStudio)
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var diffService = (IVsDifferenceService)GetService(typeof(SVsDifferenceService));
+                var diffService = await GetServiceAsync(typeof(SVsDifferenceService)) as IVsDifferenceService;
                 if (diffService != null)
                 {
 

@@ -91,7 +91,8 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
-**V1.7.4**
+**V1.8.0**
+* Update: Updated to Async Pasckage (https://docs.microsoft.com/en-us/visualstudio/extensibility/how-to-use-asyncpackage-to-load-vspackages-in-the-background)
 * Bug Fix: #89 - Big Thanks to ceztko for fixing this bug. 
 * Enhancement: #90,#91
 

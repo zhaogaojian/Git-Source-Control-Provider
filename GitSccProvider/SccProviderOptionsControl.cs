@@ -488,7 +488,7 @@ namespace GitScc
             GitBash.UseUTF8FileNames = !GitSccOptions.Current.NotUseUTF8FileNames;
             GitSccOptions.Current.SaveConfig();
 
-            SccProviderService sccProviderService = (SccProviderService)GetService(typeof(SccProviderService));
+            SccProviderService sccProviderService = (SccProviderService)GetService(typeof(SccProviderService)) as SccProviderService;
             //sccProviderService.MarkDirty(false);
         }
 
