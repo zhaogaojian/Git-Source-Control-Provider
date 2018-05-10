@@ -36,6 +36,8 @@ namespace GitScc
         public bool UseVsDiff { get; set; }
         public bool AutoAddFiles { get; set; }
         public bool AutoAddProjects { get; set; }
+
+        public bool SaveOnCommit { get; set; }
         public DiffTools DiffTool { get; set; }
 
         public bool TrackActiveGitRepo { get; set; }
@@ -111,6 +113,7 @@ namespace GitScc
             options.UseVsDiff = LoadBoolFromConfig("UseVsDiff");
             options.AutoAddFiles = LoadBoolFromConfig("AutoAddFiles");
             options.AutoAddProjects = LoadBoolFromConfig("AutoAddProjects");
+            options.SaveOnCommit = LoadBoolFromConfig("SaveOnCommit", true);
 
             options.DiffTool = (DiffTools) LoadIntFromConfig("DiffTool");
             options.Init();
@@ -179,6 +182,7 @@ namespace GitScc
             WritableSettingsStore.SetBoolean(CollectionPath, "UseVsDiff", UseVsDiff);
             WritableSettingsStore.SetBoolean(CollectionPath, "AutoAddFiles", AutoAddFiles);
             WritableSettingsStore.SetBoolean(CollectionPath, "AutoAddProjects", AutoAddProjects);
+            WritableSettingsStore.SetBoolean(CollectionPath, "SaveOnCommit", SaveOnCommit);
 
             //save int
             WritableSettingsStore.SetInt32(CollectionPath,"DiffTool",(int)DiffTool);

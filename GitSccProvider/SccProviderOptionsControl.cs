@@ -61,6 +61,7 @@ namespace GitScc
         private CheckBox _cbAutoAddFiles;
         private CheckBox _cbAutoAddProject;
         private System.Windows.Forms.ToolTip _ttAddProjects;
+        private CheckBox _cbSaveOnCommit;
 
         // The parent page, use to persist data
         private SccProviderOptions _customPage;
@@ -123,6 +124,7 @@ namespace GitScc
             this._cbAutoAddFiles = new System.Windows.Forms.CheckBox();
             this._cbAutoAddProject = new System.Windows.Forms.CheckBox();
             this._ttAddProjects = new System.Windows.Forms.ToolTip(this.components);
+            this._cbSaveOnCommit = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // openFileDialog1
@@ -250,7 +252,7 @@ namespace GitScc
             // 
             this.checkBox3.AutoSize = true;
             this.checkBox3.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox3.Location = new System.Drawing.Point(6, 359);
+            this.checkBox3.Location = new System.Drawing.Point(6, 381);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(163, 17);
             this.checkBox3.TabIndex = 25;
@@ -261,7 +263,7 @@ namespace GitScc
             // 
             this.checkBox5.AutoSize = true;
             this.checkBox5.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox5.Location = new System.Drawing.Point(6, 309);
+            this.checkBox5.Location = new System.Drawing.Point(6, 331);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(303, 17);
             this.checkBox5.TabIndex = 27;
@@ -272,7 +274,7 @@ namespace GitScc
             // 
             this.checkBox6.AutoSize = true;
             this.checkBox6.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox6.Location = new System.Drawing.Point(6, 333);
+            this.checkBox6.Location = new System.Drawing.Point(6, 355);
             this.checkBox6.Name = "checkBox6";
             this.checkBox6.Size = new System.Drawing.Size(205, 17);
             this.checkBox6.TabIndex = 28;
@@ -313,7 +315,7 @@ namespace GitScc
             // 
             this._cbrepoTrack.AutoSize = true;
             this._cbrepoTrack.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this._cbrepoTrack.Location = new System.Drawing.Point(6, 286);
+            this._cbrepoTrack.Location = new System.Drawing.Point(6, 308);
             this._cbrepoTrack.Name = "_cbrepoTrack";
             this._cbrepoTrack.Size = new System.Drawing.Size(234, 17);
             this._cbrepoTrack.TabIndex = 32;
@@ -350,11 +352,24 @@ namespace GitScc
         "isting repository.");
             this._cbAutoAddProject.UseVisualStyleBackColor = true;
             // 
+            // _cbsaveOnCommit
+            // 
+            this._cbSaveOnCommit.AutoSize = true;
+            this._cbSaveOnCommit.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this._cbSaveOnCommit.Location = new System.Drawing.Point(6, 285);
+            this._cbSaveOnCommit.Name = "_cbsaveOnCommit";
+            this._cbSaveOnCommit.Size = new System.Drawing.Size(132, 17);
+            this._cbSaveOnCommit.TabIndex = 35;
+            this._cbSaveOnCommit.Text = "Save on Commit/Sync";
+            this._cbSaveOnCommit.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
+            this._cbSaveOnCommit.UseVisualStyleBackColor = true;
+            // 
             // SccProviderOptionsControl
             // 
             this.AllowDrop = true;
             this.AutoScroll = true;
             this.AutoSize = true;
+            this.Controls.Add(this._cbSaveOnCommit);
             this.Controls.Add(this._cbAutoAddProject);
             this.Controls.Add(this._cbAutoAddFiles);
             this.Controls.Add(this._cbrepoTrack);
@@ -410,6 +425,7 @@ namespace GitScc
             _cbrepoTrack.Checked = GitSccOptions.Current.TrackActiveGitRepo;
             _cbAutoAddFiles.Checked = GitSccOptions.Current.AutoAddFiles;
             _cbAutoAddProject.Checked = GitSccOptions.Current.AutoAddProjects;
+            _cbSaveOnCommit.Checked = GitSccOptions.Current.SaveOnCommit;
             cbDiffTool.Items.Clear();
             PopulateDiffTools();
 
@@ -463,6 +479,7 @@ namespace GitScc
             GitSccOptions.Current.TrackActiveGitRepo = _cbrepoTrack.Checked;
             GitSccOptions.Current.AutoAddFiles = _cbAutoAddFiles.Checked;
             GitSccOptions.Current.AutoAddProjects = _cbAutoAddProject.Checked;
+            GitSccOptions.Current.SaveOnCommit = _cbSaveOnCommit.Checked;
             GitSccOptions.Current.NotUseUTF8FileNames = this.checkBox6.Checked;
             GitSccOptions.Current.DisableDiffMargin = true;
             GitSccOptions.Current.UseVsDiff = false;

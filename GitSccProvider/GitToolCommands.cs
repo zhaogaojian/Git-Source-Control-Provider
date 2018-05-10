@@ -10,12 +10,14 @@ namespace GitScc
         public CommandScope Scope { get; set; }
         public string Name { get; set; }
         public string Command { get; set; }
-        
-        public GitToolCommand(string name, string Command, CommandScope scope = CommandScope.Project)
+        public bool SaveOnExecution { get; set; }
+
+        public GitToolCommand(string name, string Command, CommandScope scope = CommandScope.Project, bool saveOnExecution = false)
         {
             this.Name = name;
             this.Command = Command;
             Scope = scope;
+            SaveOnExecution = saveOnExecution;
         }
     }
 
@@ -35,7 +37,7 @@ namespace GitScc
             new GitToolCommand("TortoiseGit", "/command:log"), // workaround to missing of the first command in menu
             new GitToolCommand("Blame", "/command:blame", CommandScope.File), 
             new GitToolCommand("Branch", "/command:branch"), 
-            new GitToolCommand("Commit", "/command:commit"), 
+            new GitToolCommand("Commit", "/command:commit", saveOnExecution: true), 
             new GitToolCommand("Export", "/command:export"), 
             new GitToolCommand("Merge", "/command:merge"),
             new GitToolCommand("Pull", "/command:pull"),
@@ -45,7 +47,7 @@ namespace GitScc
             new GitToolCommand("Settings", "/command:settings"), 
             new GitToolCommand("Show Log", "/command:log", CommandScope.File), 
             new GitToolCommand("Switch", "/command:switch"), 
-            new GitToolCommand("Sync", "/command:sync"), 
+            new GitToolCommand("Sync", "/command:sync", saveOnExecution: true), 
             new GitToolCommand("Tag", "/command:tag"), 
         };
 
@@ -57,7 +59,7 @@ namespace GitScc
             new GitToolCommand("Create Branch", "branch"), 
             new GitToolCommand("Checkout Branch", "checkout"), 
             new GitToolCommand("Cherry Pick", "cherry"), 
-            new GitToolCommand("Commit", "commit"), 
+            new GitToolCommand("Commit", "commit", saveOnExecution: true), 
             new GitToolCommand("Edit .gitignore", "gitignore"), 
             new GitToolCommand("Format Patch", "formatpatch"), 
             new GitToolCommand("Manage Remotes", "remotes"), 

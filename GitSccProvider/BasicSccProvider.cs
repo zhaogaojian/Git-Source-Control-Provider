@@ -544,7 +544,12 @@ namespace GitScc
 
                 var cmd = GitToolCommands.GitTorCommands[idx];
                 var targetPath = GetTargetPath(cmd);
-
+                //#90 + 91 - Autosave
+                if (GitSccOptions.Current.SaveOnCommit)
+                {
+                    var dte = BasicSccProvider.GetServiceEx<EnvDTE.DTE>();
+                    dte.Documents.SaveAll();
+                }
                 var tortoiseGitPath = GitSccOptions.Current.TortoiseGitPath;
                 RunDetatched(tortoiseGitPath, cmd.Command + " /path:\"" + targetPath + "\"");
             }
