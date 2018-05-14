@@ -960,6 +960,37 @@ Note: if the file is included project, you need to delete the file from project 
             //Fix bug #80
             DiffEditor.Focus();
         }
+
+        private async void textBoxComments_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            await SetCharacterCount();
+        }
+
+        private async Task SetCharacterCount()
+        {
+            var count = 0;
+            if(!String.IsNullOrWhiteSpace(Comments))
+            {
+                count = Comments.Length -2;
+            }
+            else
+            {
+                lblcharacterCount.Visibility = Visibility.Hidden;
+            }
+            if (count == 1)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                lblcharacterCount.Visibility = Visibility.Visible;
+                lblcharacterCount.Content = $"{count}  character";
+            }
+            else
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                lblcharacterCount.Visibility = Visibility.Visible;
+                lblcharacterCount.Content = $"{count}  characters";
+            }
+        }
+
     }
 
     public static class ExtHelper
