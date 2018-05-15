@@ -48,7 +48,7 @@ namespace GitScc
     [MsVsShell.ProvideOptionPageAttribute(typeof(SccProviderOptions), "Source Control", "EZ-GIT Options", 106, 107, false)]
     [ProvideToolsOptionsPageVisibility("Source Control", "EZ-GIT Options", "C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
     // Register a sample tool window visible only when the provider is active
-    [MsVsShell.ProvideToolWindow(typeof(PendingChangesToolWindow), Style = VsDockStyle.Tabbed, Orientation = ToolWindowOrientation.Bottom)]
+    [ProvideToolWindow(typeof(PendingChangesToolWindow), Style = VsDockStyle.Tabbed, Orientation = ToolWindowOrientation.Bottom)]
     [MsVsShell.ProvideToolWindowVisibility(typeof(PendingChangesToolWindow), "C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]
     //[MsVsShell.ProvideToolWindow(typeof(HistoryToolWindow), Style = VsDockStyle.Tabbed, Orientation = ToolWindowOrientation.Bottom)]
     //[MsVsShell.ProvideToolWindowVisibility(typeof(HistoryToolWindow), "C4128D99-0000-41D1-A6C3-704E6C1A3DE2")]  
@@ -88,8 +88,7 @@ namespace GitScc
         {
             _SccProvider = this;
             Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Entering constructor for: {0}", this.ToString()));
-            GitBash.GitExePath = GitSccOptions.Current.GitBashPath;
-            GitBash.UseUTF8FileNames = !GitSccOptions.Current.NotUseUTF8FileNames;
+         
         }
 
         /////////////////////////////////////////////////////////////////////////////
@@ -99,6 +98,8 @@ namespace GitScc
         protected override async Task InitializeAsync(System.Threading.CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Entering Initialize() of: {0}", this.ToString()));
+            GitBash.GitExePath = GitSccOptions.Current.GitBashPath;
+            GitBash.UseUTF8FileNames = !GitSccOptions.Current.NotUseUTF8FileNames;
             //base.Initialize();
             await base.InitializeAsync(cancellationToken, progress);
 
