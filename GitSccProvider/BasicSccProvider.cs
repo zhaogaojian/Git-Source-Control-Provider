@@ -217,8 +217,15 @@ namespace GitScc
 
         private void SetupStatusMenu()
         {
-            sccService.RepositoryIcon = KnownMonikers.GitNoColor;
-            sccService.BranchIcon = KnownMonikers.BranchNoColor;
+            try
+            {
+                sccService.RepositoryIcon = KnownMonikers.GitNoColor;
+                sccService.BranchIcon = KnownMonikers.BranchNoColor;
+            }
+            catch(Exception e)
+            {
+                Trace.WriteLine(String.Format(CultureInfo.CurrentUICulture, "Error Creating Status Menu", e.Message));
+            }
         }
 
         public string ProviderName

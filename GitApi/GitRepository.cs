@@ -120,7 +120,7 @@ namespace GitScc
             _gitEventObservable.Subscribe(x => Task.Run(async () => await DecodeGitEvents()));
 
             _fileChangedEventObservable = Observable.FromEventPattern(ev => _fileEvent += ev, ev => _fileEvent -= ev)
-    .Throttle(TimeSpan.FromMilliseconds(250));
+    .Throttle(TimeSpan.FromMilliseconds(350));
             _fileChangedEventObservable.Subscribe(x => Task.Run(async () => await FileChangedEvent()));
 
         }
