@@ -195,6 +195,11 @@ namespace GitScc
 
         private bool FileIgnored(string filepath)
         {
+            //maybe don't worry about node_modules
+            if (filepath.ToLower().Contains("node_modules"))
+            {
+                return true;
+            }
             var extension = Path.GetExtension(filepath)?.ToLower();
 
             if (extension != null && (string.Equals(extension, ".suo") || extension.EndsWith("~")))
