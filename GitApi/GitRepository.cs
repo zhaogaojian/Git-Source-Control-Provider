@@ -401,13 +401,13 @@ namespace GitScc
                 }
                 try
                 {
-                    var checkoutBranch = repository.Checkout(branch, options);
+                    var checkoutBranch = Commands.Checkout(repository, branch,options);
                     if (checkoutBranch != null)
                     {
                         result.Item = new GitBranchInfo
                         {
                             CanonicalName = checkoutBranch.CanonicalName,
-                            RemoteName = checkoutBranch.Remote?.Name,
+                            RemoteName = checkoutBranch.RemoteName,
                             Name = checkoutBranch.FriendlyName,
                             IsRemote = checkoutBranch.IsRemote
                         };
@@ -467,7 +467,7 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                repository.Stage(fileName);
+                Commands.Stage(repository, fileName);
             }
 
         }
@@ -476,7 +476,7 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                repository.Unstage(fileName);
+                Commands.Unstage(repository, fileName);
             }
         }
 
@@ -619,7 +619,7 @@ namespace GitScc
                         result.Item = new GitBranchInfo
                         {
                             CanonicalName = branch.CanonicalName,
-                            RemoteName = branch.Remote?.Name,
+                            RemoteName = branch.RemoteName,
                             Name = branch.FriendlyName,
                             IsRemote = branch.IsRemote
                         };
@@ -649,7 +649,7 @@ namespace GitScc
                     return new GitBranchInfo
                     {
                         CanonicalName = branch.CanonicalName,
-                        RemoteName = branch.Remote?.Name,
+                        RemoteName = branch.RemoteName,
                         Name = branch.FriendlyName,
                         IsRemote = branch.IsRemote,
                         Sha = branch.Tip?.Sha,
@@ -735,7 +735,7 @@ namespace GitScc
             return new GitBranchInfo
             {
                 CanonicalName = branch.CanonicalName,
-                RemoteName = branch.Remote?.Name,
+                RemoteName = branch.RemoteName,
                 Name = branch.FriendlyName,
                 IsRemote = branch.IsRemote,
                 Sha = branch.Tip?.Sha,
