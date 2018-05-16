@@ -46,7 +46,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GitScc</RootNamespace>
     <AssemblyName>GitSccProvider</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
@@ -516,9 +516,9 @@
     <!-- extract out the .zip file -->
     <MSBuild.ExtensionPack.Compression.Zip TaskAction="Extract" ExtractPath="$(_TmpVsixDir)Extracted\" ZipFileName="@(_TmpVsixCopy->'%(FullPath)')" />
     <ItemGroup>
-      <FilesToDelete Include="$(_TmpVsixDir)Extracted\NativeBinaries\**\*.pdb" />
-      <FilesToDelete2 Include="$(_TmpVsixDir)Extracted\NativeBinaries\osx\**\*.*" />
-      <FilesToDelete3 Include="$(_TmpVsixDir)Extracted\NativeBinaries\linux\**\*.*" />
+      <FilesToDelete Include="$(_TmpVsixDir)Extracted\lib\**\*.pdb" />
+      <FilesToDelete2 Include="$(_TmpVsixDir)Extracted\lib\osx\**\*.*" />
+      <FilesToDelete3 Include="$(_TmpVsixDir)Extracted\lib\linux\**\*.*" />
       <FilesToDelete4 Include="$(_TmpVsixDir)Extracted\GitUI.exe" />
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" />
