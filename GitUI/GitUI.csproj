@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GitUI</RootNamespace>
     <AssemblyName>GitUI</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -204,12 +204,6 @@
     <EmbeddedResource Include="Resources\GitApi2.dll" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GitApi\GitApi.csproj">
-      <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
-      <Name>GitApi</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\LibGit2Sharp.dll" />
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +222,12 @@
     <EmbeddedResource Include="Resources\Nito.AsyncEx.Concurrent.dll" />
     <EmbeddedResource Include="Resources\Nito.AsyncEx.dll" />
     <EmbeddedResource Include="Resources\Nito.AsyncEx.Enlightenment.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GitApi\GitApi.csproj">
+      <Project>{161e81e2-25e5-4134-8d2d-595419b1265b}</Project>
+      <Name>GitApi</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
