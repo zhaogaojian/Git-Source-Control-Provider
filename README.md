@@ -95,6 +95,7 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 * Update: Updated to Async Pasckage (https://docs.microsoft.com/en-us/visualstudio/extensibility/how-to-use-asyncpackage-to-load-vspackages-in-the-background)
 * Bug Fix: #89 - Big Thanks to ceztko for fixing this bug. 
 * Enhancement: #59,#90,#91
+* BETA : Support For SSDT 2015 anf SSDT 2017 
 
 **V1.7.3**
 * Bug Fix: #80,#83
