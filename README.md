@@ -15,9 +15,12 @@ Introduction
 New Feature Highlights
 -------------
 
+* BETA : Support For SSDT 2015 and SSDT 2017 [Read about Limitations](#ssdt)
+* Added Visual character count for comments
+* Now Autosaves on Commit! (Configurable) 
 * Added option to auto-add projects and to the git repository when you add them to the project!
 * Switch and create branches, switch git repositories, and open the pending changes window all from the status bar!
-* Initialize new projects from the status bar.
+
 
 
 Features
