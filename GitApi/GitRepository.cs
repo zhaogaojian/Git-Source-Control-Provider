@@ -120,7 +120,7 @@ namespace GitScc
             _gitEventObservable.Subscribe(x => Task.Run(async () => await DecodeGitEvents()));
 
             _fileChangedEventObservable = Observable.FromEventPattern(ev => _fileEvent += ev, ev => _fileEvent -= ev)
-    .Throttle(TimeSpan.FromMilliseconds(250));
+    .Throttle(TimeSpan.FromMilliseconds(350));
             _fileChangedEventObservable.Subscribe(x => Task.Run(async () => await FileChangedEvent()));
 
         }
@@ -195,6 +195,11 @@ namespace GitScc
 
         private bool FileIgnored(string filepath)
         {
+            //maybe don't worry about node_modules
+            if (filepath.ToLower().Contains("node_modules"))
+            {
+                return true;
+            }
             var extension = Path.GetExtension(filepath)?.ToLower();
 
             if (extension != null && (string.Equals(extension, ".suo") || extension.EndsWith("~")))
@@ -396,13 +401,13 @@ namespace GitScc
                 }
                 try
                 {
-                    var checkoutBranch = repository.Checkout(branch, options);
+                    var checkoutBranch = Commands.Checkout(repository, branch,options);
                     if (checkoutBranch != null)
                     {
                         result.Item = new GitBranchInfo
                         {
                             CanonicalName = checkoutBranch.CanonicalName,
-                            RemoteName = checkoutBranch.Remote?.Name,
+                            RemoteName = checkoutBranch.RemoteName,
                             Name = checkoutBranch.FriendlyName,
                             IsRemote = checkoutBranch.IsRemote
                         };
@@ -462,7 +467,7 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                repository.Stage(fileName);
+                Commands.Stage(repository, fileName);
             }
 
         }
@@ -471,7 +476,7 @@ namespace GitScc
         {
             using (var repository = GetRepository())
             {
-                repository.Unstage(fileName);
+                Commands.Unstage(repository, fileName);
             }
         }
 
@@ -614,7 +619,7 @@ namespace GitScc
                         result.Item = new GitBranchInfo
                         {
                             CanonicalName = branch.CanonicalName,
-                            RemoteName = branch.Remote?.Name,
+                            RemoteName = branch.RemoteName,
                             Name = branch.FriendlyName,
                             IsRemote = branch.IsRemote
                         };
@@ -644,7 +649,7 @@ namespace GitScc
                     return new GitBranchInfo
                     {
                         CanonicalName = branch.CanonicalName,
-                        RemoteName = branch.Remote?.Name,
+                        RemoteName = branch.RemoteName,
                         Name = branch.FriendlyName,
                         IsRemote = branch.IsRemote,
                         Sha = branch.Tip?.Sha,
@@ -730,7 +735,7 @@ namespace GitScc
             return new GitBranchInfo
             {
                 CanonicalName = branch.CanonicalName,
-                RemoteName = branch.Remote?.Name,
+                RemoteName = branch.RemoteName,
                 Name = branch.FriendlyName,
                 IsRemote = branch.IsRemote,
                 Sha = branch.Tip?.Sha,

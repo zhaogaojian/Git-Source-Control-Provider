@@ -15,9 +15,12 @@ Introduction
 New Feature Highlights
 -------------
 
+* BETA : Support For SSDT 2015 and SSDT 2017 [Read about Limitations](#ssdt)
+* Added Visual character count for comments
+* Now Autosaves on Commit! (Configurable) 
 * Added option to auto-add projects and to the git repository when you add them to the project!
 * Switch and create branches, switch git repositories, and open the pending changes window all from the status bar!
-* Initialize new projects from the status bar.
+
 
 
 Features
@@ -46,11 +49,17 @@ How to use
 * Right click within solution explorer and select "Git". If Git for Windows, Git Extensions or TortoiseGit are installed, their commands are listed in the menu.
 
 
+Visual Studio Data Tools 2017/2015 Support            {#ssdt}
+========
+
+* Visual Visual Studio Data Tools 2015 needs to be at Update 3 or Later.
+* Note: As of 5/23/18 - In SSDT 2017: Solution Explorer Status Icons and the Status bar may not work.  All other features work, including the right click menu in the solution explorer and the pending changes window. There does not appear to be anything can be done to fix this, because the built in SCC providers also don't work. 
+
 Living on the Edge!
 ----------
-Install the Latest C.I. Build either from [Open VSIX Gallery](http://vsixgallery.com/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a/) or [Github](https://github.com/jzoss/Git-Source-Control-Provider/releases/tag/GSCP-CI). Don't worry you will still autoupdate when the next release comes out. 
+Install the Latest C.I. Build either from [Open VSIX Gallery](http://vsixgallery.com/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a/) or [Github](https://github.com/jzoss/Git-Source-Control-Provider/releases/tag/GSCP-CI). Don't worry you will still auto-update when the next release comes out. 
 
-For Bonus Points Add this [feed](http://vsixgallery.com/feed/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a) from VSIX Gallery to your extension manager to always autoupdate to the latest C.I. build.  
+For Bonus Points Add this [feed](http://vsixgallery.com/feed/extension/GitSccProvider.Microsoft.88d658b3-e361-4e7f-8f4d-9e78f6e4515a) from VSIX Gallery to your extension manager to always auto-update to the latest C.I. build.  
 
 How to contribute 
 ----------
@@ -63,12 +72,12 @@ If you like this plugin there is a few way you can help out.
 
 #### Help Wanted - Features/Fixes 
 * Options Page - Settings are stored in a user folder, this is not how it is supposed to work. The UI the UI is ugly does not look right on high dpi monitors. See [Example](https://github.com/Microsoft/VSSDK-Extensibility-Samples/tree/master/Options_Page)
-* Localization - I woudl be nice to support a few other  languages.
+* Localization - I would be nice to support a few other  languages.
 * Button commands - This part is a bit messy right now. It would be sweet if this could be cleaned up.
 
 #### Building
 
-All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibility Tools installed. It's **THAT** easy!
+All you need to build the code is Visual Studio 2015 with Visual Studio Extensibility Tools installed. It's **THAT** easy!
 
 
 
@@ -91,9 +100,11 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
-**V1.7.4**
+**V1.8.0**
+* Update: Updated to Async Pasckage (https://docs.microsoft.com/en-us/visualstudio/extensibility/how-to-use-asyncpackage-to-load-vspackages-in-the-background)
 * Bug Fix: #89 - Big Thanks to ceztko for fixing this bug. 
-* Enhancement: #90,#91
+* Enhancement: #59,#90,#91
+* BETA : Limited Support For SSDT 2015 and SSDT 2017 [Read about Limitations](#ssdt)
 
 **V1.7.3**
 * Bug Fix: #80,#83
@@ -137,7 +148,7 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 *   Vastly Improved performance explicitly for larger projects
 *   Added Tooltips on the status bar.
 *   Clicking in the diffview now opens the line and column. 
-*   Switching active git repistories from the status bar now updates the pending changes view.
+*   Switching active git repositories from the status bar now updates the pending changes view.
 
 **V1.6.2**
 
@@ -163,7 +174,7 @@ All you need to build the code is Visual Sudio 2015 with Visual Studio Extensibi
 
 #####---Fixes---
 *   Fixed issue where plugin could periodically crash Visual Studio.
-*   Theme now switches with the need to resart.
+*   Theme now switches with the need to restart.
 *   Double clicking on files in Pending Changes now opens/switches to the file. 
 *   No longer slows down when used with Resharper
 *   Fixed issue #15, #21 where sometimes the plugin caused Visual Studio to crash. 

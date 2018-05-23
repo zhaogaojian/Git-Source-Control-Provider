@@ -1,5 +1,5 @@
 -
-  os: Visual Studio 2015 
+  image: Visual Studio 2017
   configuration: Release
   skip_tags: true
   branches:
@@ -10,7 +10,7 @@
   environment:
     majorVersion: 1
     minorVersion: 7
-    patchVersion: 3
+    patchVersion: 4
     access_token:
       secure: D9+WTOpCzI8qcrBNULSrWHJeR4thDu4jxQmY/oHux1CYpAjfk2rrpShn8loWHGQc
     gitHubUsername:

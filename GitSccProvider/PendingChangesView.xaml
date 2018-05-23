@@ -114,7 +114,7 @@ xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.Visual
                   Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}" Checked="_cbShowOnlySolutionFiles_Checked" Unchecked="_cbShowOnlySolutionFiles_Unchecked"/>
 
 			<RichTextBox HorizontalAlignment="Stretch" Name="textBoxComments" VerticalAlignment="Stretch" Margin="2,0,2,2"
-					     AcceptsReturn="True" VerticalScrollBarVisibility="Visible" SpellCheck.IsEnabled="True">
+					     AcceptsReturn="True" VerticalScrollBarVisibility="Visible" SpellCheck.IsEnabled="True" TextChanged="textBoxComments_TextChanged">
 				<RichTextBox.Resources>
 					<Style TargetType="{x:Type Paragraph}">
 						<Setter Property="Margin" Value="0"/>
@@ -194,6 +194,8 @@ xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.Visual
         </Grid>
 
         <my:Settings HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="Settings" Grid.ColumnSpan="3" Grid.RowSpan="3" Visibility="Collapsed" />
-		
-	</Grid>
+        <Label Content="characters" HorizontalAlignment="Left" x:Name="lblcharacterCount" VerticalAlignment="Center" 
+            Margin="366,0,0,0" Foreground="{DynamicResource {x:Static vsfx:VsBrushes.ToolWindowTextKey}}" Visibility="Hidden" />
+
+    </Grid>
 </UserControl>

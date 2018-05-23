@@ -45,7 +45,7 @@
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 AssemblyName name = assembly.GetName();
-                if (!name.Name.Equals("Microsoft.VisualStudio.Shell.12.0"))
+                if (!name.Name.Equals("Microsoft.VisualStudio.Shell.14.0"))
                     continue;
 
                 Type type = assembly.GetType("Microsoft.VisualStudio.PlatformUI." + wrapperType.Name, false);

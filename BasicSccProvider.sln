@@ -30,6 +30,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitUI", "GitUI\GitUI.csproj", "{C756204F-28E1-473A-8160-E697E3303F1B}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
@@ -81,7 +84,11 @@ Global
 		{C756204F-28E1-473A-8160-E697E3303F1B} = {18163F1B-3192-4F2B-9A52-40FAC3DD337C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {884473A6-8904-4214-ADC0-EA722BC8D5BB}
 		RESX_PrefixTranslations = False
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = BasicSccProvider.vsmdi
