@@ -3,13 +3,36 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26127.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9B2F3727-28C1-4D1B-951E-BA1AB452DA67}"
+	ProjectSection(SolutionItems) = preProject
+		AppVeyor.yml = AppVeyor.yml
+		BasicSccProvider.vsmdi = BasicSccProvider.vsmdi
+		history.md = history.md
+		Local.testsettings = Local.testsettings
+		README.md = README.md
+		TODO.md = TODO.md
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{18163F1B-3192-4F2B-9A52-40FAC3DD337C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiffClassifier", "DiffClassifier\DiffClassifier.csproj", "{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitApi", "GitApi\GitApi.csproj", "{161E81E2-25E5-4134-8D2D-595419B1265B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitSccProvider", "GitSccProvider\GitSccProvider.csproj", "{D192FBA7-5901-4EAE-8CA6-CFB7D9C5F060}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C756204F-28E1-473A-8160-E697E3303F1B} = {C756204F-28E1-473A-8160-E697E3303F1B}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitTools", "GitTools\GitTools.csproj", "{3A4524D2-7D17-4176-8701-8EB8AC7598ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitUI", "GitUI\GitUI.csproj", "{C756204F-28E1-473A-8160-E697E3303F1B}"
+EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
@@ -17,6 +40,12 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57D5E6BB-DC11-49CF-9F49-7C3F3EC11F09}.Release|x86.ActiveCfg = Release|Any CPU
 		{161E81E2-25E5-4134-8D2D-595419B1265B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{161E81E2-25E5-4134-8D2D-595419B1265B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{161E81E2-25E5-4134-8D2D-595419B1265B}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -39,16 +68,24 @@ Global
 		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Release|x86.ActiveCfg = Release|Any CPU
 		{3A4524D2-7D17-4176-8701-8EB8AC7598ED}.Release|x86.Build.0 = Release|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Debug|x86.Build.0 = Debug|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Release|x86.ActiveCfg = Release|Any CPU
+		{C756204F-28E1-473A-8160-E697E3303F1B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_PrefixTranslations = False
-		SolutionGuid = {884473A6-8904-4214-ADC0-EA722BC8D5BB}
+	GlobalSection(NestedProjects) = preSolution
+		{C756204F-28E1-473A-8160-E697E3303F1B} = {18163F1B-3192-4F2B-9A52-40FAC3DD337C}
 	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {884473A6-8904-4214-ADC0-EA722BC8D5BB}
+		RESX_PrefixTranslations = False
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
