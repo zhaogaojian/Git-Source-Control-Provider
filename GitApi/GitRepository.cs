@@ -455,6 +455,7 @@ namespace GitScc
                 using (var repository = GetRepository())
                 {
                     repository.Index.Add(relPath);
+                    repository.Index.Write();
                 }
             }
             catch (Exception)
