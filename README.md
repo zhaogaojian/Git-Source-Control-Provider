@@ -31,16 +31,16 @@ Features
 * Enable/disable plug-in through visual studio's source control plug-in selection
 * No source code control information stored in solution or project file
 * Initialize new git repository and generate .gitignore 
-* Integrates with [Git for Windows](http://code.google.com/p/msysgit)
-* Integrates with [Git Extensions](http://code.google.com/p/gitextensions)
-* Integrates with [TortoiseGit](http://code.google.com/p/tortoisegit)
+* Integrates with [Git for Windows](https://gitforwindows.org/)
+* Integrates with [Git Extensions](https://gitextensions.github.io/)
+* Integrates with [TortoiseGit](https://tortoisegit.org/)
 * [Git - Pending Changes Tool Window](http://gitscc.codeplex.com/wikipage?title=Commit%20Changes)
 * [Git - View History Tool Window](http://gitscc.codeplex.com/wikipage?title=View%20History)
 * Options page
 
 How to use
 ----------
-* Install [Git for Windows](http://code.google.com/p/msysgit), or [Git Extensions](http://code.google.com/p/gitextensions), or [TortoiseGit](http://code.google.com/p/tortoisegit).
+* Install [Git for Windows](https://gitforwindows.org/), or [Git Extensions](https://gitextensions.github.io/), or [TortoiseGit](https://tortoisegit.org/).
 * Run Visual Studio. 
 * Go to Tools | Extension Manager, search online gallery for Git Source Control Provider and install. Or Install From [Visual Studio Gallery](https://visualstudiogallery.msdn.microsoft.com/51e11ccc-6334-4873-912d-bf5025eb115d) 
 * Go to Tools | Options, Select Source Control.
