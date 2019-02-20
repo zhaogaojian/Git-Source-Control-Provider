@@ -14,7 +14,7 @@ Introduction
 
 New Feature Highlights
 -------------
-
+* BETA : Support Visual Studio 2019
 * BETA : Support For SSDT 2015 and SSDT 2017 [Read about Limitations](#ssdt)
 * Added Visual character count for comments
 * Now Autosaves on Commit! (Configurable) 
@@ -100,6 +100,9 @@ All you need to build the code is Visual Studio 2015 with Visual Studio Extensib
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
+**V1.9.0**
+* Visual Studio 2019 Support
+
 **V1.8.2**
 * Bug Fix: #102,#105 
 
@@ -119,55 +122,6 @@ All you need to build the code is Visual Studio 2015 with Visual Studio Extensib
 * Updated solution to Visual Studio 2017
 * Plugin now supports Visual Studio 2015 and 2017
 
-
-**V1.6.6**
-* New Year, New Name Name has been changed to Easy Git Integration Tools (EZ-GIT).
-* Minor Bug Fixes.
-
-**V1.6.5**
-
-
-***Features*** 
-
-- [x] Changed the icon for added files.
-- [x] Added right click option to projects, to add them to the git repository, if not already added
-- [x] Added option to auto-add projects to repository when you add them to the solution.
-- [x] Added option to auto-add files to repository when you add them to a project.
-- [x] Publishing the solution from the status bar now adds all the projects and files to the repository.
-- [x] Options are now stored in the registry
-- [x] Options Page should look better on high dpi screens. 
-
-***Bug Fixes*** 
-- [x] Updated to Reactive Extensions 3.0. Should fix bug #54 
-- [x] Solution refreshes all glyps on commit fixing #58
-
-**V1.6.4**
-
-* Reduced Install Package Size by 65% - Same Taste - Less Filling!
-* Fix bug #45 - Changed files pane is not properly highlighting the selected item.
-
-**V1.6.3**
-
-*   Vastly Improved performance explicitly for larger projects
-*   Added Tooltips on the status bar.
-*   Clicking in the diffview now opens the line and column. 
-*   Switching active git repositories from the status bar now updates the pending changes view.
-
-**V1.6.2**
-
-*   Fix to make work with Visual Studio Update 1
-
-**V1.6.1**
-
-*   Bug Fixes
-
-**V1.6.0**
-*   Added Repository controls on the status bar!
-*   Clicking on line in diff window now opens the file to that line.
-*   Improved performance with larger projects.
-*   Can now initialize new projects from the status bar. 
-
-**V1.5**
 
 #####---New Features---
 *   Added ability to update your .gitingore file to latest version from github
