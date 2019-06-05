@@ -215,6 +215,13 @@ namespace GitScc
                 }
             }
 
+            //Bug 118
+            if (string.Equals(extension, ".bak") || string.Equals(extension, ".base") || string.Equals(extension, ".local")) 
+            {
+                return true;
+            }
+
+
             //Ignore directory changes that we don't care about 
             if (filepath.ArePathsEqual(_repositoryPath) || filepath.ArePathsEqual(_objectPath))
             {
@@ -436,10 +443,15 @@ namespace GitScc
         }
 
 
-        public void AddFile(string filename)
+        public void AddFile(string filename, bool skipIgnoredFiles = true)
         {
             try
             {
+                if(skipIgnoredFiles && FileIgnored(filename))
+                {
+                    return; 
+                }
+
                 string relPath;
                 if (Path.IsPathRooted(filename))
                 {
