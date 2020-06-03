@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.ComponentModelHost;
+//using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
