@@ -215,6 +215,13 @@ namespace GitScc
                 }
             }
 
+            //Bug 118
+            if (string.Equals(extension, ".bak") || string.Equals(extension, ".base") || string.Equals(extension, ".local")) 
+            {
+                return true;
+            }
+
+
             //Ignore directory changes that we don't care about 
             if (filepath.ArePathsEqual(_repositoryPath) || filepath.ArePathsEqual(_objectPath))
             {
@@ -436,10 +443,15 @@ namespace GitScc
         }
 
 
-        public void AddFile(string filename)
+        public void AddFile(string filename, bool skipIgnoredFiles = true)
         {
             try
             {
+                if(skipIgnoredFiles && FileIgnored(filename))
+                {
+                    return; 
+                }
+
                 string relPath;
                 if (Path.IsPathRooted(filename))
                 {
@@ -1028,36 +1040,6 @@ namespace GitScc
             }
         }
 
-        //private List<GitFile> GetCurrentChangedFilesList()
-        //{
-        //    var changedFileCache = GetCurrentChangedFiles();
-        //    //var files = changedFileCache.ToDictionary(gitFile => gitFile.FilePath.ToLower(), gitFile => gitFile.Status);
-        //    _changedFiles = changedFileCache;
-        //    return changedFileCache;
-        //}
-
-        //private List<string> CreateRepositoryUpdateChangeSet()
-        //{
-        //    var _lastChanged = _changedFiles;
-        //    //we have no idea what changes happened before.. so update everthing 
-        //    if (_lastChanged == null)
-        //    {
-        //        return GetFullPathForGitFiles(GetCurrentFilesStatus());
-        //    }
-        //    var changedFileCache = GetCurrentChangedFiles();
-        //    var currentChangeList = GetFullPathForGitFiles(changedFileCache);
-        //    var lastChangeList = GetFullPathForGitFiles(_lastChanged);
-        //    foreach (var path in lastChangeList)
-        //    {
-        //        if (!currentChangeList.Contains(path))
-        //        {
-        //            currentChangeList.Add(path);
-        //        }
-        //    }
-        //    _changedFiles = changedFileCache;
-        //    return currentChangeList;
-        //}
-
         private List<string> GetFullPathForGitFiles(List<GitFile> files)
         {
             return files.Select(gitFile => gitFile.FilePath).ToList();
@@ -1371,7 +1353,7 @@ namespace GitScc
             relativePath = null;
             if (fileName.StartsWith(workingDirectory, StringComparison.OrdinalIgnoreCase))
             {
-                relativePath = fileName.Substring(workingDirectory.Length);
+                relativePath = fileName.Substring(workingDirectory.Length).Replace("\\", "/");
                 return true;
             }
             return false;
