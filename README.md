@@ -100,6 +100,14 @@ All you need to build the code is Visual Studio 2015 with Visual Studio Extensib
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
 
+**V1.9.2**
+* Bug Fix #105.. Works in VS 2015 again
+* Removed unnessary files, cut the install size by 50%
+
+
+**V1.9.1**
+* Bug Fixes
+
 **V1.9.0**
 * Visual Studio 2019 Support
 
