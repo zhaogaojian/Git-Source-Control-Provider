@@ -99,6 +99,10 @@ All you need to build the code is Visual Studio 2015 with Visual Studio Extensib
 **V-Next** 
 *   Add more features to the status bar.
 *   Work on integrating gitflow.
+**V1.9.9**
+* Change Icon Style Size
+* Add Push Menu
+* Add Config Menu Visible
 
 **V1.9.2**
 * Bug Fix #105.. Works in VS 2015 again
