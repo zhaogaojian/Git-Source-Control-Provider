@@ -39,6 +39,8 @@ namespace GitScc
 
         public bool SaveOnCommit { get; set; }
         public DiffTools DiffTool { get; set; }
+        public string HideCmdForGitExtension { get; set; }
+        public string HideCmdForTortoiseGit { get; set; }
 
         public bool TrackActiveGitRepo { get; set; }
 
@@ -114,7 +116,8 @@ namespace GitScc
             options.AutoAddFiles = LoadBoolFromConfig("AutoAddFiles");
             options.AutoAddProjects = LoadBoolFromConfig("AutoAddProjects");
             options.SaveOnCommit = LoadBoolFromConfig("SaveOnCommit", true);
-
+            options.HideCmdForGitExtension= LoadStringFromConfig("HideCmdForGitExtension", "");
+            options.HideCmdForTortoiseGit = LoadStringFromConfig("HideCmdForTortoiseGit", "");
             options.DiffTool = (DiffTools) LoadIntFromConfig("DiffTool");
             options.Init();
 
@@ -184,6 +187,9 @@ namespace GitScc
             WritableSettingsStore.SetBoolean(CollectionPath, "AutoAddProjects", AutoAddProjects);
             WritableSettingsStore.SetBoolean(CollectionPath, "SaveOnCommit", SaveOnCommit);
 
+            WritableSettingsStore.SetString(CollectionPath, "HideCmdForGitExtension", HideCmdForGitExtension ?? "");
+            WritableSettingsStore.SetString(CollectionPath, "HideCmdForTortoiseGit", HideCmdForTortoiseGit ?? "");
+            
             //save int
             WritableSettingsStore.SetInt32(CollectionPath,"DiffTool",(int)DiffTool);
 

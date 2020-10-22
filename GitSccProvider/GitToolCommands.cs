@@ -41,6 +41,7 @@ namespace GitScc
             new GitToolCommand("Export", "/command:export"), 
             new GitToolCommand("Merge", "/command:merge"),
             new GitToolCommand("Pull", "/command:pull"),
+            new GitToolCommand("Push", "/command:push", CommandScope.File),
             new GitToolCommand("Rebase", "/command:rebase"), 
             new GitToolCommand("Resolve", "/command:resolve"), 
             new GitToolCommand("Revert", "/command:revert"), 

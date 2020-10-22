@@ -29,6 +29,7 @@ using Process = System.Diagnostics.Process;
 using Task = System.Threading.Tasks.Task;
 using System.Text;
 using System.Threading;
+using System.Linq;
 
 namespace GitScc
 {
@@ -103,7 +104,6 @@ namespace GitScc
             //base.Initialize();
             await base.InitializeAsync(cancellationToken, progress);
 
-            //projects = new List<GitFileStatusTracker>();
             
 
             this.AddService(typeof(SccProviderService), CreateGitService, true);
@@ -150,15 +150,35 @@ namespace GitScc
                 menu = new MenuCommand(new EventHandler(OnTortoiseGitCommand), cmd);
 
                 mcs.AddCommand(menu);
+
+
+                //projects = new List<GitFileStatusTracker>();
+                List<string> hideCmdForGitExtensions = GitSccOptions.Current.HideCmdForGitExtension.Split(',').ToList();
+
+                List<string> hideCmdForTortoiseGits = GitSccOptions.Current.HideCmdForTortoiseGit.Split(',').ToList();
+
+                for (int i = GitToolCommands.GitExtCommands.Count-1; i >=0; i--)
+                {
+                    if (hideCmdForGitExtensions.Contains(GitToolCommands.GitExtCommands[i].Name)) GitToolCommands.GitExtCommands.RemoveAt(i);
+
+                }
+                for (int i = GitToolCommands.GitTorCommands.Count - 1; i >= 0; i--)
+                {
+                    if (hideCmdForTortoiseGits.Contains(GitToolCommands.GitTorCommands[i].Name)) GitToolCommands.GitTorCommands.RemoveAt(i);
+
+                }
                 for (int i = 0; i < GitToolCommands.GitExtCommands.Count; i++)
                 {
+                    
                     cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitExtCommand1 + i);
                     var mc = new MenuCommand(new EventHandler(OnGitExtCommandExec), cmd);
                     mcs.AddCommand(mc);
                 }
 
+               
                 for (int i = 0; i < GitToolCommands.GitTorCommands.Count; i++)
                 {
+                    
                     cmd = new CommandID(GuidList.guidSccProviderCmdSet, CommandId.icmdGitTorCommand1 + i);
                     var mc = new MenuCommand(new EventHandler(OnGitTorCommandExec), cmd);
                     mcs.AddCommand(mc);
@@ -272,7 +292,7 @@ namespace GitScc
                 prgCmds[0].cmdf = (uint)cmdf;
                 return VSConstants.S_OK;
             }
-
+            
             // Process our Commands
             switch (prgCmds[0].cmdID)
             {
